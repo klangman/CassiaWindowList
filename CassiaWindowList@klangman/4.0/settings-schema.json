@@ -29,37 +29,37 @@
 
     "caption-settings" : {
       "type" : "section",
-      "title" : "Window List Button Label Settings",
+      "title" : "Window list button label settings",
       "keys" : ["caption-type", "display-caption-for", "display-caption-for-pined", "display-indicators", "label-width", "label-animation", "label-animation-time"]
     },
     "caption-number-settings" : {
       "type" : "section",
-      "title" : "Application Groups Number Label Settings",
+      "title" : "Application groups number label settings",
       "keys" : ["display-number", "number-style"]
     },
     "general-settings" : {
       "type" : "section",
-      "title" : "General Window List Settings",
+      "title" : "General window wist settings",
       "keys" : ["group-windows", "display-pinned", "trailing-pinned-behaviour", "animation-time", "show-windows-for-current-monitor"]
     },
     "general-mouse" : {
       "type" : "section",
-      "title" : "Window List Mouse Settings",
+      "title" : "Window list mouse settings",
     "keys" : ["mouse-action-btn2", "mouse-action-btn8", "mouse-action-btn9"]
     },
     "preview-settings" : {
       "type" : "section",
-      "title" : "Thumbnails Menu Settings",
+      "title" : "Thumbnails menu settings",
       "keys" : ["show-previews", "number-of-unshrunk-previews", "preview-timeout-show", "preview-timeout-hide"]
     },
     "preview-mouse-section" : {
       "type" : "section",
-      "title" : "Thumbnails Mouse Settings",
+      "title" : "Thumbnails mouse settings",
       "keys" : ["menu-show-on-hover", "menu-show-on-click", "wheel-adjusts-preview-size", "preview-middle-click", "preview-back-click", "preview-forward-click"]
     },
     "hotkey-settings" : {
       "type" : "section",
-      "title" : "Hotkey Settings",
+      "title" : "Hotkey settings",
       "keys" : ["hotkey-bindings", "hotkey-minimize", "hotkey-new", "hotkey-help"]
     }
   },
@@ -70,7 +70,7 @@
       "Application Name": 0,
       "Window Title": 1
     },
-    "description": "Label Type",
+    "description": "Label contents",
     "tooltip": "What the content of the label will be"
   },
   "display-caption-for": {
@@ -80,10 +80,10 @@
       "Never": 0,
       "Always": 1,
       "Focused": 2,
-      "One per app pool": 3
+      "One per application pool": 3
     },
     "description": "Display Labels For Window List Buttons",
-    "tooltip": "Never: No windows get labels\nAlways: All windows get labels\nFocused: The window with focus will have a label\nOne per app pool: Only one label for a set of adjacent application windows"
+    "tooltip": "Never: No windows get labels\nAlways: All windows get labels\nFocused: The window with focus will have a label\nOne per application pool: Only one label for a set of adjacent application windows"
   },
   "display-caption-for-pined": {
     "type": "combobox",
@@ -94,7 +94,7 @@
       "Running": 2,
       "Focused": 3
     },
-    "description": "Display Labels For Pinned Buttons",
+    "description": "Display labels for pinned buttons",
     "tooltip": "Never: No pinned windows will have a label\nAlways: All pinned windows will have labels\nRunning: Only pinned window that are running will have a label\nFocused: Only the pinned window with focus will have a label"
   },
   "display-indicators": {
@@ -102,9 +102,9 @@
     "default": 3,
     "options": {
       "None": 0,
-      "Minimized Windows": 1,
-      "Pinned Applications": 2,
-      "Minimized and Pinned": 3,
+      "Minimized windows": 1,
+      "Pinned applications": 2,
+      "Minimized and pinned": 3,
       "Automatic": 7
     },
     "description": "Display status indicators",
@@ -147,7 +147,7 @@
       "Always": 1,
       "2 or more windows": 2
     },
-    "description": "Display Number"
+    "description": "Display number"
   },
   "number-style": {
     "type": "combobox",
@@ -156,7 +156,7 @@
       "Icon overlay": 0,
       "Caption prepend": 1
     },
-    "description": "Number Style"
+    "description": "Number style"
   },
 
 
@@ -169,13 +169,13 @@
       "Automatic": 2,
       "Off": 3
     },
-    "description": "Window Grouping",
+    "description": "Application window grouping",
     "tooltip": "Grouped: all windows from an application are managed by the same button,\nPooled: All windows from an application are pooled together side by side,\nAutomatic: Windows are pooled, and then grouped when space is limited.\nOff: all windows get there own button and are not grouped together"
   },
   "display-pinned": {
     "type": "switch",
     "default": true,
-    "description": "Allow pinning of window list buttons"
+    "description": "Allow Pinning of Window List Buttons"
   },
   "animation-time": {
     "type": "spinbutton",
@@ -184,7 +184,7 @@
     "max": 10000,
     "units": "milliseconds",
     "step": 1,
-    "description": "Animation Time",
+    "description": "Animation time",
     "tooltip": "The flashing time when a new window is opened via a button"
   },
   "show-windows-for-current-monitor": {
@@ -208,14 +208,16 @@
     "tooltip": "If enabled, the popup menu will show window thumbnails\n(Always disabled when running Cinnamon in Software Rendering Mode)"
   },
   "number-of-unshrunk-previews": {
-    "type": "spinbutton",
-    "default": 8,
-    "min": 5,
-    "max": 20,
-    "units": "Windows",
-    "step": 1,
-    "description": "Set the default thumbnail size to accommodate",
-    "tooltip": "A smaller number gives a larger default thumbnail window size"
+    "type": "combobox",
+    "default": 7,
+    "options": {
+      "Extra large": 4,
+      "Large": 5,
+      "Medium": 7,
+      "Small": 9,
+      "Extra small": 11
+    },
+    "description": "Default thumbnail window size"
   },
   "preview-timeout-show": {
     "type": "spinbutton",
@@ -224,7 +226,7 @@
     "max": 10000,
     "units": "milliseconds",
     "step": 1,
-    "description": "Timeout Show",
+    "description": "Timeout show",
     "tooltip": "The waiting time before the thumbnail menu appears when hovering over a button\n(Not used when moving directly to a different button in the list)"
   },
   "preview-timeout-hide": {
@@ -234,7 +236,7 @@
     "max": 10000,
     "units": "milliseconds",
     "step": 1,
-    "description": "Timeout Hide",
+    "description": "Timeout hide",
     "tooltip": "The waiting time for the thumbnail menu to close when leaving a button\n(Not used when moving directly to a different button in the list)"
   },
   "preview-middle-click": {
@@ -318,7 +320,7 @@
       "Visible on this/all workspaces": 11,
       "Do nothing": 12
     },
-    "description": "Middle Button",
+    "description": "Middle button",
     "tooltip": "Action taken when using the middle mouse button on window list entries"
   },
   "mouse-action-btn8": {
@@ -339,7 +341,7 @@
       "Visible on this/all workspaces": 11,
       "Do nothing": 12
     },
-    "description": "Back Button",
+    "description": "Back button",
     "tooltip": "Action taken when using the back mouse button on window list entries"
   },
   "mouse-action-btn9": {
@@ -360,7 +362,7 @@
       "Visible on this/all workspaces": 11,
       "Do nothing": 12
     },
-    "description": "Forward Button",
+    "description": "Forward button",
     "tooltip": "Action taken when using the forward mouse button on window list entries"
   },
 
@@ -376,8 +378,8 @@
     "description" : "Hotkey binding available for assignment to a window",
     "columns" : [
         {"id": "enabled",     "title": "Enabled",      "type": "boolean", "default": true},
-        {"id": "cycle",       "title": "Cycle App Windows", "type": "boolean", "default": false},
-        {"id": "keyCombo",    "title": "Key Sequence", "type": "keybinding"},
+        {"id": "cycle",       "title": "Cycle application windows", "type": "boolean", "default": false},
+        {"id": "keyCombo",    "title": "Key sequence", "type": "keybinding"},
         {"id": "description", "title": "Description",  "type": "string"}
     ],
     "tooltip": "Define a list of hotkeys used to bring to the foreground specific windows.",
