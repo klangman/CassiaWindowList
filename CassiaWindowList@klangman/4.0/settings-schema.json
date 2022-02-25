@@ -39,7 +39,7 @@
     },
     "general-settings" : {
       "type" : "section",
-      "title" : "General window wist settings",
+      "title" : "General window list settings",
       "keys" : ["group-windows", "display-pinned", "trailing-pinned-behaviour", "animation-time", "show-windows-for-current-monitor"]
     },
     "general-mouse" : {
@@ -175,7 +175,7 @@
   "display-pinned": {
     "type": "switch",
     "default": true,
-    "description": "Allow Pinning of Window List Buttons"
+    "description": "Allow pinning of window list buttons"
   },
   "animation-time": {
     "type": "spinbutton",

@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2022-02-23 09:38-0500\n"
+"POT-Creation-Date: 2022-02-25 09:35-0500\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -141,31 +141,31 @@ msgid "Hotkeys"
 msgstr ""
 
 #. 4.0->settings-schema.json->caption-settings->title
-msgid "Window List Button Label Settings"
+msgid "Window list button label settings"
 msgstr ""
 
 #. 4.0->settings-schema.json->caption-number-settings->title
-msgid "Application Groups Number Label Settings"
+msgid "Application groups number label settings"
 msgstr ""
 
 #. 4.0->settings-schema.json->general-settings->title
-msgid "General Window List Settings"
+msgid "General window list settings"
 msgstr ""
 
 #. 4.0->settings-schema.json->general-mouse->title
-msgid "Window List Mouse Settings"
+msgid "Window list mouse settings"
 msgstr ""
 
 #. 4.0->settings-schema.json->preview-settings->title
-msgid "Thumbnails Menu Settings"
+msgid "Thumbnails menu settings"
 msgstr ""
 
 #. 4.0->settings-schema.json->preview-mouse-section->title
-msgid "Thumbnails Mouse Settings"
+msgid "Thumbnails mouse settings"
 msgstr ""
 
 #. 4.0->settings-schema.json->hotkey-settings->title
-msgid "Hotkey Settings"
+msgid "Hotkey settings"
 msgstr ""
 
 #. 4.0->settings-schema.json->caption-type->options
@@ -177,7 +177,7 @@ msgid "Window Title"
 msgstr ""
 
 #. 4.0->settings-schema.json->caption-type->description
-msgid "Label Type"
+msgid "Label contents"
 msgstr ""
 
 #. 4.0->settings-schema.json->caption-type->tooltip
@@ -202,7 +202,7 @@ msgid "Focused"
 msgstr ""
 
 #. 4.0->settings-schema.json->display-caption-for->options
-msgid "One per app pool"
+msgid "One per application pool"
 msgstr ""
 
 #. 4.0->settings-schema.json->display-caption-for->description
@@ -214,7 +214,7 @@ msgid ""
 "Never: No windows get labels\n"
 "Always: All windows get labels\n"
 "Focused: The window with focus will have a label\n"
-"One per app pool: Only one label for a set of adjacent application windows"
+"One per application pool: Only one label for a set of adjacent application windows"
 msgstr ""
 
 #. 4.0->settings-schema.json->display-caption-for-pined->options
@@ -222,7 +222,7 @@ msgid "Running"
 msgstr ""
 
 #. 4.0->settings-schema.json->display-caption-for-pined->description
-msgid "Display Labels For Pinned Buttons"
+msgid "Display labels for pinned buttons"
 msgstr ""
 
 #. 4.0->settings-schema.json->display-caption-for-pined->tooltip
@@ -238,15 +238,15 @@ msgid "None"
 msgstr ""
 
 #. 4.0->settings-schema.json->display-indicators->options
-msgid "Minimized Windows"
+msgid "Minimized windows"
 msgstr ""
 
 #. 4.0->settings-schema.json->display-indicators->options
-msgid "Pinned Applications"
+msgid "Pinned applications"
 msgstr ""
 
 #. 4.0->settings-schema.json->display-indicators->options
-msgid "Minimized and Pinned"
+msgid "Minimized and pinned"
 msgstr ""
 
 #. 4.0->settings-schema.json->display-indicators->options
@@ -296,7 +296,7 @@ msgid "2 or more windows"
 msgstr ""
 
 #. 4.0->settings-schema.json->display-number->description
-msgid "Display Number"
+msgid "Display number"
 msgstr ""
 
 #. 4.0->settings-schema.json->number-style->options
@@ -308,7 +308,7 @@ msgid "Caption prepend"
 msgstr ""
 
 #. 4.0->settings-schema.json->number-style->description
-msgid "Number Style"
+msgid "Number style"
 msgstr ""
 
 #. 4.0->settings-schema.json->group-windows->options
@@ -324,7 +324,7 @@ msgid "Off"
 msgstr ""
 
 #. 4.0->settings-schema.json->group-windows->description
-msgid "Window Grouping"
+msgid "Application window grouping"
 msgstr ""
 
 #. 4.0->settings-schema.json->group-windows->tooltip
@@ -340,7 +340,7 @@ msgid "Allow pinning of window list buttons"
 msgstr ""
 
 #. 4.0->settings-schema.json->animation-time->description
-msgid "Animation Time"
+msgid "Animation time"
 msgstr ""
 
 #. 4.0->settings-schema.json->animation-time->tooltip
@@ -377,20 +377,32 @@ msgid ""
 "(Always disabled when running Cinnamon in Software Rendering Mode)"
 msgstr ""
 
-#. 4.0->settings-schema.json->number-of-unshrunk-previews->units
-msgid "Windows"
+#. 4.0->settings-schema.json->number-of-unshrunk-previews->options
+msgid "Extra large"
+msgstr ""
+
+#. 4.0->settings-schema.json->number-of-unshrunk-previews->options
+msgid "Large"
+msgstr ""
+
+#. 4.0->settings-schema.json->number-of-unshrunk-previews->options
+msgid "Medium"
+msgstr ""
+
+#. 4.0->settings-schema.json->number-of-unshrunk-previews->options
+msgid "Small"
+msgstr ""
+
+#. 4.0->settings-schema.json->number-of-unshrunk-previews->options
+msgid "Extra small"
 msgstr ""
 
 #. 4.0->settings-schema.json->number-of-unshrunk-previews->description
-msgid "Set the default thumbnail size to accommodate"
-msgstr ""
-
-#. 4.0->settings-schema.json->number-of-unshrunk-previews->tooltip
-msgid "A smaller number gives a larger default thumbnail window size"
+msgid "Default thumbnail window size"
 msgstr ""
 
 #. 4.0->settings-schema.json->preview-timeout-show->description
-msgid "Timeout Show"
+msgid "Timeout show"
 msgstr ""
 
 #. 4.0->settings-schema.json->preview-timeout-show->tooltip
@@ -400,7 +412,7 @@ msgid ""
 msgstr ""
 
 #. 4.0->settings-schema.json->preview-timeout-hide->description
-msgid "Timeout Hide"
+msgid "Timeout hide"
 msgstr ""
 
 #. 4.0->settings-schema.json->preview-timeout-hide->tooltip
@@ -540,7 +552,7 @@ msgid "Thumbnail menu hold"
 msgstr ""
 
 #. 4.0->settings-schema.json->mouse-action-btn2->description
-msgid "Middle Button"
+msgid "Middle button"
 msgstr ""
 
 #. 4.0->settings-schema.json->mouse-action-btn2->tooltip
@@ -548,7 +560,7 @@ msgid "Action taken when using the middle mouse button on window list entries"
 msgstr ""
 
 #. 4.0->settings-schema.json->mouse-action-btn8->description
-msgid "Back Button"
+msgid "Back button"
 msgstr ""
 
 #. 4.0->settings-schema.json->mouse-action-btn8->tooltip
@@ -556,7 +568,7 @@ msgid "Action taken when using the back mouse button on window list entries"
 msgstr ""
 
 #. 4.0->settings-schema.json->mouse-action-btn9->description
-msgid "Forward Button"
+msgid "Forward button"
 msgstr ""
 
 #. 4.0->settings-schema.json->mouse-action-btn9->tooltip
@@ -583,11 +595,11 @@ msgid "Enabled"
 msgstr ""
 
 #. 4.0->settings-schema.json->hotkey-bindings->columns->title
-msgid "Cycle App Windows"
+msgid "Cycle application windows"
 msgstr ""
 
 #. 4.0->settings-schema.json->hotkey-bindings->columns->title
-msgid "Key Sequence"
+msgid "Key sequence"
 msgstr ""
 
 #. 4.0->settings-schema.json->hotkey-bindings->columns->title
