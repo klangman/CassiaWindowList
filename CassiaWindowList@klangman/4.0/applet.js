@@ -27,6 +27,7 @@ const Cinnamon = imports.gi.Cinnamon;
 const Lang = imports.lang;
 const GLib = imports.gi.GLib;
 const Gdk = imports.gi.Gdk;
+const Gtk = imports.gi.Gtk;
 const Gio = imports.gi.Gio;
 const Tweener = imports.ui.tweener;
 const Signals = imports.signals;
@@ -633,6 +634,7 @@ class ThumbnailMenu extends PopupMenu.PopupMenu {
     this.recalcItemSizes();
 
     this._appButton._computeMousePos();
+    this._appButton._workspace.currentMenu = this;
     super.open(false);
   }
 
@@ -644,6 +646,7 @@ class ThumbnailMenu extends PopupMenu.PopupMenu {
     this.removeDelay();
     super.close(false);
     this.removeAll();
+    this._appButton._workspace.currentMenu = undefined;
     this.numThumbs = this._settings.getValue("number-of-unshrunk-previews"); // reset the preview window size in case scroll-wheel zooming occurred.
   }
 
@@ -1479,7 +1482,7 @@ class WindowListButton {
      let direction = event.get_scroll_direction();
      if (numThumbs > this.menu.numMenuItems && numThumbs > 2 && direction == 0 /*UP*/) {
         numThumbs -= 0.5;
-     } else if (numThumbs < 25 && direction == 1 /*Down*/){
+     } else if (numThumbs < 15 && direction == 1 /*Down*/){
         numThumbs += 0.5;
      } else {
         return;
@@ -1492,8 +1495,8 @@ class WindowListButton {
   _performMouseAction(action, window, menu=undefined) {
       switch (action) {
         case MouseAction.Preview:
-           if (this.menu.isOpen) {
-              this.menu.close();
+           if (this._workspace.currentMenu) {
+              this._workspace.currentMenu.close()
            } else {
               this.menu.open();
            }
@@ -1669,15 +1672,15 @@ class WindowListButton {
     this._contextMenu.addMenuItem(item);
 
     if (this._settings.getValue("display-pinned") && !this._app.is_window_backed()) {
-      let iconName = this._pinned ? "starred" : "non-starred";
+      let iconName = this._pinned ? "unpin" : "pin";
       item = new PopupMenu.PopupSwitchIconMenuItem(_("Pin to this workspace"), this._pinned, iconName, St.IconType.SYMBOLIC);
       item.connect("toggled", Lang.bind(this, function(menuItem, state) {
         if (state) {
           this._workspace.pinAppButton(this);
-          menuItem.setIconSymbolicName("starred");
+          menuItem.setIconSymbolicName("unpin");
         } else {
           this._workspace.unpinAppButton(this);
-          menuItem.setIconSymbolicName("non-starred");
+          menuItem.setIconSymbolicName("pin");
         }
       }));
       this._contextMenu.addMenuItem(item);
@@ -1692,21 +1695,36 @@ class WindowListButton {
           }
           let name = Main.getWorkspaceName(i);
           let pinned = pinSettings[i].indexOf(appId) >= 0;
-          let iconName = pinned ? "starred" : "non-starred";
+          let iconName = pinned ? "unpin" : "pin";
           let ws = new PopupMenu.PopupSwitchIconMenuItem(name, pinned, iconName, St.IconType.SYMBOLIC);
           let j = i;
           ws.connect("toggled", Lang.bind(this, function(menuItem, state) {
             if (state) {
               this._applet._workspaces[j].pinAppId(appId);
-              menuItem.setIconSymbolicName("starred");
+              menuItem.setIconSymbolicName("unpin");
             } else {
               this._applet._workspaces[j].unpinAppId(appId);
-              menuItem.setIconSymbolicName("non-starred");
+              menuItem.setIconSymbolicName("pin");
             }
           }));
           item.menu.addMenuItem(ws);
         }
         this._contextMenu.addMenuItem(item);
+      }
+    }
+
+    // Recent File menu items
+    let recentFiles = this.getRecentFiles();
+    if (recentFiles.length > 0) {
+      this._contextMenu.addMenuItem(new PopupMenu.PopupSeparatorMenuItem());
+      item = new PopupMenu.PopupSubMenuMenuItem(_("Recent files"));
+      this._contextMenu.addMenuItem(item);
+      for (let i=0 ; i < recentFiles.length ; i++) {
+         let fileItem = new PopupMenu.PopupIconMenuItem(recentFiles[i].get_short_name(), "list-add", St.IconType.SYMBOLIC);
+         fileItem.connect("activate", Lang.bind(this, function() {
+               Gio.app_info_launch_default_for_uri(recentFiles[i].get_uri(), global.create_app_launch_context());
+               }));
+         item.menu.addMenuItem(fileItem);
       }
     }
 
@@ -1816,7 +1834,7 @@ class WindowListButton {
                let workspace = this._applet.getCurrentWorkSpace();
                workspace._keyBindingsWindows[idx] = metaWindow;
                }));
-          item.menu.addMenuItem(hotKeyItem);  
+            item.menu.addMenuItem(hotKeyItem);
          }
       }
 
@@ -1913,6 +1931,19 @@ class WindowListButton {
       this._contextMenu.addMenuItem(item);
     }
   }
+
+  // Return a list of the Recent Files that match the mime type of this buttons application
+  getRecentFiles(){
+     let ret = [];
+     let items = Gtk.RecentManager.get_default().get_items();
+     for ( let i=0 ; i<items.length ; i++ ) {
+        let appInfo = Gio.app_info_get_default_for_type(items[i].get_mime_type(), false);
+        if (appInfo && this._app.get_id() === appInfo.get_id()){
+           ret.push(items[i]);
+        }
+     }
+     return ret;
+  }
 }
 
 // Represents a windowlist on a workspace (one for each workspace)
@@ -1939,6 +1970,7 @@ class Workspace {
     this._appSys = Cinnamon.AppSystem.get_default();
 
     this.menuManager = new ThumbnailMenuManager(this);
+    this.currentMenu = undefined; // The currently open Thumbnail menu
 
     this._appButtons = [];
     this._settings = this._applet._settings;
@@ -2162,34 +2194,35 @@ class Workspace {
   }
 
   _windowRemoved(metaWindow) {
-    let appButton = this._lookupAppButtonForWindow(metaWindow);
-    if (appButton) {
-      appButton.removeWindow(metaWindow);
-      if (appButton._windows.length === 0 && (appButton._pinned===false || this._settings.getValue("display-pinned")===false)) {
-        this._removeAppButton(appButton);
-      }
-      // If pinned, look for other windows and move one to this pinned button
-      if (appButton._pinned) {
-         let btns = this._lookupAllAppButtonsForApp(appButton._app);
-         if (btns.length > 1) {
-            let i = (btns[0] == appButton)?1:0;
-            let window = btns[i]._windows[0];
-            btns[i].removeWindow(window);
-            appButton.addWindow(window);
-            this._removeAppButton(btns[i]);
-         }
-      }
-      // Remove any hot key bindings.
-      let i = this._keyBindingsWindows.lastIndexOf(metaWindow);
-      while (i!=-1) {
-        this._keyBindingsWindows[i] = undefined;
-        // Since we removed a window from a hotkey, maybe there is another window that can get this hot key?
-        this._applet.assignHotKeysToExistingWindows(this._applet._keyBindings[i].description, i);
-        i = this._keyBindingsWindows.lastIndexOf(metaWindow);
-      }
-      // Now that we removed a window, see if there is enough space to expand automatically grouped windows
-      this._tryExpandingAppGroups();
-    }
+     let appButton = this._lookupAppButtonForWindow(metaWindow);
+     if (appButton) {
+        appButton.removeWindow(metaWindow);
+        if (appButton._windows.length === 0 && (appButton._pinned===false || this._settings.getValue("display-pinned")===false)) {
+           this._removeAppButton(appButton);
+        } else {
+           // If pinned, look for other windows and move one to this pinned button
+           if (appButton._pinned) {
+              let btns = this._lookupAllAppButtonsForApp(appButton._app);
+              if (btns.length > 1) {
+                 let i = (btns[0] == appButton)?1:0;
+                 let window = btns[i]._windows[0];
+                 btns[i].removeWindow(window);
+                 appButton.addWindow(window);
+                 this._removeAppButton(btns[i]);
+              }
+           }
+        }
+        // Remove any hot key bindings.
+        let i = this._keyBindingsWindows.lastIndexOf(metaWindow);
+        while (i!=-1) {
+           this._keyBindingsWindows[i] = undefined;
+           // Since we removed a window from a hotkey, maybe there is another window that can get this hot key?
+           this._applet.assignHotKeysToExistingWindows(this._applet._keyBindings[i].description, i);
+           i = this._keyBindingsWindows.lastIndexOf(metaWindow);
+        }
+        // Now that we removed a window, see if there is enough space to expand automatically grouped windows
+        this._tryExpandingAppGroups();
+     }
   }
 
   _updateAllWindowsForMonitor() {
@@ -2412,8 +2445,8 @@ class Workspace {
     let window = global.display.get_focus_window();
     if (window) {
        let newFocus = this._lookupAppButtonForWindow(window);
-       if (newFocus && newFocus != this._currentFocus) {
-          if (this._currentFocus) {
+       if (newFocus) {
+          if (this._currentFocus && newFocus != this._currentFocus) {
              this._currentFocus._updateFocus();
           }
           newFocus._updateFocus();
@@ -2842,6 +2875,17 @@ class WindowList extends Applet.Applet {
      this._keyBindings = keyBindings;
   }
 
+  _updateThumbnailWindowSize(){
+     let size = this._settings.getValue("number-of-unshrunk-previews");
+     for (let wsIdx=0 ; wsIdx<this._workspaces.length ; wsIdx++) {
+        let ws = this._workspaces[wsIdx];
+        for (let btnIdx=0 ; btnIdx < ws._appButtons.length ; btnIdx++) {
+           let btn = ws._appButtons[btnIdx];
+           btn.menu.numThumbs = size;
+        }
+     }
+  }
+
   _updateIndicators() {
      this.indicators = this._settings.getValue("display-indicators");
      for (let wsIdx=0 ; wsIdx<this._workspaces.length ; wsIdx++) {
@@ -2940,6 +2984,7 @@ class WindowList extends Applet.Applet {
     this._signalManager.connect(Main.layoutManager, "monitors-changed", this._updateMonitor, this);
     this._signalManager.connect(this._settings, "changed::hotkey-bindings", this._updateKeybinding, this);
     this._signalManager.connect(this._settings, "changed::display-indicators", this._updateIndicators, this);
+    this._signalManager.connect(this._settings, "changed::number-of-unshrunk-previews", this._updateThumbnailWindowSize, this);
   }
 
   on_applet_removed_from_panel() {

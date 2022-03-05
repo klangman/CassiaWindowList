@@ -67,8 +67,8 @@
     "type": "combobox",
     "default": 0,
     "options": {
-      "Application Name": 0,
-      "Window Title": 1
+      "Application name": 0,
+      "Window title": 1
     },
     "description": "Label contents",
     "tooltip": "What the content of the label will be"
