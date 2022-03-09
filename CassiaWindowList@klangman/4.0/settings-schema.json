@@ -170,7 +170,7 @@
       "Off": 3
     },
     "description": "Application window grouping",
-    "tooltip": "Grouped: all windows from an application are managed by the same button,\nPooled: All windows from an application are pooled together side by side,\nAutomatic: Windows are pooled, and then grouped when space is limited.\nOff: all windows get there own button and are not grouped together"
+    "tooltip": "Grouped: all windows for an application are managed by the same button,\nPooled: All windows for an application are pooled together side by side,\nAutomatic: Windows are pooled, and then grouped when space is limited.\nOff: all windows get there own button and are not grouped together"
   },
   "display-pinned": {
     "type": "switch",

@@ -61,6 +61,53 @@ const PANEL_EDIT_MODE_KEY = "panel-edit-mode";
 
 const STYLE_CLASS_ATTENTION_STATE = "grouped-window-list-item-demands-attention";
 
+// Standard icons list borrowed from the cinnamon grouped-window-list
+const ICON_NAMES = {
+   area_shot: 'screenshot-area',
+   base: 'x-office-database',
+   big_picture: 'view-fullscreen',
+   calc: 'x-office-spreadsheet',
+   community: 'system-users',
+   compose: 'text-editor',
+   contacts: 'x-office-address-book',
+   document: 'document-new',
+   draw: 'x-office-drawing',
+   friends: 'user-available',
+   fullscreen: 'view-fullscreen',
+   impress: 'x-office-presentation',
+   library: 'accessories-dictionary',
+   math: 'x-office-math',
+   mute: 'audio-volume-muted',
+   new_document: 'document-new',
+   new_private_window: 'security-high',  //'view-private',
+   new_root_window: 'dialog-password', 
+   news: 'news-subscribe',               //'news',
+   new_session: 'tab-new-symbolic',
+   new_window: 'window-new',
+   next: 'media-skip-forward',
+   open_computer: 'computer',
+   open_home: 'user-home',
+   open_trash: 'user-trash',
+   play: 'media-playback-start',
+   play_pause: 'media-playback-start',
+   preferences: 'preferences-other',
+   prefs: 'preferences-other',
+   previous: 'media-skip-backward',
+   screen_shot: 'view-fullscreen',     //'screenshot-fullscreen',
+   screenshots: 'applets-screenshooter',
+   servers: 'network-server',
+   settings: 'preferences-other',
+   ssa: 'screenshot-area',
+   ssf: 'view-fullscreen',           //'screenshot-fullscreen',
+   ssw: 'window',                    //'screenshot-window',
+   stop_quit: 'media-playback-stop',
+   store: 'applications-games',      //'store',
+   window: 'window-new',
+   window_shot: 'window',           //'screenshot-window',
+   writer: 'x-office-document'
+}
+
+
 // The possible user setting for the caption contents
 const CaptionType = {
   Name: 0,           // Caption is set to the Application Name (i.e. Firefox)
@@ -634,7 +681,6 @@ class ThumbnailMenu extends PopupMenu.PopupMenu {
     this.recalcItemSizes();
 
     this._appButton._computeMousePos();
-    this._appButton._workspace.currentMenu = this;
     super.open(false);
   }
 
@@ -646,7 +692,6 @@ class ThumbnailMenu extends PopupMenu.PopupMenu {
     this.removeDelay();
     super.close(false);
     this.removeAll();
-    this._appButton._workspace.currentMenu = undefined;
     this.numThumbs = this._settings.getValue("number-of-unshrunk-previews"); // reset the preview window size in case scroll-wheel zooming occurred.
   }
 
@@ -1298,6 +1343,8 @@ class WindowListButton {
         this._inhibitLabel = false;
         break;
     }
+    this.menu = new ThumbnailMenu(this); // Hack to make sure the menu location is corrected.
+    this._updateLabel()
   }
 
   _flashButton() {
@@ -1495,9 +1542,11 @@ class WindowListButton {
   _performMouseAction(action, window, menu=undefined) {
       switch (action) {
         case MouseAction.Preview:
-           if (this._workspace.currentMenu) {
+           if (this._workspace.currentMenu && this._workspace.currentMenu.isOpen) {
               this._workspace.currentMenu.close()
+              this._workspace.currentMenu = undefined;
            } else {
+              this._workspace.currentMenu = this.menu;
               this.menu.open();
            }
            break;
@@ -1672,15 +1721,15 @@ class WindowListButton {
     this._contextMenu.addMenuItem(item);
 
     if (this._settings.getValue("display-pinned") && !this._app.is_window_backed()) {
-      let iconName = this._pinned ? "unpin" : "pin";
+      let iconName = this._pinned ? "starred" : "non-starred";
       item = new PopupMenu.PopupSwitchIconMenuItem(_("Pin to this workspace"), this._pinned, iconName, St.IconType.SYMBOLIC);
       item.connect("toggled", Lang.bind(this, function(menuItem, state) {
         if (state) {
           this._workspace.pinAppButton(this);
-          menuItem.setIconSymbolicName("unpin");
+          menuItem.setIconSymbolicName("starred");
         } else {
           this._workspace.unpinAppButton(this);
-          menuItem.setIconSymbolicName("pin");
+          menuItem.setIconSymbolicName("non-starred");
         }
       }));
       this._contextMenu.addMenuItem(item);
@@ -1695,16 +1744,16 @@ class WindowListButton {
           }
           let name = Main.getWorkspaceName(i);
           let pinned = pinSettings[i].indexOf(appId) >= 0;
-          let iconName = pinned ? "unpin" : "pin";
+          let iconName = pinned ? "starred" : "non-starred";
           let ws = new PopupMenu.PopupSwitchIconMenuItem(name, pinned, iconName, St.IconType.SYMBOLIC);
           let j = i;
           ws.connect("toggled", Lang.bind(this, function(menuItem, state) {
             if (state) {
               this._applet._workspaces[j].pinAppId(appId);
-              menuItem.setIconSymbolicName("unpin");
+              menuItem.setIconSymbolicName("starred");
             } else {
               this._applet._workspaces[j].unpinAppId(appId);
-              menuItem.setIconSymbolicName("pin");
+              menuItem.setIconSymbolicName("non-starred");
             }
           }));
           item.menu.addMenuItem(ws);
@@ -1759,8 +1808,16 @@ class WindowListButton {
         for (let i = 0; i < actions.length; i++) {
           let action = actions[i];
           let displayName = appInfo.get_action_name(action);
-
-          let actionItem = new PopupMenu.PopupMenuItem(displayName);
+          let actionProp = action.replace(/([A-Z])/g, '_$1').replace(/-/g, '_').toLowerCase();
+          if (actionProp[0] == '_') actionProp = actionProp.slice(1);
+          let actionItem;
+          if (ICON_NAMES.hasOwnProperty(actionProp)) {
+             log( actionProp+": found property, icon: "+ICON_NAMES[actionProp] );
+             actionItem = new PopupMenu.PopupIconMenuItem(displayName, ICON_NAMES[actionProp], St.IconType.SYMBOLIC);
+          } else {
+             log( actionProp+": property not found!" );
+             actionItem = new PopupMenu.PopupMenuItem(displayName);
+          }
           actionItem.connect("activate", Lang.bind(this, function() {
             appInfo.launch_action(action, global.create_app_launch_context());
           }));
@@ -2801,6 +2858,7 @@ class WindowList extends Applet.Applet {
            Main.keybindingManager.addHotKey("hotkey-" + i + this.instanceId, keyBindings[i].keyCombo, Lang.bind(this, function() {
                  // Hotkey handler function!!!
                  //
+                 //log( "Hotkey pressed for "+this._keyBindings[idx].description );
                  let minimize = this._settings.getValue("hotkey-minimize");
                  let workspace = this.getCurrentWorkSpace();
                  if (workspace._keyBindingsWindows.length > idx && workspace._keyBindingsWindows[idx] != undefined) {
@@ -2844,7 +2902,7 @@ class WindowList extends Applet.Applet {
                     } else {
                        Main.activateWindow(workspace._keyBindingsWindows[idx]);
                     }
-                 } else if(workspace._keyBindingsWindows.length > idx && this._keyBindings[idx].description && this._settings.getValue("hotkey-new")) {
+                 } else if(this._keyBindings[idx].description && this._settings.getValue("hotkey-new")) {
                     // The window is not bound. Start a new process if there is a pinned button matching the Description
                     for (let i=0 ; i < workspace._appButtons.length ; i++) {
                        if (workspace._appButtons[i]._pinned && workspace._appButtons[i]._app.get_name() == this._keyBindings[idx].description) {
