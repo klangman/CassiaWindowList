@@ -79,12 +79,15 @@ const ICON_NAMES = {
    math: 'x-office-math',
    mute: 'audio-volume-muted',
    new_document: 'document-new',
+   new_event: 'resource-calendar-insert',
+   new_message: 'mail-message',
    new_private_window: 'security-high',  //'view-private',
    new_root_window: 'dialog-password', 
    news: 'news-subscribe',               //'news',
    new_session: 'tab-new-symbolic',
    new_window: 'window-new',
    next: 'media-skip-forward',
+   open_calendar: 'view-calendar-month',
    open_computer: 'computer',
    open_home: 'user-home',
    open_trash: 'user-trash',
@@ -1812,7 +1815,6 @@ class WindowListButton {
           if (actionProp[0] == '_') actionProp = actionProp.slice(1);
           let actionItem;
           if (ICON_NAMES.hasOwnProperty(actionProp)) {
-             log( actionProp+": found property, icon: "+ICON_NAMES[actionProp] );
              actionItem = new PopupMenu.PopupIconMenuItem(displayName, ICON_NAMES[actionProp], St.IconType.SYMBOLIC);
           } else {
              log( actionProp+": property not found!" );
