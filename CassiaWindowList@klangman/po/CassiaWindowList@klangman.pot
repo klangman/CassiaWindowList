@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2022-03-09 21:48-0500\n"
+"POT-Creation-Date: 2022-03-14 08:27-0400\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -17,19 +17,19 @@ msgstr ""
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
 
-#: 4.0/applet.js:1701
+#: 4.0/applet.js:1742
 msgid "Preferences"
 msgstr ""
 
-#: 4.0/applet.js:1705
+#: 4.0/applet.js:1746
 msgid "About..."
 msgstr ""
 
-#: 4.0/applet.js:1709
+#: 4.0/applet.js:1750
 msgid "Configure..."
 msgstr ""
 
-#: 4.0/applet.js:1713
+#: 4.0/applet.js:1754
 #, javascript-format
 msgid "Remove '%s'"
 msgstr ""
@@ -40,83 +40,83 @@ msgstr ""
 #. 4.0->settings-schema.json->mouse-action-btn2->options
 #. 4.0->settings-schema.json->mouse-action-btn8->options
 #. 4.0->settings-schema.json->mouse-action-btn9->options
-#: 4.0/applet.js:1722
+#: 4.0/applet.js:1763
 msgid "Open new window"
 msgstr ""
 
-#: 4.0/applet.js:1728
+#: 4.0/applet.js:1769
 msgid "Pin to this workspace"
 msgstr ""
 
-#: 4.0/applet.js:1741
+#: 4.0/applet.js:1782
 msgid "Pin to other workspaces"
 msgstr ""
 
-#: 4.0/applet.js:1772
+#: 4.0/applet.js:1813
 msgid "Recent files"
 msgstr ""
 
-#: 4.0/applet.js:1796
+#: 4.0/applet.js:1837
 msgid "Places"
 msgstr ""
 
-#: 4.0/applet.js:1838
+#: 4.0/applet.js:1879
 msgid "Only on this workspace"
 msgstr ""
 
-#: 4.0/applet.js:1840
+#: 4.0/applet.js:1881
 msgid "Visible on all workspaces"
 msgstr ""
 
-#: 4.0/applet.js:1841
+#: 4.0/applet.js:1882
 msgid "Move to another workspace"
 msgstr ""
 
-#: 4.0/applet.js:1860
+#: 4.0/applet.js:1901
 msgid "Move to another monitor"
 msgstr ""
 
-#: 4.0/applet.js:1868
+#: 4.0/applet.js:1909
 msgid "Monitor"
 msgstr ""
 
-#: 4.0/applet.js:1884
+#: 4.0/applet.js:1925
 msgid "Assign window to a hotkey"
 msgstr ""
 
-#: 4.0/applet.js:1902
+#: 4.0/applet.js:1943
 msgid "Ungroup windows"
 msgstr ""
 
-#: 4.0/applet.js:1913
+#: 4.0/applet.js:1954
 msgid "Group windows"
 msgstr ""
 
-#: 4.0/applet.js:1921
+#: 4.0/applet.js:1962
 msgid "Automatic grouping/ungrouping"
 msgstr ""
 
-#: 4.0/applet.js:1949
+#: 4.0/applet.js:1990
 msgid "Restore"
 msgstr ""
 
-#: 4.0/applet.js:1953
+#: 4.0/applet.js:1994
 msgid "Minimize"
 msgstr ""
 
-#: 4.0/applet.js:1959
+#: 4.0/applet.js:2000
 msgid "Unmaximize"
 msgstr ""
 
-#: 4.0/applet.js:1966
+#: 4.0/applet.js:2007
 msgid "Close others"
 msgstr ""
 
-#: 4.0/applet.js:1977
+#: 4.0/applet.js:2018
 msgid "Close all"
 msgstr ""
 
-#: 4.0/applet.js:1986
+#: 4.0/applet.js:2027
 msgid "Close"
 msgstr ""
 
@@ -210,7 +210,7 @@ msgid "One per application pool"
 msgstr ""
 
 #. 4.0->settings-schema.json->display-caption-for->description
-msgid "Display Labels For Window List Buttons"
+msgid "Display labels for generic window list buttons"
 msgstr ""
 
 #. 4.0->settings-schema.json->display-caption-for->tooltip
@@ -235,6 +235,10 @@ msgid ""
 "Always: All pinned windows will have labels\n"
 "Running: Only pinned window that are running will have a label\n"
 "Focused: Only the pinned window with focus will have a label"
+msgstr ""
+
+#. 4.0->settings-schema.json->display-caption-for-minimized->description
+msgid "Display labels for minimized buttons"
 msgstr ""
 
 #. 4.0->settings-schema.json->display-indicators->options
@@ -324,6 +328,7 @@ msgid "Pooled"
 msgstr ""
 
 #. 4.0->settings-schema.json->group-windows->options
+#. 4.0->settings-schema.json->wheel-adjusts-preview-size->options
 msgid "Off"
 msgstr ""
 
@@ -580,14 +585,27 @@ msgid ""
 "Action taken when using the forward mouse button on window list entries"
 msgstr ""
 
+#. 4.0->settings-schema.json->wheel-adjusts-preview-size->options
+msgid "On (temporary)"
+msgstr ""
+
+#. 4.0->settings-schema.json->wheel-adjusts-preview-size->options
+msgid "On (global default)"
+msgstr ""
+
+#. 4.0->settings-schema.json->wheel-adjusts-preview-size->options
+msgid "On (application default)"
+msgstr ""
+
 #. 4.0->settings-schema.json->wheel-adjusts-preview-size->description
 msgid "Adjust the thumbnail window sizes using the scroll-wheel"
 msgstr ""
 
 #. 4.0->settings-schema.json->wheel-adjusts-preview-size->tooltip
 msgid ""
-"If enabled, the size of thumbnail windows will respond to the mouse scroll-"
-"wheel"
+"If enabled, the size of thumbnail windows will respond to the mouse scroll-wheel\n"
+"By default the size is reset after the menu is closed\n"
+"The other options allow remembering the new menu size globally or per application type"
 msgstr ""
 
 #. 4.0->settings-schema.json->hotkey-bindings->description

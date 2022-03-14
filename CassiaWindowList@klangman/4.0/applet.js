@@ -96,6 +96,7 @@ const ICON_NAMES = {
    preferences: 'preferences-other',
    prefs: 'preferences-other',
    previous: 'media-skip-backward',
+   profile_manager_window: 'avatar-default-symbolic',
    screen_shot: 'view-fullscreen',     //'screenshot-fullscreen',
    screenshots: 'applets-screenshooter',
    servers: 'network-server',
@@ -183,6 +184,13 @@ const IndicatorType = {
    Pinned: 2,
    Both: 3,
    Auto: 7
+}
+
+const ScrollWheelAction = {
+   Off: 0,
+   On: 1,
+   OnGlobal: 2,
+   OnApplication: 3
 }
 
 Gettext.bindtextdomain(UUID, GLib.get_home_dir() + "/.local/share/locale");
@@ -680,6 +688,9 @@ class ThumbnailMenu extends PopupMenu.PopupMenu {
       let window = windows[i];
       this.addWindow(window);
     }
+    let wheelSetting = this._settings.getValue("wheel-adjusts-preview-size");
+    if (wheelSetting===ScrollWheelAction.OnGlobal)
+       this.numThumbs = this._appButton._workspace.thumbnailSize;
     this.updateUrgentState();
     this.recalcItemSizes();
 
@@ -695,7 +706,9 @@ class ThumbnailMenu extends PopupMenu.PopupMenu {
     this.removeDelay();
     super.close(false);
     this.removeAll();
-    this.numThumbs = this._settings.getValue("number-of-unshrunk-previews"); // reset the preview window size in case scroll-wheel zooming occurred.
+    //this._appButton._workspace.currentMenu = undefined;
+    if (this._settings.getValue("wheel-adjusts-preview-size")<ScrollWheelAction.OnGlobal) // Off or On
+       this.numThumbs = this._settings.getValue("number-of-unshrunk-previews"); // reset the preview window size in case scroll-wheel zooming occurred.
   }
 
   addWindow(window) {
@@ -816,6 +829,7 @@ class ThumbnailMenuManager extends PopupMenu.PopupMenuManager {
     return DND.DragMotionResult.CONTINUE;
   }
 
+  /*
   addMenu(menu, position) {
     this._signals.connect(menu, 'open-state-changed', this._onMenuOpenState, this);
     this._signals.connect(menu, 'child-menu-added', this._onChildMenuAdded, this);
@@ -839,6 +853,7 @@ class ThumbnailMenuManager extends PopupMenu.PopupMenuManager {
       this._menus.splice(position, 0, menu);
     }
   }
+
 
   _onMenuSourceEnter(menu, checkPointer) {
     if (!this.grabbed || menu == this._activeMenu) {
@@ -918,6 +933,7 @@ class ThumbnailMenuManager extends PopupMenu.PopupMenuManager {
     }
     return false;
   }
+  */
 
   _findMenuForActor(dragEvent) {
     let actor = global.stage.get_actor_at_pos(Clutter.PickMode.ALL, dragEvent.x, dragEvent.y);
@@ -1000,13 +1016,14 @@ class WindowListButton {
     this._signalManager.connect(this.actor, "scroll-event", this._onScrollEvent, this);
     this._signalManager.connect(this._settings, "changed::caption-type", this._updateLabel, this);
     this._signalManager.connect(this._settings, "changed::display-caption-for-pined", this._updateLabel, this);
+    this._signalManager.connect(this._settings, "changed::display-caption-for-minimized", this._updateLabel, this);
     this._signalManager.connect(this._settings, "changed::display-caption-for", this._updateLabel, this);
     this._signalManager.connect(this._settings, "changed::display-number", this._updateNumber, this);
     this._signalManager.connect(this._settings, "changed::number-style", Lang.bind(this, function() { this._updateNumber(); this._updateLabel(); }), this);
     this._signalManager.connect(this._settings, "changed::label-width", this._updateLabel, this);
     this._signalManager.connect(this.actor, "enter-event", this._onEnterEvent, this);
     this._signalManager.connect(this.actor, "leave-event", this._onLeaveEvent, this);
-    this._signalManager.connect(this.actor, "motion-event", this._onMotionEvent, this);
+    //this._signalManager.connect(this.actor, "motion-event", this._onMotionEvent, this);
     this._signalManager.connect(this.actor, "notify::hover", this._updateVisualState, this);
 
     this._signalManager.connect(Main.themeManager, "theme-set", Lang.bind(this, function() {
@@ -1232,31 +1249,41 @@ class WindowListButton {
     let capType = this._settings.getValue("caption-type");
     let numSetting = this._settings.getValue("display-number");
     let pinnedSetting = this._settings.getValue("display-caption-for-pined");
+    let minimizedSetting = this._settings.getValue("display-caption-for-minimized");
     let style = this._settings.getValue("number-style");
+    let preferredWidth = this._settings.getValue("label-width");
     let number = this._windows.length;
     let text;
-    let preferredWidth = this._settings.getValue("label-width");
     let width = preferredWidth;
-    let btns = this._workspace._lookupAllAppButtonsForApp(this._app);
-    let appPinned = false;
+    let needsCaption = false;
 
-    let needsCaption = true;
     if (capSetting === DisplayCaption.One) {
+       // Check if the next button is for the same application
        let children = this._workspace.actor.get_children();
        let idx = children.indexOf(this.actor);
+       needsCaption = true;
        if (idx < children.length-1) {
-          if (btns.includes(children[idx+1]._delegate)) {
+          if (children[idx+1]._delegate._app == this._app) {
              needsCaption = false;
           }
        }
     }
 
-    for (let i=btns.length-1 ; i>=0 ; i--) if (btns[i]._pinned) {appPinned = true; break;}
+    if (this._currentWindow && this._currentWindow.minimized && (capSetting != DisplayCaption.One || needsCaption == true)) {
+          needsCaption = minimizedSetting;
+    } else if (this._pinned){
+       if (pinnedSetting === PinnedLabel.Always || (pinnedSetting === PinnedLabel.Focused && this._hasFocus()) || pinnedSetting === PinnedLabel.Running && number>0)
+          needsCaption = true;
+       else
+          needsCaption = false;
+    } else {
+       if (capSetting === DisplayCaption.All || (capSetting === DisplayCaption.Focused && this._hasFocus()))
+       {
+          needsCaption = true;
+       }
+    }
 
-    if (capSetting === DisplayCaption.All || (capSetting === DisplayCaption.Focused && this._hasFocus()) ||
-        (capSetting === DisplayCaption.One && needsCaption === true /*btns[btns.length-1] === this*/) ||
-        (appPinned && pinnedSetting === PinnedLabel.Focused && this._hasFocus()))
-    {
+    if (needsCaption) {
        if (capType === CaptionType.Title && this._currentWindow) {
          text = this._currentWindow.get_title();
        }
@@ -1270,11 +1297,7 @@ class WindowListButton {
        width = 0;
        text = "";
     }
-    // If pinned and we are configured not to display a label, then clear it
-    if (this._pinned && (pinnedSetting === PinnedLabel.Never || (pinnedSetting === PinnedLabel.Running && number===0) || (pinnedSetting === PinnedLabel.Focused && !this._hasFocus()))) {
-       text = "";
-       width = 0;
-    }
+
     // Do we need a window number char
     if (style === 1 && ((numSetting === DisplayNumber.All && number >= 1) || ((numSetting === DisplayNumber.Smart && number >= 2) && 
        (this._settings.getValue("group-windows") === 0 || this._grouped > GroupingType.NotGrouped)))) 
@@ -1525,7 +1548,8 @@ class WindowListButton {
 
   // zoom in and out the preview menu based on the movement of the mouse scroll wheel
   _onScrollEvent(actor, event) {
-     if (this._settings.getValue("wheel-adjusts-preview-size")===false || !this.menu.isOpen) {
+     let wheelSetting = this._settings.getValue("wheel-adjusts-preview-size");
+     if (wheelSetting===ScrollWheelAction.Off || !this.menu.isOpen) {
         return;
      }
      let numThumbs = this.menu.numThumbs;
@@ -1539,16 +1563,27 @@ class WindowListButton {
      }
      this.menu.numThumbs = numThumbs;
      this.menu.recalcItemSizes();
+     if (wheelSetting===ScrollWheelAction.OnGlobal) {
+        this._workspace.thumbnailSize = numThumbs;
+     }
   }
 
   // Perform the action defined by the passed in action integer
-  _performMouseAction(action, window, menu=undefined) {
+  _performMouseAction(action, window) {
       switch (action) {
         case MouseAction.Preview:
-           if (this._workspace.currentMenu && this._workspace.currentMenu.isOpen) {
-              this._workspace.currentMenu.close()
+           let curMenu = this._workspace.currentMenu;
+           if (curMenu && curMenu.isOpen && this.menu === curMenu) {
+              //log( "closing existing menu" );
+              curMenu.close()
               this._workspace.currentMenu = undefined;
            } else {
+              if (curMenu) {
+                 //log( "closing existing menu and opening a different menu" )
+                 curMenu.close()
+              }// else {
+              //   log( "opening a new menu" );
+              //}
               this._workspace.currentMenu = this.menu;
               this.menu.open();
            }
@@ -1593,24 +1628,24 @@ class WindowListButton {
            break;
         case MouseAction.MoveWorkspace1:
            if (window) {
-              if (menu != undefined) menu.removeWindow(window);
+              if (this.menu != undefined) this.menu.removeWindow(window);
               window.change_workspace_by_index(0, false, 0);
            }
            break;
         case MouseAction.MoveWorkspace2:
            if (window && this._applet._workspaces.length <= 2) {
-              if (menu != undefined) menu.removeWindow(window);
+              if (this.menu != undefined) this.menu.removeWindow(window);
               window.change_workspace_by_index(1, false, 1);
            }
            break;
         case MouseAction.MoveWorkspace3:
            if (window && this._applet._workspaces.length <= 3)
-              if (menu != undefined) menu.removeWindow(window);
+              if (this.menu != undefined) this.menu.removeWindow(window);
               window.change_workspace_by_index(2, false, 0);
            break;
         case MouseAction.MoveWorkspace4:
            if (window && this._applet._workspaces.length <= 4)
-              if (menu != undefined) menu.removeWindow(window);
+              if (this.menu != undefined) this.menu.removeWindow(window);
               window.change_workspace_by_index(3, false, 0);
            break;
       }
@@ -1646,6 +1681,12 @@ class WindowListButton {
       this.actor.set_track_hover(false);
       this.actor.set_hover(false);
     }
+    let curMenu = this._workspace.currentMenu;
+    if (curMenu && curMenu != this.menu && curMenu.isOpen ) {
+       curMenu.close();
+       this._workspace.currentMenu = this.menu;
+       this.menu.open();
+    } else
     if (this._windows.length > 0 && this._settings.getValue("menu-show-on-hover")) {
       this.menu.openDelay();
     }
@@ -2030,6 +2071,7 @@ class Workspace {
 
     this.menuManager = new ThumbnailMenuManager(this);
     this.currentMenu = undefined; // The currently open Thumbnail menu
+    this.thumbnailSize = this._settings.getValue("number-of-unshrunk-previews");
 
     this._appButtons = [];
     this._settings = this._applet._settings;

@@ -30,7 +30,7 @@
     "caption-settings" : {
       "type" : "section",
       "title" : "Window list button label settings",
-      "keys" : ["caption-type", "display-caption-for", "display-caption-for-pined", "display-indicators", "label-width", "label-animation", "label-animation-time"]
+      "keys" : ["caption-type", "display-caption-for", "display-caption-for-pined", "display-caption-for-minimized", "display-indicators", "label-width", "label-animation", "label-animation-time"]
     },
     "caption-number-settings" : {
       "type" : "section",
@@ -82,7 +82,7 @@
       "Focused": 2,
       "One per application pool": 3
     },
-    "description": "Display Labels For Window List Buttons",
+    "description": "Display labels for generic window list buttons",
     "tooltip": "Never: No windows get labels\nAlways: All windows get labels\nFocused: The window with focus will have a label\nOne per application pool: Only one label for a set of adjacent application windows"
   },
   "display-caption-for-pined": {
@@ -96,6 +96,11 @@
     },
     "description": "Display labels for pinned buttons",
     "tooltip": "Never: No pinned windows will have a label\nAlways: All pinned windows will have labels\nRunning: Only pinned window that are running will have a label\nFocused: Only the pinned window with focus will have a label"
+  },
+  "display-caption-for-minimized": {
+    "type": "switch",
+    "default": 1,
+    "description": "Display labels for minimized buttons"
   },
   "display-indicators": {
     "type": "combobox",
@@ -367,12 +372,18 @@
   },
 
   "wheel-adjusts-preview-size": {
-    "type": "switch",
-    "default": true,
+    "type": "combobox",
+    "default": 1,
+    "options": {
+       "Off": 0,
+       "On (temporary)": 1,
+       "On (global default)": 2,
+       "On (application default)": 3
+    },
     "description": "Adjust the thumbnail window sizes using the scroll-wheel",
-    "tooltip": "If enabled, the size of thumbnail windows will respond to the mouse scroll-wheel"
+    "tooltip": "If enabled, the size of thumbnail windows will respond to the mouse scroll-wheel\nBy default the size is reset after the menu is closed\nThe other options allow remembering the new menu size globally or per application type"
   },
-  
+
   "hotkey-bindings": {
     "type" : "list",
     "description" : "Hotkey binding available for assignment to a window",
