@@ -508,7 +508,7 @@ class ThumbnailMenuItem extends PopupMenu.PopupBaseMenuItem {
     let mouseBtn = event.get_button();
     if (this._appButton.holdPopup == mouseBtn) {
        this._appButton.holdPopup = undefined;
-       this._menu.close();
+       this.closeThumbnailMenu()
        Main.activateWindow(this._metaWindow);
        return true;
     }
@@ -634,13 +634,13 @@ class ThumbnailMenu extends PopupMenu.PopupMenu {
 
   openDelay() {
     this.removeDelay();
-    this._delayId = Mainloop.timeout_add(this._settings.getValue("preview-timeout-show"), Lang.bind(this, this.open));
+    this._delayId = Mainloop.timeout_add(this._settings.getValue("preview-timeout-show"), Lang.bind(this, this.openMenu));
   }
 
   closeDelay() {
     this.removeDelay();
     this._delayId = Mainloop.timeout_add(this._settings.getValue("preview-timeout-hide"), Lang.bind(this, function() {
-      this.close();
+      this._appButton.closeThumbnailMenu();
     }));
   }
 
@@ -669,8 +669,8 @@ class ThumbnailMenu extends PopupMenu.PopupMenu {
     return null;
   }
 
-  open() {
-    if (this.isOpen) {
+  openMenu() {
+    if (this.isOpen || this._appButton._windows.length==0) {
       return;
     }
     this._updateOrientation();
@@ -698,15 +698,17 @@ class ThumbnailMenu extends PopupMenu.PopupMenu {
     super.open(false);
   }
 
-  close() {
+  closeMenu() {
     this._appButton.holdPopup = undefined;
     if (this._inHiding && this.numMenuItems > 1) {
       return;
     }
+    //log( "menu close called!" );
+    //var err = new Error();
+    //log( "Stack:\n"+err.stack );
     this.removeDelay();
     super.close(false);
     this.removeAll();
-    //this._appButton._workspace.currentMenu = undefined;
     if (this._settings.getValue("wheel-adjusts-preview-size")<ScrollWheelAction.OnGlobal) // Off or On
        this.numThumbs = this._settings.getValue("number-of-unshrunk-previews"); // reset the preview window size in case scroll-wheel zooming occurred.
   }
@@ -808,16 +810,21 @@ class ThumbnailMenuManager extends PopupMenu.PopupMenuManager {
   }
 
   dragMotionHandler(dragEvent) {
+    //log( "dragMotionHandler" );
     if (dragEvent) {
       if (dragEvent.source instanceof WindowListButton || dragEvent.source.isDraggableApp || dragEvent.source instanceof DND.LauncherDraggable) {
         return DND.DragMotionResult.CONTINUE;
       }
+      //log( "looking for actor" );
       let hoverMenu = this._findMenuForActor(dragEvent);
+      //log( "found actor" );
       if (hoverMenu) {
         if (hoverMenu !== this._activeMenu) {
           if (hoverMenu._appButton._windows.length > 1) {
+            //log( "calling changeMenu" );
             this._changeMenu(hoverMenu);
           } else if (hoverMenu._appButton._windows.length === 1) {
+            //log( "calling closeMenu" );
             this._closeMenu();
             Main.activateWindow(hoverMenu._appButton._currentWindow);
           }
@@ -936,11 +943,13 @@ class ThumbnailMenuManager extends PopupMenu.PopupMenuManager {
   */
 
   _findMenuForActor(dragEvent) {
+    //log( "calling get actor at pos" );
     let actor = global.stage.get_actor_at_pos(Clutter.PickMode.ALL, dragEvent.x, dragEvent.y);
-
+    //log( "calling is_finalized" );
     if (actor.is_finalized()) {
       return null;
     }
+    //log( "starting loop" );
     for (let i = 0; i < this._menus.length; i++) {
       let menu = this._menus[i];
       if (menu.actor.contains(actor) || menu.sourceActor.contains(actor)) {
@@ -1053,7 +1062,7 @@ class WindowListButton {
     this.actor.set_hover(false);
     this._tooltip.hide();
     this._tooltip.preventShow = true;
-    this.menu.close();
+    this.closeThumbnailMenu();
   }
 
   _onDragEnd() {
@@ -1093,7 +1102,7 @@ class WindowListButton {
 
   addWindow(metaWindow) {
     this._windows.push(metaWindow);
-    if (this.menu.isOpen) {
+    if (this.menu && this.menu.isOpen) {
       this.menu.addWindow(metaWindow);
     }
     this._updateCurrentWindow();
@@ -1110,7 +1119,7 @@ class WindowListButton {
 
     this.actor.add_style_pseudo_class("active");
     this._updateTooltip();
-    if (this._windows.length == 1) {
+    if (this.menu && this._windows.length == 1) {
       this._workspace.menuManager.addMenu(this.menu);
     }
   }
@@ -1128,7 +1137,7 @@ class WindowListButton {
     if (arIndex >= 0) {
       this._windows.splice(arIndex, 1);
       this._updateCurrentWindow();
-      if (this.menu.isOpen) {
+      if (this.menu && this.menu.isOpen) {
         this.menu.removeWindow(metaWindow);
       }
     }
@@ -1136,7 +1145,7 @@ class WindowListButton {
       if (!this._currentWindow) {
         this.actor.remove_style_pseudo_class("focus");
         this.actor.remove_style_pseudo_class("active");
-        this._workspace.menuManager.removeMenu(this.menu);
+        this.closeThumbnailMenu();
       }
     }
     this._updateTooltip();
@@ -1241,7 +1250,7 @@ class WindowListButton {
     // If we are in a left or right panel then we have no space for labels anyhow!
     //log( "in _updateLabel" );
     //var err = new Error();
-    //log( "Stack: "+err.stack );
+    //log( "Stack:\n"+err.stack );
     if (this._applet.orientation == St.Side.LEFT || this._applet.orientation == St.Side.RIGHT)
        return;
 
@@ -1369,7 +1378,11 @@ class WindowListButton {
         this._inhibitLabel = false;
         break;
     }
-    this.menu = new ThumbnailMenu(this); // Hack to make sure the menu location is corrected.
+    this.closeThumbnailMenu();
+    //if (this.menu)
+    //  this._workspace.menuManager.removeMenu(this.menu);
+    //this.menu = new ThumbnailMenu(this); // Hack to make sure the menu location is corrected.
+    //this._workspace.menuManager.addMenu(this.menu);
     this._updateLabel()
   }
 
@@ -1419,7 +1432,9 @@ class WindowListButton {
     if (this._needsAttention.length == 0) {
       this._unflashButton();
     }
-    this.menu.updateUrgentState();
+    if (this.menu) {
+       this.menu.updateUrgentState();
+    }
   }
 
   _updateFocus() {
@@ -1465,8 +1480,11 @@ class WindowListButton {
     this._signalManager.disconnectAllSignals();
     this._tooltip.hide();
     this._tooltip.destroy();
-    this._workspace.menuManager.removeMenu(this.menu);
-    this.menu.destroy();
+    this.closeThumbnailMenu();
+    //if (this.menu) {
+    //   this._workspace.menuManager.removeMenu(this.menu);
+    //   this.menu.destroy();
+    //}
     this._contextMenuManager.removeMenu(this._contextMenu);
     this._contextMenu.destroy();
     this.actor.destroy();
@@ -1479,19 +1497,19 @@ class WindowListButton {
      if (mouseBtn == 2) {
         let action = this._settings.getValue("mouse-action-btn2");
         if (action == MouseAction.PreviewHold) {
-           this.menu.open();
+           this.openThumbnailMenu();
            this.holdPopup = 2;
         }
      } else if (mouseBtn == 8) {
         let action = this._settings.getValue("mouse-action-btn8");
         if (action == MouseAction.PreviewHold) {
-           this.menu.open();
+           this.openThumbnailMenu();
            this.holdPopup = 8;
         }
      } else if (mouseBtn == 9) {
         let action = this._settings.getValue("mouse-action-btn9");
         if (action == MouseAction.PreviewHold) {
-           this.menu.open();
+           this.openThumbnailMenu();
            this.holdPopup = 9;
         }
      }
@@ -1499,7 +1517,9 @@ class WindowListButton {
 
   // Check if there are mouse action to be taken on button release
   _onButtonRelease(actor, event) {
-    this.menu.removeDelay();
+    if (this.menu) {
+       this.menu.removeDelay();
+    }
     if (this._contextMenu.isOpen) {
       this._contextMenu.close();
     }
@@ -1511,16 +1531,14 @@ class WindowListButton {
           if (hasFocus(this._currentWindow)) {
             this._currentWindow.minimize();
           } else {
-            if (this.menu.isOpen) {
-              this.menu.close();
-            }
+            this.closeThumbnailMenu();
             Main.activateWindow(this._currentWindow);
           }
         } else if (this._settings.getValue("menu-show-on-click")) {
-          if (this.menu.isOpen) {
-            this.menu.close();
+          if (this.menu && this.menu.isOpen) {
+            this.closeThumbnailMenu();
           } else {
-            this.menu.open();
+            this.openThumbnailMenu();
           }
         }
       } else {
@@ -1549,7 +1567,7 @@ class WindowListButton {
   // zoom in and out the preview menu based on the movement of the mouse scroll wheel
   _onScrollEvent(actor, event) {
      let wheelSetting = this._settings.getValue("wheel-adjusts-preview-size");
-     if (wheelSetting===ScrollWheelAction.Off || !this.menu.isOpen) {
+     if (wheelSetting===ScrollWheelAction.Off || !this.menu || !this.menu.isOpen) {
         return;
      }
      let numThumbs = this.menu.numThumbs;
@@ -1574,22 +1592,16 @@ class WindowListButton {
         case MouseAction.Preview:
            let curMenu = this._workspace.currentMenu;
            if (curMenu && curMenu.isOpen && this.menu === curMenu) {
-              //log( "closing existing menu" );
-              curMenu.close()
-              this._workspace.currentMenu = undefined;
+              curMenu._appButton.closeThumbnailMenu();
            } else {
               if (curMenu) {
-                 //log( "closing existing menu and opening a different menu" )
-                 curMenu.close()
-              }// else {
-              //   log( "opening a new menu" );
-              //}
-              this._workspace.currentMenu = this.menu;
-              this.menu.open();
+                 curMenu._appButton.closeThumbnailMenu();
+              }
+              this.openThumbnailMenu();
            }
            break;
         case MouseAction.PreviewHold:
-           this.menu.close();
+           this.closeThumbnailMenu();
            break;
         case MouseAction.Close:
            if (window)
@@ -1615,8 +1627,7 @@ class WindowListButton {
            break;
         case MouseAction.Group:
            let btns = this._workspace._lookupAllAppButtonsForApp(this._app);
-           if (this.menu.isOpen)
-              this.menu.close();
+           this.closeThumbnailMenu();
            if (btns.length > 1) {
               this._workspace._groupOneApp(btns, GroupingType.ForcedOn);
            } else if (btns.length == 1 && btns[0]._windows.length > 1) {
@@ -1682,19 +1693,18 @@ class WindowListButton {
       this.actor.set_hover(false);
     }
     let curMenu = this._workspace.currentMenu;
-    if (curMenu && curMenu != this.menu && curMenu.isOpen ) {
-       curMenu.close();
-       this._workspace.currentMenu = this.menu;
-       this.menu.open();
-    } else
-    if (this._windows.length > 0 && this._settings.getValue("menu-show-on-hover")) {
-      this.menu.openDelay();
+    if (curMenu && curMenu != this.menu && curMenu.isOpen) {
+       curMenu._appButton.closeThumbnailMenu();
+       this.openThumbnailMenu();
+    } else if (this._windows.length > 0 && this._settings.getValue("menu-show-on-hover")) {
+      this.openThumbnailMenuDelayed();
     }
   }
 
   _onLeaveEvent() {
-    if (this._windows.length > 0) {
-      this.menu.closeDelay();
+    let curMenu = this._workspace.currentMenu;
+    if (this._windows.length > 0 && curMenu && curMenu.isOpen) {
+      curMenu.closeDelay();
     }
     this.actor.set_track_hover(true);
     if (this._mousePosUpdateLoop) {
@@ -2032,6 +2042,41 @@ class WindowListButton {
     }
   }
 
+  openThumbnailMenu(){
+     if (this._windows.length > 0) {
+        //log( "Opening Thumbnail menu!" );
+        this._workspace.menuManager.addMenu(this.menu);
+        this.menu.openMenu();
+        this._workspace.currentMenu = this.menu;
+     }
+  }
+
+  openThumbnailMenuDelayed(){
+     //log( "Starting a Thumbnail menu open timer!" );
+     this._delayId = Mainloop.timeout_add(this._settings.getValue("preview-timeout-show"), Lang.bind(this, this.openThumbnailMenu));
+  }
+
+  closeThumbnailMenu(){
+     if (this.menu && this.menu.isOpen) {
+        //log( "Closing a Thumbnail menu!" );
+        //this.menu.removeDelay();
+        this.removeThumbnailMenuDelay();
+        this.menu.closeMenu();
+        this._workspace.menuManager.removeMenu(this.menu);
+        this._workspace.currentMenu = undefined;
+     }
+  }
+
+  removeThumbnailMenuDelay(){
+     if (this.delayId) {
+        let doIt = GLib.MainContext.default().find_source_by_id(this._delayId);
+        if (doIt) {
+           Mainloop.source_remove(this._delayId);
+        }
+        this._delayId = null;
+     }
+  }
+
   // Return a list of the Recent Files that match the mime type of this buttons application
   getRecentFiles(){
      let ret = [];
@@ -2139,7 +2184,7 @@ class Workspace {
     for (let i = 0; i < children.length; i++) {
       let appButton = children[i]._delegate;
       if (appButton instanceof WindowListButton) {
-        appButton.menu.close();
+        appButton.closeThumbnailMenu();
       }
     }
   }
