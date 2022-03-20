@@ -632,11 +632,6 @@ class ThumbnailMenu extends PopupMenu.PopupMenu {
     }
   }
 
-  openDelay() {
-    this.removeDelay();
-    this._delayId = Mainloop.timeout_add(this._settings.getValue("preview-timeout-show"), Lang.bind(this, this.openMenu));
-  }
-
   closeDelay() {
     this.removeDelay();
     this._delayId = Mainloop.timeout_add(this._settings.getValue("preview-timeout-hide"), Lang.bind(this, function() {
@@ -836,112 +831,6 @@ class ThumbnailMenuManager extends PopupMenu.PopupMenuManager {
     return DND.DragMotionResult.CONTINUE;
   }
 
-  /*
-  addMenu(menu, position) {
-    this._signals.connect(menu, 'open-state-changed', this._onMenuOpenState, this);
-    this._signals.connect(menu, 'child-menu-added', this._onChildMenuAdded, this);
-    this._signals.connect(menu, 'child-menu-removed', this._onChildMenuRemoved, this);
-    this._signals.connect(menu, 'destroy', this._onMenuDestroy, this);
-
-    let source = menu.sourceActor;
-
-    if (source) {
-      this._signals.connect(source, 'enter-event', function() {
-        this._onMenuSourceEnter(menu, true);
-      }, this);
-      this._signals.connect(source, 'key-focus-in', function() {
-        this._onMenuSourceEnter(menu, false);
-      }, this);
-    }
-
-    if (position == undefined) {
-      this._menus.push(menu);
-    } else {
-      this._menus.splice(position, 0, menu);
-    }
-  }
-
-
-  _onMenuSourceEnter(menu, checkPointer) {
-    if (!this.grabbed || menu == this._activeMenu) {
-      return false;
-    }
-    if (this._activeMenu && this._activeMenu.isChildMenu(menu)) {
-      return false;
-    }
-    if (this._menuStack.indexOf(menu) != -1) {
-      return false;
-    }
-    if (this._menuStack.length > 0 && this._menuStack[0].isChildMenu(menu)) {
-      return false;
-    }
-
-    let allowMenuChange = true;
-
-    if (checkPointer) {
-      let appButton = this._activeMenu.sourceActor._delegate;
-      let srcX = appButton._globalX;
-      let srcY = appButton._globalY;
-      let [menuX, menuY] = menu.actor.get_transformed_position();
-      let [menuW, menuH] = menu.actor.get_transformed_size();
-      let [curX, curY, mask] = global.get_pointer();
-
-      let v2;
-      let v3;
-
-      allowMenuChange = false;
-      let orientation = menu.sourceActor._delegate._applet.orientation;
-      switch (orientation) {
-        case St.Side.BOTTOM:
-          if (curY >= srcY) {
-            allowMenuChange = true;
-            break;
-          }
-          v2 = {x: menuX + menuW, y: menuY + menuH};
-          v3 = {x: menuX,         y: menuY + menuH};
-          break;
-        case St.Side.TOP:
-          if (curY <= srcY) {
-            allowMenuChange = true;
-            break;
-          }
-          v2 = {x: menuX,         y: menuY};
-          v3 = {x: menuX + menuW, y: menuY};
-          break;
-        case St.Side.LEFT:
-          if (curX <= srcX) {
-            allowMenuChange = true;
-            break;
-          }
-          v2 = {x: menuX, y: menuY + menuH};
-          v3 = {x: menuX, y: menuY};
-          break;
-        case St.Side.RIGHT:
-          if (curX >= srcX) {
-            allowMenuChange = true;
-            break;
-          }
-          v2 = {x: menuX + menuW, y: menuY};
-          v3 = {x: menuX + menuW, y: menuY + menuH};
-          break;
-        default:
-          break;
-      }
-
-      if (!allowMenuChange) {
-        let pt = {x: curX, y: curY};
-        let v1 = {x: srcX, y: srcY};
-        allowMenuChange = !pointInTriangle(pt, v1, v2, v3);
-      }
-    }
-
-    if (allowMenuChange) {
-      this._changeMenu(menu);
-    }
-    return false;
-  }
-  */
-
   _findMenuForActor(dragEvent) {
     //log( "calling get actor at pos" );
     let actor = global.stage.get_actor_at_pos(Clutter.PickMode.ALL, dragEvent.x, dragEvent.y);
@@ -1025,7 +914,7 @@ class WindowListButton {
     this._signalManager.connect(this.actor, "scroll-event", this._onScrollEvent, this);
     this._signalManager.connect(this._settings, "changed::caption-type", this._updateLabel, this);
     this._signalManager.connect(this._settings, "changed::display-caption-for-pined", this._updateLabel, this);
-    this._signalManager.connect(this._settings, "changed::display-caption-for-minimized", this._updateLabel, this);
+    this._signalManager.connect(this._settings, "changed::hide-caption-for-minimized", this._updateLabel, this);
     this._signalManager.connect(this._settings, "changed::display-caption-for", this._updateLabel, this);
     this._signalManager.connect(this._settings, "changed::display-number", this._updateNumber, this);
     this._signalManager.connect(this._settings, "changed::number-style", Lang.bind(this, function() { this._updateNumber(); this._updateLabel(); }), this);
@@ -1258,36 +1147,60 @@ class WindowListButton {
     let capType = this._settings.getValue("caption-type");
     let numSetting = this._settings.getValue("display-number");
     let pinnedSetting = this._settings.getValue("display-caption-for-pined");
-    let minimizedSetting = this._settings.getValue("display-caption-for-minimized");
+    let minimizedSetting = this._settings.getValue("hide-caption-for-minimized");
     let style = this._settings.getValue("number-style");
     let preferredWidth = this._settings.getValue("label-width");
     let number = this._windows.length;
     let text;
     let width = preferredWidth;
     let needsCaption = false;
+    let oneCaption = false;
+    let lastButton = null;
 
-    if (capSetting === DisplayCaption.One) {
+    if (capSetting === DisplayCaption.One || capSetting === DisplayCaption.Auto) {
        // Check if the next button is for the same application
        let children = this._workspace.actor.get_children();
        let idx = children.indexOf(this.actor);
-       needsCaption = true;
-       if (idx < children.length-1) {
-          if (children[idx+1]._delegate._app == this._app) {
-             needsCaption = false;
+       if (idx == children.length-1 || children[idx+1]._delegate._app != this._app) {
+          oneCaption = true;
+       } else {
+          // Find the button that requires a label for this window pool
+          idx++;
+          while ( idx < children.length-1 && children[idx]._delegate._app === this._app ) {
+             idx++;
           }
+          if (children[idx]._delegate._app === this._app )
+             lastButton = children[idx]._delegate;
+          else
+             lastButton = children[idx-1]._delegate;
        }
     }
 
-    if (this._currentWindow && this._currentWindow.minimized && (capSetting != DisplayCaption.One || needsCaption == true)) {
-          needsCaption = minimizedSetting;
-    } else if (this._pinned){
-       if (pinnedSetting === PinnedLabel.Always || (pinnedSetting === PinnedLabel.Focused && this._hasFocus()) || pinnedSetting === PinnedLabel.Running && number>0)
+    /*
+    if (minimizedSetting == true && this._currentWindow && this._currentWindow.minimized && (capSetting != DisplayCaption.One || oneCaption == true)) {
+          needsCaption = !minimizedSetting;
+    } else */
+    if (this._pinned){
+       if (pinnedSetting === PinnedLabel.Always || (pinnedSetting === PinnedLabel.Focused && this._hasFocus()) || pinnedSetting === PinnedLabel.Running && number>0) {
           needsCaption = true;
-       else
-          needsCaption = false;
+       }
     } else {
-       if (capSetting === DisplayCaption.All || (capSetting === DisplayCaption.Focused && this._hasFocus()))
+       if (capSetting === DisplayCaption.All || (capSetting === DisplayCaption.Focused && this._hasFocus()) || oneCaption === true)
        {
+          needsCaption = true;
+       }
+    }
+    if (needsCaption === true && minimizedSetting === true && this._currentWindow && this._currentWindow.minimized /*&& oneCaption === false*/) {
+       needsCaption = false;
+    }
+    if (pinnedSetting === PinnedLabel.Focused) {
+       let window = global.display.get_focus_window();
+       let focus = this._workspace._lookupAppButtonForWindow(window);
+       if (lastButton && lastButton._pinned && focus && focus._app === this._app) {
+          // 'this' is a button in a pinned button pool. We have to allow the last button in the pool to show its label
+          lastButton._updateLabel();
+       } else if (this._pinned && oneCaption && focus && focus._app == this._app) {
+          // 'this' is the last button in a pinned button pool when focus is with some other button in the pool
           needsCaption = true;
        }
     }
@@ -1481,10 +1394,10 @@ class WindowListButton {
     this._tooltip.hide();
     this._tooltip.destroy();
     this.closeThumbnailMenu();
-    //if (this.menu) {
-    //   this._workspace.menuManager.removeMenu(this.menu);
-    //   this.menu.destroy();
-    //}
+    if (this.menu) {
+       this._workspace.menuManager.removeMenu(this.menu);
+       this.menu.destroy();
+    }
     this._contextMenuManager.removeMenu(this._contextMenu);
     this._contextMenu.destroy();
     this.actor.destroy();
@@ -1583,6 +1496,11 @@ class WindowListButton {
      this.menu.recalcItemSizes();
      if (wheelSetting===ScrollWheelAction.OnGlobal) {
         this._workspace.thumbnailSize = numThumbs;
+     } else if (wheelSetting===ScrollWheelAction.OnApplication) {
+        let btns = this._workspace._lookupAllAppButtonsForApp(this._app);
+        for (let idx=0 ; idx < btns.length ; idx++ ) {
+           btns[idx].menu.numThumbs = numThumbs;
+        }
      }
   }
 
@@ -2045,7 +1963,8 @@ class WindowListButton {
   openThumbnailMenu(){
      if (this._windows.length > 0) {
         //log( "Opening Thumbnail menu!" );
-        this._workspace.menuManager.addMenu(this.menu);
+        //this._workspace.menuManager.addMenu(this.menu);
+        //log( "Number of menus: " + this._workspace.menuManager._menus.length );
         this.menu.openMenu();
         this._workspace.currentMenu = this.menu;
      }
@@ -2062,7 +1981,7 @@ class WindowListButton {
         //this.menu.removeDelay();
         this.removeThumbnailMenuDelay();
         this.menu.closeMenu();
-        this._workspace.menuManager.removeMenu(this.menu);
+        //this._workspace.menuManager.removeMenu(this.menu);
         this._workspace.currentMenu = undefined;
      }
   }
@@ -2355,6 +2274,8 @@ class Workspace {
                  btns[i].removeWindow(window);
                  appButton.addWindow(window);
                  this._removeAppButton(btns[i]);
+              } else if (appButton._windows.length === 0) {
+                 this.menuManager.removeMenu(appButton.menu);
               }
            }
         }
@@ -2409,8 +2330,14 @@ class Workspace {
         if (!app) {
           continue;
         }
-
-        appButton = this._lookupAppButtonForApp(app);
+        let idx;
+        let btns = this._lookupAllAppButtonsForApp(app);
+        // Find any existing pinned, only one app button should be pinned for a given app
+        for (idx=btns.length-1 ; idx > 0 ; idx--) {
+           if (btns[idx]._pinned)
+              break;
+        }
+        appButton = btns[idx];
         if (!appButton) {
           appButton = this._addAppButton(app);
           let children = this.actor.get_children();
@@ -2594,6 +2521,17 @@ class Workspace {
        if (newFocus) {
           if (this._currentFocus && newFocus != this._currentFocus) {
              this._currentFocus._updateFocus();
+             let pinnedSetting = this._settings.getValue("display-caption-for-pined");
+             let capSetting = this._settings.getValue("display-caption-for");
+             if (pinnedSetting == PinnedLabel.Focused && capSetting === DisplayCaption.One || capSetting === DisplayCaption.Auto) {
+                // Do we need to clear the label from the pooled window group
+                let children = this.actor.get_children();
+                let idx=children.length-1;
+                for ( ; idx >= 0 && children[idx]._delegate._app != this._currentFocus._app ; idx--);
+                if (idx >= 0 && children[idx]._delegate != this._currentFocus) {
+                   children[idx]._delegate._updateLabel()
+                }
+             }
           }
           newFocus._updateFocus();
           this._currentFocus = newFocus;

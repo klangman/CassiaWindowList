@@ -30,7 +30,7 @@
     "caption-settings" : {
       "type" : "section",
       "title" : "Window list button label settings",
-      "keys" : ["caption-type", "display-caption-for", "display-caption-for-pined", "display-caption-for-minimized", "display-indicators", "label-width", "label-animation", "label-animation-time"]
+      "keys" : ["caption-type", "display-caption-for", "display-caption-for-pined", "hide-caption-for-minimized", "display-indicators", "label-width", "label-animation", "label-animation-time"]
     },
     "caption-number-settings" : {
       "type" : "section",
@@ -97,10 +97,11 @@
     "description": "Display labels for pinned buttons",
     "tooltip": "Never: No pinned windows will have a label\nAlways: All pinned windows will have labels\nRunning: Only pinned window that are running will have a label\nFocused: Only the pinned window with focus will have a label"
   },
-  "display-caption-for-minimized": {
+  "hide-caption-for-minimized": {
     "type": "switch",
-    "default": 1,
-    "description": "Display labels for minimized buttons"
+    "default": 0,
+    "description": "Hide labels for minimized buttons",
+    "tooltip": "For groups/pools the label will still show unless all application windows are minimized"
   },
   "display-indicators": {
     "type": "combobox",
