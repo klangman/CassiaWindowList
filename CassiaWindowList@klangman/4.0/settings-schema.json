@@ -382,7 +382,7 @@
        "On (application default)": 3
     },
     "description": "Adjust the thumbnail window sizes using the scroll-wheel",
-    "tooltip": "If enabled, the size of thumbnail windows will respond to the mouse scroll-wheel\nBy default the size is reset after the menu is closed\nThe other options allow remembering the new menu size globally or per application type"
+    "tooltip": "If enabled, the size of thumbnail windows will respond to the mouse scroll-wheel. The new size can have a temporary effect or persist on a global or per application basis"
   },
 
   "hotkey-bindings": {
@@ -406,14 +406,13 @@
   "hotkey-new": {
     "type": "switch",
     "default": true,
-    "description": "Open a new window for pinned buttons when the application is not running",
-    "tooltip": "Start a new window if no window is attached to a hotkey and the hotkey description is an exact match for the application name of a pinned button"
+    "description": "Open a new window when the application is not running",
+    "tooltip": "Start a new window if no window is attached to a hotkey and the hotkey description is an exact match for the application name of a pinned button or a desktop file name"
   },
-  
-  
+
   "hotkey-help" : {
     "type" : "label",
-    "description" : "Hotkeys can be assigned to a window in two ways:\n    1. Manual: Open the context menu for a window and select \"Assign window to a hotkey\".\n    2. Automatic: Enter a \"Description\" string that exactly matches the application name.\n\nNote: Hotkeys already assigned by other applications will take presidents over any new entries added here. If a hotkey is not working, it's likely because that key combination is already assigned elsewhere.\nIf you remove or rearrange any hotkeys, the manual window assignments may need to be reassigned"
+    "description" : "Hotkeys can be assigned to a window in two ways:\n    1. Manual: Open the context menu for a window and select \"Assign window to a hotkey\".\n    2. Automatic: Enter a \"Description\" string that matches the application name or a desktop file name.\n\nNote: Hotkeys already assigned by other applications will take precedence over any new entries added here. If a hotkey is not working, it's likely because that key combination is already assigned elsewhere.\nIf you remove or rearrange any hotkeys, the manual window assignments may need to be reassigned"
   },
 
   "pinned-apps": {
@@ -421,5 +420,14 @@
     "default": [
       ["nemo.desktop", "firefox.desktop"]
     ]
+  },
+
+  "custom-label-app": {
+    "type": "generic",
+    "default": ["Xlet-settings.py"]
+  },
+  "custom-label-type": {
+    "type": "generic",
+    "default": [1]
   }
 }

@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2022-03-20 18:24-0400\n"
+"POT-Creation-Date: 2022-03-24 10:17-0400\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -17,19 +17,19 @@ msgstr ""
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
 
-#: 4.0/applet.js:1670
+#: 4.0/applet.js:1648
 msgid "Preferences"
 msgstr ""
 
-#: 4.0/applet.js:1674
+#: 4.0/applet.js:1652
 msgid "About..."
 msgstr ""
 
-#: 4.0/applet.js:1678
+#: 4.0/applet.js:1656
 msgid "Configure..."
 msgstr ""
 
-#: 4.0/applet.js:1682
+#: 4.0/applet.js:1660
 #, javascript-format
 msgid "Remove '%s'"
 msgstr ""
@@ -40,83 +40,87 @@ msgstr ""
 #. 4.0->settings-schema.json->mouse-action-btn2->options
 #. 4.0->settings-schema.json->mouse-action-btn8->options
 #. 4.0->settings-schema.json->mouse-action-btn9->options
-#: 4.0/applet.js:1691
+#: 4.0/applet.js:1669
 msgid "Open new window"
 msgstr ""
 
-#: 4.0/applet.js:1697
+#: 4.0/applet.js:1675
 msgid "Pin to this workspace"
 msgstr ""
 
-#: 4.0/applet.js:1710
+#: 4.0/applet.js:1688
 msgid "Pin to other workspaces"
 msgstr ""
 
-#: 4.0/applet.js:1741
+#: 4.0/applet.js:1719
 msgid "Recent files"
 msgstr ""
 
-#: 4.0/applet.js:1765
+#: 4.0/applet.js:1743
 msgid "Places"
 msgstr ""
 
-#: 4.0/applet.js:1807
+#: 4.0/applet.js:1785
 msgid "Only on this workspace"
 msgstr ""
 
-#: 4.0/applet.js:1809
+#: 4.0/applet.js:1787
 msgid "Visible on all workspaces"
 msgstr ""
 
-#: 4.0/applet.js:1810
+#: 4.0/applet.js:1788
 msgid "Move to another workspace"
 msgstr ""
 
-#: 4.0/applet.js:1829
+#: 4.0/applet.js:1807
 msgid "Move to another monitor"
 msgstr ""
 
-#: 4.0/applet.js:1837
+#: 4.0/applet.js:1815
 msgid "Monitor"
 msgstr ""
 
-#: 4.0/applet.js:1853
+#: 4.0/applet.js:1831
 msgid "Assign window to a hotkey"
 msgstr ""
 
-#: 4.0/applet.js:1871
+#: 4.0/applet.js:1855
+msgid "Change label contents"
+msgstr ""
+
+#: 4.0/applet.js:1897
 msgid "Ungroup windows"
 msgstr ""
 
-#: 4.0/applet.js:1882
+#: 4.0/applet.js:1908
 msgid "Group windows"
 msgstr ""
 
-#: 4.0/applet.js:1890
+#: 4.0/applet.js:1916
 msgid "Automatic grouping/ungrouping"
 msgstr ""
 
-#: 4.0/applet.js:1918
+#: 4.0/applet.js:1944
 msgid "Restore"
 msgstr ""
 
-#: 4.0/applet.js:1922
+#: 4.0/applet.js:1948
 msgid "Minimize"
 msgstr ""
 
-#: 4.0/applet.js:1928
+#: 4.0/applet.js:1954
 msgid "Unmaximize"
 msgstr ""
 
-#: 4.0/applet.js:1935
+#: 4.0/applet.js:1961
 msgid "Close others"
 msgstr ""
 
-#: 4.0/applet.js:1946
+#: 4.0/applet.js:1972
 msgid "Close all"
 msgstr ""
 
-#: 4.0/applet.js:1955
+#: 4.0/applet.js:1981
 msgid "Close"
 msgstr ""
 
@@ -609,9 +613,9 @@ msgstr ""
 
 #. 4.0->settings-schema.json->wheel-adjusts-preview-size->tooltip
 msgid ""
-"If enabled, the size of thumbnail windows will respond to the mouse scroll-wheel\n"
-"By default the size is reset after the menu is closed\n"
-"The other options allow remembering the new menu size globally or per application type"
+"If enabled, the size of thumbnail windows will respond to the mouse scroll-"
+"wheel. The new size can have a temporary effect or persist on a global or "
+"per application basis"
 msgstr ""
 
 #. 4.0->settings-schema.json->hotkey-bindings->description
@@ -651,22 +655,22 @@ msgid ""
 msgstr ""
 
 #. 4.0->settings-schema.json->hotkey-new->description
-msgid ""
-"Open a new window for pinned buttons when the application is not running"
+msgid "Open a new window when the application is not running"
 msgstr ""
 
 #. 4.0->settings-schema.json->hotkey-new->tooltip
 msgid ""
 "Start a new window if no window is attached to a hotkey and the hotkey "
-"description is an exact match for the application name of a pinned button"
+"description is an exact match for the application name of a pinned button or"
+" a desktop file name"
 msgstr ""
 
 #. 4.0->settings-schema.json->hotkey-help->description
 msgid ""
 "Hotkeys can be assigned to a window in two ways:\n"
 "    1. Manual: Open the context menu for a window and select \"Assign window to a hotkey\".\n"
-"    2. Automatic: Enter a \"Description\" string that exactly matches the application name.\n"
+"    2. Automatic: Enter a \"Description\" string that matches the application name or a desktop file name.\n"
 "\n"
-"Note: Hotkeys already assigned by other applications will take presidents over any new entries added here. If a hotkey is not working, it's likely because that key combination is already assigned elsewhere.\n"
+"Note: Hotkeys already assigned by other applications will take precedence over any new entries added here. If a hotkey is not working, it's likely because that key combination is already assigned elsewhere.\n"
 "If you remove or rearrange any hotkeys, the manual window assignments may need to be reassigned"
 msgstr ""

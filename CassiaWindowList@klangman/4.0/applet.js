@@ -218,6 +218,7 @@ function hasFocus(metaWindow) {
   return transientHasFocus;
 }
 
+/*
 function compareObject(x, y) {
   // mimic non-extisting logical xor
   // to determine if one of the
@@ -255,7 +256,7 @@ function compareObject(x, y) {
   }
 
   return true;
-}
+} */
 
 function sign(p1, p2, p3) {
   return (p1.x - p3.x) * (p2.y - p3.y) - (p2.x - p3.x) * (p1.y - p3.y);
@@ -342,7 +343,7 @@ class WindowListSettings extends Settings.AppletSettings {
     Cinnamon.write_string_to_stream(out_file, rawData);
     out_file.close(null);
   }
-
+/*
   setValue(key, value) {
     if (!(key in this.settingsData)) {
       key_not_found_error(key, this.uuid);
@@ -352,7 +353,7 @@ class WindowListSettings extends Settings.AppletSettings {
       this._setValue(value, key);
     }
   }
-
+*/
   destroy() {
     this.finalize();
   }
@@ -640,12 +641,12 @@ class ThumbnailMenu extends PopupMenu.PopupMenu {
   }
 
   _onEnterEvent() {
-    this.removeDelay();
+    this._appButton.removeThumbnailMenuDelay();
     return false;
   }
 
   _onLeaveEvent() {
-    this.closeDelay();
+    this._appButton.closeThumbnailMenuDelayed();
     return false;
   }
 
@@ -701,7 +702,6 @@ class ThumbnailMenu extends PopupMenu.PopupMenu {
     //log( "menu close called!" );
     //var err = new Error();
     //log( "Stack:\n"+err.stack );
-    this.removeDelay();
     super.close(false);
     this.removeAll();
     if (this._settings.getValue("wheel-adjusts-preview-size")<ScrollWheelAction.OnGlobal) // Off or On
@@ -801,44 +801,36 @@ class ThumbnailMenuManager extends PopupMenu.PopupMenuManager {
 
   onDragEnd() {
     DND.removeDragMonitor(this);
-    this._closeMenu();
+    this._appButton.closeThumbnailMenu();
   }
 
   dragMotionHandler(dragEvent) {
-    //log( "dragMotionHandler" );
     if (dragEvent) {
       if (dragEvent.source instanceof WindowListButton || dragEvent.source.isDraggableApp || dragEvent.source instanceof DND.LauncherDraggable) {
         return DND.DragMotionResult.CONTINUE;
       }
-      //log( "looking for actor" );
       let hoverMenu = this._findMenuForActor(dragEvent);
-      //log( "found actor" );
       if (hoverMenu) {
         if (hoverMenu !== this._activeMenu) {
           if (hoverMenu._appButton._windows.length > 1) {
-            //log( "calling changeMenu" );
             this._changeMenu(hoverMenu);
           } else if (hoverMenu._appButton._windows.length === 1) {
-            //log( "calling closeMenu" );
-            this._closeMenu();
+            this._appButton.closeThumbnailMenu();
             Main.activateWindow(hoverMenu._appButton._currentWindow);
           }
         }
       } else {
-        this._closeMenu();
+        this._appButton.closeThumbnailMenu();
       }
     }
     return DND.DragMotionResult.CONTINUE;
   }
 
   _findMenuForActor(dragEvent) {
-    //log( "calling get actor at pos" );
     let actor = global.stage.get_actor_at_pos(Clutter.PickMode.ALL, dragEvent.x, dragEvent.y);
-    //log( "calling is_finalized" );
     if (actor.is_finalized()) {
       return null;
     }
-    //log( "starting loop" );
     for (let i = 0; i < this._menus.length; i++) {
       let menu = this._menus[i];
       if (menu.actor.contains(actor) || menu.sourceActor.contains(actor)) {
@@ -1137,14 +1129,10 @@ class WindowListButton {
 
   _updateLabel(actor, event) {
     // If we are in a left or right panel then we have no space for labels anyhow!
-    //log( "in _updateLabel" );
-    //var err = new Error();
-    //log( "Stack:\n"+err.stack );
     if (this._applet.orientation == St.Side.LEFT || this._applet.orientation == St.Side.RIGHT)
        return;
 
     let capSetting = this._settings.getValue("display-caption-for");
-    let capType = this._settings.getValue("caption-type");
     let numSetting = this._settings.getValue("display-number");
     let pinnedSetting = this._settings.getValue("display-caption-for-pined");
     let minimizedSetting = this._settings.getValue("hide-caption-for-minimized");
@@ -1176,10 +1164,6 @@ class WindowListButton {
        }
     }
 
-    /*
-    if (minimizedSetting == true && this._currentWindow && this._currentWindow.minimized && (capSetting != DisplayCaption.One || oneCaption == true)) {
-          needsCaption = !minimizedSetting;
-    } else */
     if (this._pinned){
        if (pinnedSetting === PinnedLabel.Always || (pinnedSetting === PinnedLabel.Focused && this._hasFocus()) || pinnedSetting === PinnedLabel.Running && number>0) {
           needsCaption = true;
@@ -1206,15 +1190,7 @@ class WindowListButton {
     }
 
     if (needsCaption) {
-       if (capType === CaptionType.Title && this._currentWindow) {
-         text = this._currentWindow.get_title();
-       }
-       if (!text) {
-         text = this._app.get_name();
-       }
-       if (!text) {
-         text = "?";
-       }
+       text = this.getCaption();
     } else {
        width = 0;
        text = "";
@@ -1431,7 +1407,7 @@ class WindowListButton {
   // Check if there are mouse action to be taken on button release
   _onButtonRelease(actor, event) {
     if (this.menu) {
-       this.menu.removeDelay();
+       this.removeThumbnailMenuDelay();
     }
     if (this._contextMenu.isOpen) {
       this._contextMenu.close();
@@ -1509,7 +1485,7 @@ class WindowListButton {
       switch (action) {
         case MouseAction.Preview:
            let curMenu = this._workspace.currentMenu;
-           if (curMenu && curMenu.isOpen && this.menu === curMenu) {
+           if (curMenu && curMenu.isOpen && this._app === curMenu._appButton._app) {
               curMenu._appButton.closeThumbnailMenu();
            } else {
               if (curMenu) {
@@ -1621,8 +1597,10 @@ class WindowListButton {
 
   _onLeaveEvent() {
     let curMenu = this._workspace.currentMenu;
-    if (this._windows.length > 0 && curMenu && curMenu.isOpen) {
-      curMenu.closeDelay();
+    if (curMenu) {
+       this.closeThumbnailMenuDelayed();
+    } else {
+       this.removeThumbnailMenuDelay()
     }
     this.actor.set_track_hover(true);
     if (this._mousePosUpdateLoop) {
@@ -1865,6 +1843,54 @@ class WindowListButton {
             item.menu.addMenuItem(hotKeyItem);
          }
       }
+      // Menu options for changing the type of label text
+      let customLabel = this._settings.getValue("custom-label-app");
+      let customLabelType = this._settings.getValue("custom-label-type");
+      let idx;
+      for (idx=0 ; idx < customLabel.length ; idx++) {
+         if (customLabel[idx] == this._app.get_name() || customLabel[idx] == this._app.get_id()) {
+            break;
+         }
+      }
+      item = new PopupMenu.PopupSubMenuMenuItem(_("Change label contents"));
+      this._contextMenu.addMenuItem(item);
+      if (idx == customLabel.length) {
+         // No existing custom label setting
+         let forceName = new PopupMenu.PopupMenuItem("Use application name");
+         forceName.connect("activate", Lang.bind(this, function() {
+               this.addCustomLabel(CaptionType.Name, customLabel, customLabelType);
+               }));
+            item.menu.addMenuItem(forceName);
+         let forceTitle = new PopupMenu.PopupMenuItem("Use window title");
+         forceTitle.connect("activate", Lang.bind(this, function() {
+               this.addCustomLabel(CaptionType.Title, customLabel, customLabelType);
+               }));
+            item.menu.addMenuItem(forceTitle);
+      } else if (customLabelType == CaptionType.Name) {
+         // Currently forcing label to be the application name
+         let remove = new PopupMenu.PopupMenuItem("Remove custom setting");
+         remove.connect("activate", Lang.bind(this, function() {
+               this.removeCustomLabel(idx, customLabel, customLabelType);
+               }));
+         item.menu.addMenuItem(remove);
+         let forceTitle = new PopupMenu.PopupMenuItem("Use window title");
+         forceTitle.connect("activate", Lang.bind(this, function() {
+               this.setCustomLabel(idx, CaptionType.Title, customLabel, customLabelType);
+               }));
+         item.menu.addMenuItem(forceTitle);
+      } else {
+         // Currently forcing label to be the window title
+         let remove = new PopupMenu.PopupMenuItem("Remove custom setting");
+         remove.connect("activate", Lang.bind(this, function() {
+               this.removeCustomLabel(idx, customLabel, customLabelType);
+               }));
+         item.menu.addMenuItem(remove);
+         let forceTitle = new PopupMenu.PopupMenuItem("Use application name");
+         forceTitle.connect("activate", Lang.bind(this, function() {
+               this.setCustomLabel(idx, CaptionType.Name, customLabel, customLabelType);
+               }));
+         item.menu.addMenuItem(forceTitle);
+      }
 
       this._contextMenu.addMenuItem(new PopupMenu.PopupSeparatorMenuItem());
       if (this._windows.length > 1) {
@@ -1961,38 +1987,41 @@ class WindowListButton {
   }
 
   openThumbnailMenu(){
-     if (this._windows.length > 0) {
-        //log( "Opening Thumbnail menu!" );
-        //this._workspace.menuManager.addMenu(this.menu);
-        //log( "Number of menus: " + this._workspace.menuManager._menus.length );
+     if (this._windows.length > 0 && !this._contextMenu.isOpen) {
+        this.removeThumbnailMenuDelay();
         this.menu.openMenu();
         this._workspace.currentMenu = this.menu;
      }
   }
 
   openThumbnailMenuDelayed(){
-     //log( "Starting a Thumbnail menu open timer!" );
-     this._delayId = Mainloop.timeout_add(this._settings.getValue("preview-timeout-show"), Lang.bind(this, this.openThumbnailMenu));
+     if (!this._contextMenu.isOpen) {
+        this.removeThumbnailMenuDelay();
+        this._workspace._delayId = Mainloop.timeout_add(this._settings.getValue("preview-timeout-show"), Lang.bind(this, this.openThumbnailMenu));
+     }
   }
 
   closeThumbnailMenu(){
-     if (this.menu && this.menu.isOpen) {
-        //log( "Closing a Thumbnail menu!" );
-        //this.menu.removeDelay();
+     let menu = this.menu;
+     if (menu && menu.isOpen) {
         this.removeThumbnailMenuDelay();
-        this.menu.closeMenu();
-        //this._workspace.menuManager.removeMenu(this.menu);
+        menu.closeMenu();
         this._workspace.currentMenu = undefined;
      }
   }
 
+  closeThumbnailMenuDelayed(){
+     this.removeThumbnailMenuDelay();
+     this._workspace._delayId = Mainloop.timeout_add(this._settings.getValue("preview-timeout-hide"), Lang.bind(this, this.closeThumbnailMenu));
+  }
+
   removeThumbnailMenuDelay(){
-     if (this.delayId) {
-        let doIt = GLib.MainContext.default().find_source_by_id(this._delayId);
+     if (this._workspace._delayId) {
+        let doIt = GLib.MainContext.default().find_source_by_id(this._workspace._delayId);
         if (doIt) {
-           Mainloop.source_remove(this._delayId);
+           Mainloop.source_remove(this._workspace._delayId);
         }
-        this._delayId = null;
+        this._workspace._delayId = null;
      }
   }
 
@@ -2007,6 +2036,62 @@ class WindowListButton {
         }
      }
      return ret;
+  }
+
+  getCaption(){
+    let text;
+    let customLabel = this._settings.getValue("custom-label-app");
+    let customLabelType = this._settings.getValue("custom-label-type");
+    let capType = this._settings.getValue("caption-type");
+    if (customLabel.length > 0) {
+       for (let idx=0 ; idx < customLabel.length ; idx++) {
+          if (customLabel[idx] == this._app.get_name() || customLabel[idx] == this._app.get_id()) {
+             log( "Setting caption type to " + customLabelType[idx] + " for window " + this._app.get_name() );
+             capType = customLabelType[idx];
+             break;
+          }
+       }
+    }
+    if (capType === CaptionType.Title && this._currentWindow) {
+      text = this._currentWindow.get_title();
+    }
+    if (!text) {
+      text = this._app.get_name();
+    }
+    if (!text) {
+      text = "?";
+    }
+    return text;
+  }
+
+  addCustomLabel(type, customLabel, customLabelType){
+    log( "Adding a custom label for " +this._app.get_name()+ " to be " +type );
+    customLabel.push(this._app.get_name());
+    customLabelType.push(type);
+    let newCustomLabel = customLabel.slice();
+    let newCustomLabelType = customLabelType.slice();
+    this._settings.setValue("custom-label-app", newCustomLabel);
+    this._settings.setValue("custom-label-type", newCustomLabelType);
+    this._updateLabel();
+  }
+
+  setCustomLabel(idx, type, customLabel, customLabelType){
+    log( "setting existing custom label for "+customLabel[idx]+" to type "+type+" at " +idx );
+    customLabelType[idx] = type;
+    let newCustomLabelType = customLabelType.slice();
+    this._settings.setValue("custom-label-type", newCustomLabelType);
+    this._updateLabel();
+  }
+
+  removeCustomLabel(idx, customLabel, customLabelType){
+    log( "Removing custom label for "+customLabel[idx]+" at "+idx );
+    customLabel.splice(idx, 1);
+    customLabelType.splice(idx, 1);
+    let newCustomLabel = customLabel.slice();
+    let newCustomLabelType = customLabelType.slice();
+    this._settings.setValue("custom-label-app", newCustomLabel);
+    this._settings.setValue("custom-label-type", newCustomLabelType);
+    this._updateLabel();
   }
 }
 
@@ -2934,8 +3019,13 @@ class WindowList extends Applet.Applet {
                     for (let i=0 ; i < workspace._appButtons.length ; i++) {
                        if (workspace._appButtons[i]._pinned && workspace._appButtons[i]._app.get_name() == this._keyBindings[idx].description) {
                           workspace._appButtons[i]._startApp();
-                          break;
+                          return;
                        }
+                    }
+                    // Try to find a app if the description is a .desktop file name
+                    let app = workspace._lookupApp(this._keyBindings[idx].description);
+                    if (app) {
+                       app.open_new_window(-1);
                     }
                  }
               }));
@@ -2990,7 +3080,7 @@ class WindowList extends Applet.Applet {
         workspace = this._workspaces[wsIdx];
         for ( let btnIdx=0 ; btnIdx < workspace._appButtons.length ; btnIdx++) {
            let btn = workspace._appButtons[btnIdx];
-           if (btn._app.get_name() == appName && btn._windows.length > 0) {
+           if ((btn._app.get_name() == appName || btn._app.get_id() == appName) && btn._windows.length > 0) {
               workspace._keyBindingsWindows[keyBindingIdx] = btn._windows[0];
            }
         }
@@ -3004,7 +3094,7 @@ class WindowList extends Applet.Applet {
      let keyBindings = this._settings.getValue("hotkey-bindings");
      if( keyBindings && keyBindings.length > 0) {
         for( let i=0 ; i<keyBindings.length ; i++ ) {
-           if (workspace._keyBindingsWindows[i] === undefined && keyBindings[i].description == appButton._app.get_name()) {
+           if (workspace._keyBindingsWindows[i] === undefined && (keyBindings[i].description == appButton._app.get_name() || keyBindings[i].description == appButton._app.get_id())) {
               workspace._keyBindingsWindows[i] = appButton._windows[0];
            }
         }
