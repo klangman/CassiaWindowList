@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2022-03-24 22:05-0400\n"
+"POT-Creation-Date: 2022-03-25 09:45-0400\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -85,7 +85,7 @@ msgid "Assign window to a hotkey"
 msgstr ""
 
 #: 4.0/applet.js:1877
-msgid "Change label contents"
+msgid "Change application label contents"
 msgstr ""
 
 #: 4.0/applet.js:1919
@@ -421,7 +421,7 @@ msgid "Default thumbnail window size"
 msgstr ""
 
 #. 4.0->settings-schema.json->preview-timeout-show->description
-msgid "Timeout show"
+msgid "Hover time before showing menu"
 msgstr ""
 
 #. 4.0->settings-schema.json->preview-timeout-show->tooltip
@@ -431,7 +431,7 @@ msgid ""
 msgstr ""
 
 #. 4.0->settings-schema.json->preview-timeout-hide->description
-msgid "Timeout hide"
+msgid "Time to closing menu after ending hover"
 msgstr ""
 
 #. 4.0->settings-schema.json->preview-timeout-hide->tooltip
@@ -668,9 +668,11 @@ msgstr ""
 #. 4.0->settings-schema.json->hotkey-help->description
 msgid ""
 "Hotkeys can be assigned to a window in two ways:\n"
-"    1. Manual: Open the context menu for a window and select \"Assign window to a hotkey\".\n"
-"    2. Automatic: Enter a \"Description\" string that matches the application name or a desktop file name.\n"
+"\n"
+"    1. Manual:\tOpen the context menu for a window list button and select \"Assign window to a hotkey\".\n"
+"    2. Automatic:\tEnter a \"Description\" string that matches an application name or a desktop file name.\n"
+"\t\t\t\tFor example: \"Google Chrome\" / \"firefox.desktop\"\n"
 "\n"
 "Note: Hotkeys already assigned by other applications will take precedence over any new entries added here. If a hotkey is not working, it's likely because that key combination is already assigned elsewhere.\n"
-"If you remove or rearrange any hotkeys, the manual window assignments may need to be reassigned"
+"If you remove or rearrange any hotkeys, manual window assignments may need to be reassigned"
 msgstr ""

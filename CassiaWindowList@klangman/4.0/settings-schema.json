@@ -50,12 +50,12 @@
     "preview-settings" : {
       "type" : "section",
       "title" : "Thumbnails menu settings",
-      "keys" : ["show-previews", "number-of-unshrunk-previews", "preview-timeout-show", "preview-timeout-hide"]
+      "keys" : ["show-previews", "number-of-unshrunk-previews"]
     },
     "preview-mouse-section" : {
       "type" : "section",
       "title" : "Thumbnails mouse settings",
-      "keys" : ["menu-show-on-hover", "menu-show-on-click", "wheel-adjusts-preview-size", "preview-middle-click", "preview-back-click", "preview-forward-click"]
+      "keys" : ["menu-show-on-hover", "preview-timeout-show", "preview-timeout-hide", "menu-show-on-click", "wheel-adjusts-preview-size", "preview-middle-click", "preview-back-click", "preview-forward-click"]
     },
     "hotkey-settings" : {
       "type" : "section",
@@ -232,7 +232,8 @@
     "max": 10000,
     "units": "milliseconds",
     "step": 1,
-    "description": "Timeout show",
+    "description": "Hover time before showing menu",
+    "dependency": "menu-show-on-hover",
     "tooltip": "The waiting time before the thumbnail menu appears when hovering over a button\n(Not used when moving directly to a different button in the list)"
   },
   "preview-timeout-hide": {
@@ -242,7 +243,8 @@
     "max": 10000,
     "units": "milliseconds",
     "step": 1,
-    "description": "Timeout hide",
+    "description": "Time to closing menu after ending hover",
+    "dependency": "menu-show-on-hover",
     "tooltip": "The waiting time for the thumbnail menu to close when leaving a button\n(Not used when moving directly to a different button in the list)"
   },
   "preview-middle-click": {
@@ -412,7 +414,7 @@
 
   "hotkey-help" : {
     "type" : "label",
-    "description" : "Hotkeys can be assigned to a window in two ways:\n    1. Manual: Open the context menu for a window and select \"Assign window to a hotkey\".\n    2. Automatic: Enter a \"Description\" string that matches the application name or a desktop file name.\n\nNote: Hotkeys already assigned by other applications will take precedence over any new entries added here. If a hotkey is not working, it's likely because that key combination is already assigned elsewhere.\nIf you remove or rearrange any hotkeys, the manual window assignments may need to be reassigned"
+    "description" : "Hotkeys can be assigned to a window in two ways:\n\n    1. Manual:\tOpen the context menu for a window list button and select \"Assign window to a hotkey\".\n    2. Automatic:\tEnter a \"Description\" string that matches an application name or a desktop file name.\n\t\t\t\tFor example: \"Google Chrome\" / \"firefox.desktop\"\n\nNote: Hotkeys already assigned by other applications will take precedence over any new entries added here. If a hotkey is not working, it's likely because that key combination is already assigned elsewhere.\nIf you remove or rearrange any hotkeys, manual window assignments may need to be reassigned"
   },
 
   "pinned-apps": {

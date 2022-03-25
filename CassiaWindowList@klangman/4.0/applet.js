@@ -1874,7 +1874,7 @@ class WindowListButton {
             break;
          }
       }
-      item = new PopupMenu.PopupSubMenuMenuItem(_("Change label contents"));
+      item = new PopupMenu.PopupSubMenuMenuItem(_("Change application label contents"));
       this._contextMenu.addMenuItem(item);
       if (idx == customLabel.length) {
          // No existing custom label setting
@@ -2094,7 +2094,7 @@ class WindowListButton {
     let newCustomLabelType = customLabelType.slice();
     this._settings.setValue("custom-label-app", newCustomLabel);
     this._settings.setValue("custom-label-type", newCustomLabelType);
-    this._updateLabel();
+    this.updateAllAppButtonLabels();
   }
 
   setCustomLabel(idx, type, customLabel, customLabelType){
@@ -2102,7 +2102,7 @@ class WindowListButton {
     customLabelType[idx] = type;
     let newCustomLabelType = customLabelType.slice();
     this._settings.setValue("custom-label-type", newCustomLabelType);
-    this._updateLabel();
+    this.updateAllAppButtonLabels();
   }
 
   removeCustomLabel(idx, customLabel, customLabelType){
@@ -2113,7 +2113,14 @@ class WindowListButton {
     let newCustomLabelType = customLabelType.slice();
     this._settings.setValue("custom-label-app", newCustomLabel);
     this._settings.setValue("custom-label-type", newCustomLabelType);
-    this._updateLabel();
+    this.updateAllAppButtonLabels();
+  }
+
+  updateAllAppButtonLabels(){
+     let btns = this._workspace._lookupAllAppButtonsForApp(this._app);
+     for (let idx=0 ; idx < btns.length ; idx++) {
+        btns[idx]._updateLabel();
+     }
   }
 }
 
