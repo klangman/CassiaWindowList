@@ -507,9 +507,9 @@ class ThumbnailMenuItem extends PopupMenu.PopupBaseMenuItem {
 
   _onButtonReleaseEvent (actor, event) {
     let mouseBtn = event.get_button();
-    if (this._appButton.holdPopup == mouseBtn) {
-       this._appButton.holdPopup = undefined;
-       this.closeThumbnailMenu()
+    if (this._appButton._workspace.holdPopup == mouseBtn) {
+       this._appButton._workspace.holdPopup = undefined;
+       this._appButton.closeThumbnailMenu()
        Main.activateWindow(this._metaWindow);
        return true;
     }
@@ -695,7 +695,7 @@ class ThumbnailMenu extends PopupMenu.PopupMenu {
   }
 
   closeMenu() {
-    this._appButton.holdPopup = undefined;
+    this._appButton._workspace.holdPopup = undefined;
     if (this._inHiding && this.numMenuItems > 1) {
       return;
     }
@@ -1174,8 +1174,30 @@ class WindowListButton {
           needsCaption = true;
        }
     }
+    if (minimizedSetting === true && lastButton /*&& this._currentWindow && this._currentWindow.minimized*/ && lastButton._currentWindow && lastButton._currentWindow.minimized) {
+       lastButton._updateLabel(); // The button with the label in this pool might need to add/remove its label
+    }
     if (needsCaption === true && minimizedSetting === true && this._currentWindow && this._currentWindow.minimized /*&& oneCaption === false*/) {
-       needsCaption = false;
+       if (this._windows.length > 1) {
+          let minimized=0;
+          for (let idx=0 ; idx < this._windows.length ; idx++ ) {
+             if (this._windows[idx].minimized) 
+                minimized++;
+          }
+          if (minimized === this._windows.length )
+             needsCaption = false;
+       } else if (oneCaption === true) {
+          let btns = this._workspace._lookupAllAppButtonsForApp(this._app);
+          let minimized = 0;
+          for (let idx=0 ; idx < btns.length ; idx++ ) {
+             if (btns[idx]._windows.length === 0 || btns[idx]._windows[0].minimized)
+                minimized++;
+          }
+          if (minimized === btns.length)
+             needsCaption = false;
+       } else {
+          needsCaption = false;
+       }
     }
     if (pinnedSetting === PinnedLabel.Focused) {
        let window = global.display.get_focus_window();
@@ -1387,19 +1409,19 @@ class WindowListButton {
         let action = this._settings.getValue("mouse-action-btn2");
         if (action == MouseAction.PreviewHold) {
            this.openThumbnailMenu();
-           this.holdPopup = 2;
+           this._workspace.holdPopup = 2;
         }
      } else if (mouseBtn == 8) {
         let action = this._settings.getValue("mouse-action-btn8");
         if (action == MouseAction.PreviewHold) {
            this.openThumbnailMenu();
-           this.holdPopup = 8;
+           this._workspace.holdPopup = 8;
         }
      } else if (mouseBtn == 9) {
         let action = this._settings.getValue("mouse-action-btn9");
         if (action == MouseAction.PreviewHold) {
            this.openThumbnailMenu();
-           this.holdPopup = 9;
+           this._workspace.holdPopup = 9;
         }
      }
   }
@@ -2002,7 +2024,7 @@ class WindowListButton {
   }
 
   closeThumbnailMenu(){
-     let menu = this.menu;
+     let menu = this._workspace.currentMenu; //this.menu;
      if (menu && menu.isOpen) {
         this.removeThumbnailMenuDelay();
         menu.closeMenu();
@@ -2046,7 +2068,7 @@ class WindowListButton {
     if (customLabel.length > 0) {
        for (let idx=0 ; idx < customLabel.length ; idx++) {
           if (customLabel[idx] == this._app.get_name() || customLabel[idx] == this._app.get_id()) {
-             log( "Setting caption type to " + customLabelType[idx] + " for window " + this._app.get_name() );
+             //log( "Setting caption type to " + customLabelType[idx] + " for window " + this._app.get_name() );
              capType = customLabelType[idx];
              break;
           }
@@ -2065,7 +2087,7 @@ class WindowListButton {
   }
 
   addCustomLabel(type, customLabel, customLabelType){
-    log( "Adding a custom label for " +this._app.get_name()+ " to be " +type );
+    //log( "Adding a custom label for " +this._app.get_name()+ " to be " +type );
     customLabel.push(this._app.get_name());
     customLabelType.push(type);
     let newCustomLabel = customLabel.slice();
@@ -2076,7 +2098,7 @@ class WindowListButton {
   }
 
   setCustomLabel(idx, type, customLabel, customLabelType){
-    log( "setting existing custom label for "+customLabel[idx]+" to type "+type+" at " +idx );
+    //log( "setting existing custom label for "+customLabel[idx]+" to type "+type+" at " +idx );
     customLabelType[idx] = type;
     let newCustomLabelType = customLabelType.slice();
     this._settings.setValue("custom-label-type", newCustomLabelType);
@@ -2084,7 +2106,7 @@ class WindowListButton {
   }
 
   removeCustomLabel(idx, customLabel, customLabelType){
-    log( "Removing custom label for "+customLabel[idx]+" at "+idx );
+    //log( "Removing custom label for "+customLabel[idx]+" at "+idx );
     customLabel.splice(idx, 1);
     customLabelType.splice(idx, 1);
     let newCustomLabel = customLabel.slice();
