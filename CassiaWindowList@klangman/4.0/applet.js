@@ -46,7 +46,6 @@ const DND = imports.ui.dnd;
 const Settings = imports.ui.settings;
 const SignalManager = imports.misc.signalManager;
 const CinnamonDesktop = imports.gi.CinnamonDesktop;
-const ModalDialog = imports.ui.modalDialog;
 
 const UUID = "CassiaWindowList@klangman";
 
@@ -66,17 +65,22 @@ const ICON_NAMES = {
    area_shot: 'screenshot-area',
    base: 'x-office-database',
    big_picture: 'view-fullscreen',
+   burn_image: 'stock_xfburn',
    calc: 'x-office-spreadsheet',
+   calendar: 'view-calendar-month',
    community: 'system-users',
    compose: 'text-editor',
    contacts: 'x-office-address-book',
+   create_project: 'project-development-new-template',
    document: 'document-new',
    draw: 'x-office-drawing',
    friends: 'user-available',
    fullscreen: 'view-fullscreen',
    impress: 'x-office-presentation',
    library: 'accessories-dictionary',
+   mail: "mail-message",
    math: 'x-office-math',
+   memos: 'stock_notes',
    mute: 'audio-volume-muted',
    new_document: 'document-new',
    new_event: 'resource-calendar-insert',
@@ -106,6 +110,7 @@ const ICON_NAMES = {
    ssw: 'window',                    //'screenshot-window',
    stop_quit: 'media-playback-stop',
    store: 'applications-games',      //'store',
+   tasks: 'view-pim-tasks',
    window: 'window-new',
    window_shot: 'window',           //'screenshot-window',
    writer: 'x-office-document'
@@ -123,14 +128,13 @@ const GroupType = {
    Grouped: 0,       // All windows for an application should be grouped under a single windowlist button
    Pooled: 1,        // All windows for an application should be pooled side-by-side on the windowlist
    Auto: 2,          // Application windows should automatically switch between Grouped and Pooled based on whether button caption space is constrained 
-   Off: 3            // All windows should have there own windowlist button and and ordering is maintained.
+   Off: 3            // All windows should have there own windowlist button and no ordering is maintained.
 }
 
 // The possible user setting for how windows list buttons should be captioned
 const DisplayCaption = {
   No: 0,            // No window list buttons will have text captions
   All: 1,           // All window list buttons will have captions
-//Running: 2,       // Only the running window will have a caption
   Focused: 2,       // Only the window that has the focus will have a caption
   One: 3            // Only one window (the last one in the window list) will have a caption (only really makes sense when also using GroupType.Pooled/Auto)
 }
@@ -256,7 +260,7 @@ function compareObject(x, y) {
   }
 
   return true;
-} */
+} 
 
 function sign(p1, p2, p3) {
   return (p1.x - p3.x) * (p2.y - p3.y) - (p2.x - p3.x) * (p1.y - p3.y);
@@ -267,7 +271,7 @@ function pointInTriangle(pt, v1, v2, v3) {
   let b2 = sign(pt, v2, v3) < 0.0;
   let b3 = sign(pt, v3, v1) < 0.0;
   return ((b1 == b2) && (b2 == b3));
-}
+} */
 
 function resizeActor(actor, time, toWidth) {
   Tweener.addTween(actor, {
@@ -325,6 +329,7 @@ function getMonitors() {
   return result;
 }
 
+/*
 const dummy = {};
 
 class WindowListSettings extends Settings.AppletSettings {
@@ -333,6 +338,7 @@ class WindowListSettings extends Settings.AppletSettings {
     super(dummy, UUID, instanceId);
   }
 
+  /-
   _saveToFile() {
     if (!this.monitorId) {
       this.monitorId = this.monitor.connect("changed", Lang.bind(this, this._checkSettings));
@@ -343,7 +349,7 @@ class WindowListSettings extends Settings.AppletSettings {
     Cinnamon.write_string_to_stream(out_file, rawData);
     out_file.close(null);
   }
-/*
+
   setValue(key, value) {
     if (!(key in this.settingsData)) {
       key_not_found_error(key, this.uuid);
@@ -353,11 +359,12 @@ class WindowListSettings extends Settings.AppletSettings {
       this._setValue(value, key);
     }
   }
-*/
+  -/
   destroy() {
+    log( "destroy called!" );
     this.finalize();
   }
-}
+} */
 
 // Represents an item in the Thumbnail popup menu
 class ThumbnailMenuItem extends PopupMenu.PopupBaseMenuItem {
@@ -2978,7 +2985,8 @@ class WindowList extends Applet.Applet {
     this.actor.set_track_hover(false);
     this.orientation = orientation;
 
-    this._settings = new WindowListSettings(instanceId);
+    //this._settings = new WindowListSettings(instanceId);
+    this._settings = new Settings.AppletSettings(this, UUID, instanceId);
     this._signalManager = new SignalManager.SignalManager(null);
 
     this._workspaces = [];
@@ -3096,7 +3104,7 @@ class WindowList extends Applet.Applet {
         let ws = this._workspaces[wsIdx];
         for (let btnIdx=0 ; btnIdx < ws._appButtons.length ; btnIdx++) {
            let btn = ws._appButtons[btnIdx];
-           if (btn._pinned || btn._shrukenLabel) {
+           if (btn._pinned || btn._shrukenLabel || (btn._windows.length > 0 && btn._windows[0].minimized)) {
               btn._updateLabel();
            }
         }
