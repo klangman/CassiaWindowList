@@ -377,7 +377,7 @@ class ThumbnailMenuItem extends PopupMenu.PopupBaseMenuItem {
     this._signalManager = new SignalManager.SignalManager(null);
     this._settings = this._menu._settings;
 
-    this._box = new St.BoxLayout({vertical: true, reactive: true});
+    this._box = new St.BoxLayout({vertical: true, reactive: true, style: 'border-width:2px;padding:' + 3 * global.ui_scale + 'px;', style_class: 'item-box'});
     this.actor.set_style("padding: 0.5em;");
     this.addActor(this._box);
 
@@ -428,6 +428,10 @@ class ThumbnailMenuItem extends PopupMenu.PopupBaseMenuItem {
     this._descBox.add_actor(this._closeBin);
     this._closeBin.set_child(this._closeIcon);
     this._closeIcon.hide();
+
+    if ((this._appButton._windows.length > 1 && this._appButton._currentWindow === metaWindow) || this._appButton.appLastFocus) {
+       this._box.add_style_pseudo_class('outlined');
+    }
 
     if (!Main.software_rendering && this._settings.getValue("show-previews")) {
       this._cloneBin = new St.Bin({min_width: 0, min_height: 0});
@@ -551,6 +555,7 @@ class ThumbnailMenuItem extends PopupMenu.PopupBaseMenuItem {
 
   _onActivate() {
     if (!this._inClosing) {
+      this._appButton.closeThumbnailMenu()
       Main.activateWindow(this._metaWindow);
     }
   }
@@ -605,6 +610,7 @@ class ThumbnailMenu extends PopupMenu.PopupMenu {
     this._settings = this._appButton._settings;
     this._signalManager = new SignalManager.SignalManager(null);
     this.numThumbs = undefined;
+    this.setCustomStyleClass("grouped-window-list-thumbnail-menu");
 
     global.focus_manager.add_group(this.actor);
     this.actor.reactive = true;
@@ -682,6 +688,7 @@ class ThumbnailMenu extends PopupMenu.PopupMenu {
     let windows = [];
     if (this._appButton._windows.length>1 || btns.length == 1 || (groupingType != GroupType.Pooled && groupingType != GroupType.Auto)){
       windows = this._appButton._windows;
+      this._appButton.appLastFocus = false; // For one appButton case, reset the appLastFocus so we don't outline a one windows menu
     } else {
        for( let i=0 ; i< btns.length ; i++ ) {
           windows.push(btns[i]._windows[0]);
@@ -1152,7 +1159,7 @@ class WindowListButton {
     let oneCaption = false;
     let lastButton = null;
 
-    if (capSetting === DisplayCaption.One || capSetting === DisplayCaption.Auto) {
+    if (capSetting === DisplayCaption.One) {
        // Check if the next button is for the same application
        let children = this._workspace.actor.get_children();
        let idx = children.indexOf(this.actor);
@@ -1297,10 +1304,6 @@ class WindowListButton {
         break;
     }
     this.closeThumbnailMenu();
-    //if (this.menu)
-    //  this._workspace.menuManager.removeMenu(this.menu);
-    //this.menu = new ThumbnailMenu(this); // Hack to make sure the menu location is corrected.
-    //this._workspace.menuManager.addMenu(this.menu);
     this._updateLabel()
   }
 
@@ -2644,7 +2647,7 @@ class Workspace {
              this._currentFocus._updateFocus();
              let pinnedSetting = this._settings.getValue("display-caption-for-pined");
              let capSetting = this._settings.getValue("display-caption-for");
-             if (pinnedSetting == PinnedLabel.Focused && capSetting === DisplayCaption.One || capSetting === DisplayCaption.Auto) {
+             if (pinnedSetting == PinnedLabel.Focused && capSetting === DisplayCaption.One) {
                 // Do we need to clear the label from the pooled window group
                 let children = this.actor.get_children();
                 let idx=children.length-1;
@@ -2652,6 +2655,15 @@ class Workspace {
                 if (idx >= 0 && children[idx]._delegate != this._currentFocus) {
                    children[idx]._delegate._updateLabel()
                 }
+             }
+             // Since we don't have a app specific data structure, we need to unset all app button appLastFocus values
+             let groupingType = this._settings.getValue("group-windows");
+             if (groupingType === GroupType.Pooled || groupingType === GroupType.Auto) {
+                let btns = this._lookupAllAppButtonsForApp(newFocus._app);
+                for (let i=0 ; i<btns.length ; i++) {
+                   btns[i].appLastFocus = false;
+                }
+                newFocus.appLastFocus = true;
              }
           }
           newFocus._updateFocus();
@@ -2943,6 +2955,7 @@ class Workspace {
   // which creates new appButtons. Assumes the passed in button is already grouped
   _ungroupOneApp(button, type=GroupingType.NotGrouped) {
      let windows = button._windows;
+     let appLastFocus = button._currentWindow;
      if (windows.length < 2) return;
      let window = undefined;
      button._grouped = type;
@@ -2952,6 +2965,8 @@ class Workspace {
         button.removeWindow(window, true);
         this._windowAdded(window);
      }
+     let lastFocusBtn = button._workspace._lookupAppButtonForWindow(appLastFocus);
+     lastFocusBtn.appLastFocus = true;
      button._updateLabel();
   }
 
