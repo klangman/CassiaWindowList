@@ -1518,10 +1518,10 @@ class WindowListButton {
         case MouseAction.Preview:
            let curMenu = this._workspace.currentMenu;
            if (curMenu && curMenu.isOpen && this._app === curMenu._appButton._app) {
-              curMenu._appButton.closeThumbnailMenu();
+              this.closeThumbnailMenu();
            } else {
               if (curMenu) {
-                 curMenu._appButton.closeThumbnailMenu();
+                 this.closeThumbnailMenu();
               }
               this.openThumbnailMenu();
            }
@@ -1538,6 +1538,7 @@ class WindowListButton {
               if (window.minimized===false) {
                  window.minimize();
               } else {
+                this.closeThumbnailMenu();
                 Main.activateWindow(window); 
               }
            }
@@ -1620,7 +1621,7 @@ class WindowListButton {
     }
     let curMenu = this._workspace.currentMenu;
     if (curMenu && curMenu != this.menu && curMenu.isOpen) {
-       curMenu._appButton.closeThumbnailMenu();
+       this.closeThumbnailMenu();
        this.openThumbnailMenu();
     } else if (this._windows.length > 0 && this._settings.getValue("menu-show-on-hover")) {
       this.openThumbnailMenuDelayed();
@@ -2034,12 +2035,13 @@ class WindowListButton {
   }
 
   closeThumbnailMenu(){
-     let menu = this._workspace.currentMenu; //this.menu;
-     if (menu && menu.isOpen) {
-        this.removeThumbnailMenuDelay();
-        menu.closeMenu();
-        this._workspace.currentMenu = undefined;
-     }
+     this._workspace.closeThumbnailMenu();
+     //let menu = this._workspace.currentMenu; //this.menu;
+     //if (menu && menu.isOpen) {
+     //   this.removeThumbnailMenuDelay();
+     //   menu.closeMenu();
+     //   this._workspace.currentMenu = undefined;
+     //}
   }
 
   closeThumbnailMenuDelayed(){
@@ -2048,13 +2050,14 @@ class WindowListButton {
   }
 
   removeThumbnailMenuDelay(){
-     if (this._workspace._delayId) {
-        let doIt = GLib.MainContext.default().find_source_by_id(this._workspace._delayId);
-        if (doIt) {
-           Mainloop.source_remove(this._workspace._delayId);
-        }
-        this._workspace._delayId = null;
-     }
+     this._workspace.removeThumbnailMenuDelay();
+     //if (this._workspace._delayId) {
+     //   let doIt = GLib.MainContext.default().find_source_by_id(this._workspace._delayId);
+     //   if (doIt) {
+     //      Mainloop.source_remove(this._workspace._delayId);
+     //   }
+     //   this._workspace._delayId = null;
+     //}
   }
 
   // Return a list of the Recent Files that match the mime type of this buttons application
@@ -2227,7 +2230,7 @@ class Workspace {
     for (let i = 0; i < children.length; i++) {
       let appButton = children[i]._delegate;
       if (appButton instanceof WindowListButton) {
-        appButton.closeThumbnailMenu();
+        this.closeThumbnailMenu();
       }
     }
   }
@@ -2987,6 +2990,25 @@ class Workspace {
      }
      return false;
   }
+
+  closeThumbnailMenu(){
+     let menu = this.currentMenu; //this.menu;
+     if (menu && menu.isOpen) {
+        this.removeThumbnailMenuDelay();
+        menu.closeMenu();
+        this.currentMenu = undefined;
+     }
+  }
+
+  removeThumbnailMenuDelay(){
+     if (this._delayId) {
+        let doIt = GLib.MainContext.default().find_source_by_id(this._delayId);
+        if (doIt) {
+           Mainloop.source_remove(this._delayId);
+        }
+        this._delayId = null;
+     }
+  }
 }
 
 // The windowlist manager, one instance for each windowlist (every likely we'll only have one)
@@ -3034,6 +3056,7 @@ class WindowList extends Applet.Applet {
                           if (hasFocus(appButton._currentWindow)===true) {
                              for (let i=0 ; i < appButton._windows.length ; i++ ) {
                                 if (appButton._windows[i] === appButton._currentWindow) {
+                                   workspace.closeThumbnailMenu();
                                    if (i == appButton._windows.length-1) {
                                       Main.activateWindow(appButton._windows[0]);
                                    } else {
@@ -3049,6 +3072,7 @@ class WindowList extends Applet.Applet {
                           if (btns.length > 1){
                              for ( let i=0 ; i < btns.length ; i++ ) {
                                 if (btns[i]._hasFocus()) {
+                                   workspace.closeThumbnailMenu();
                                    if (i == btns.length-1) {
                                       Main.activateWindow(btns[0]._windows[0]);
                                    } else {
@@ -3064,6 +3088,7 @@ class WindowList extends Applet.Applet {
                     if (minimize && hasFocus(workspace._keyBindingsWindows[idx])){
                        workspace._keyBindingsWindows[idx].minimize();
                     } else {
+                       workspace.closeThumbnailMenu();
                        Main.activateWindow(workspace._keyBindingsWindows[idx]);
                     }
                  } else if(this._keyBindings[idx].description && this._settings.getValue("hotkey-new")) {
