@@ -1033,16 +1033,17 @@ class WindowListButton {
   }
 
   _updateTooltip() {
-    if (this._windows.length == 0) {
+    if (!this._tooltip)
+       return;
+    if (this._windows.length == 0 || this._currentWindow.get_title()==null || (this._windows.length > 1 && this._settings.getValue("menu-show-on-click")===true)) {
        this._tooltip.set_text( this._app.get_name() );
-    } else if (this._windows.length == 1) {
-       this._tooltip.set_text( this._currentWindow.get_title() );
     } else {
-       if (this._settings.getValue("menu-show-on-click")) {
-          this._tooltip.set_text( this._app.get_name() );
-       } else {
-          this._tooltip.set_text( this._currentWindow.get_title() );
+       let text = this._currentWindow.get_title();
+       if (!text) {
+          this._tooltip.preventShow = true;
+          return;
        }
+       this._tooltip.set_text( text );
     }
     if (this._settings.getValue("menu-show-on-hover") && this._windows.length > 0){
        this._tooltip.preventShow = true;
