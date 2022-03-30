@@ -329,43 +329,6 @@ function getMonitors() {
   return result;
 }
 
-/*
-const dummy = {};
-
-class WindowListSettings extends Settings.AppletSettings {
-
-  constructor(instanceId) {
-    super(dummy, UUID, instanceId);
-  }
-
-  /-
-  _saveToFile() {
-    if (!this.monitorId) {
-      this.monitorId = this.monitor.connect("changed", Lang.bind(this, this._checkSettings));
-    }
-    let rawData = JSON.stringify(this.settingsData, null, 4);
-    let raw = this.file.replace(null, false, Gio.FileCreateFlags.NONE, null);
-    let out_file = Gio.BufferedOutputStream.new_sized(raw, 4096);
-    Cinnamon.write_string_to_stream(out_file, rawData);
-    out_file.close(null);
-  }
-
-  setValue(key, value) {
-    if (!(key in this.settingsData)) {
-      key_not_found_error(key, this.uuid);
-      return;
-    }
-    if (!compareObject(this.settingsData[key].value, value)) {
-      this._setValue(value, key);
-    }
-  }
-  -/
-  destroy() {
-    log( "destroy called!" );
-    this.finalize();
-  }
-} */
-
 // Represents an item in the Thumbnail popup menu
 class ThumbnailMenuItem extends PopupMenu.PopupBaseMenuItem {
 
@@ -704,7 +667,7 @@ class ThumbnailMenu extends PopupMenu.PopupMenu {
     this.updateUrgentState();
     this.recalcItemSizes();
 
-    this._appButton._computeMousePos();
+    //this._appButton._computeMousePos();
     super.open(false);
   }
 
@@ -807,6 +770,7 @@ class ThumbnailMenuManager extends PopupMenu.PopupMenuManager {
     this.dragMotion = this.dragMotionHandler.bind(this);
     this._signals.connect(Main.xdndHandler, "drag-end", this.onDragEnd, this);
     this._signals.connect(Main.xdndHandler, "drag-begin", this.onDragBegin, this);
+    this._workspace = owner;
   }
 
   onDragBegin() {
@@ -815,7 +779,7 @@ class ThumbnailMenuManager extends PopupMenu.PopupMenuManager {
 
   onDragEnd() {
     DND.removeDragMonitor(this);
-    this._appButton.closeThumbnailMenu();
+    this._workspace.closeThumbnailMenu();
   }
 
   dragMotionHandler(dragEvent) {
@@ -829,12 +793,12 @@ class ThumbnailMenuManager extends PopupMenu.PopupMenuManager {
           if (hoverMenu._appButton._windows.length > 1) {
             this._changeMenu(hoverMenu);
           } else if (hoverMenu._appButton._windows.length === 1) {
-            this._appButton.closeThumbnailMenu();
+            this._workspace.closeThumbnailMenu();
             Main.activateWindow(hoverMenu._appButton._currentWindow);
           }
         }
       } else {
-        this._appButton.closeThumbnailMenu();
+        this._workspace.closeThumbnailMenu();
       }
     }
     return DND.DragMotionResult.CONTINUE;
@@ -923,6 +887,8 @@ class WindowListButton {
     this._signalManager.connect(this._settings, "changed::hide-caption-for-minimized", this._updateLabel, this);
     this._signalManager.connect(this._settings, "changed::display-caption-for", this._updateLabel, this);
     this._signalManager.connect(this._settings, "changed::display-number", this._updateNumber, this);
+    this._signalManager.connect(this._settings, "changed::menu-show-on-hover", this._updateTooltip, this);
+    this._signalManager.connect(this._settings, "changed::menu-show-on-click", this._updateTooltip, this);
     this._signalManager.connect(this._settings, "changed::number-style", Lang.bind(this, function() { this._updateNumber(); this._updateLabel(); }), this);
     this._signalManager.connect(this._settings, "changed::label-width", this._updateLabel, this);
     this._signalManager.connect(this.actor, "enter-event", this._onEnterEvent, this);
@@ -1067,7 +1033,22 @@ class WindowListButton {
   }
 
   _updateTooltip() {
-    this._tooltip.preventShow = this._windows.length > 0;
+    if (this._windows.length == 0) {
+       this._tooltip.set_text( this._app.get_name() );
+    } else if (this._windows.length == 1) {
+       this._tooltip.set_text( this._currentWindow.get_title() );
+    } else {
+       if (this._settings.getValue("menu-show-on-click")) {
+          this._tooltip.set_text( this._app.get_name() );
+       } else {
+          this._tooltip.set_text( this._currentWindow.get_title() );
+       }
+    }
+    if (this._settings.getValue("menu-show-on-hover") && this._windows.length > 0){
+       this._tooltip.preventShow = true;
+    } else {
+       this._tooltip.preventShow = false;
+    }
   }
 
   updateIcon() {
@@ -1267,6 +1248,7 @@ class WindowListButton {
        resizeActor(this._labelBox, animTime, width);
        this._labelWidth = width;
     }
+    this._updateTooltip();
   }
 
   _updateVisualState() {
@@ -1642,6 +1624,7 @@ class WindowListButton {
     }
   }
 
+  /*
   _onMotionEvent() {
     if (this._mousePosUpdateLoop) {
       Mainloop.source_remove(this._mousePosUpdateLoop);
@@ -1650,13 +1633,14 @@ class WindowListButton {
     this._mousePosUpdateLoop = Mainloop.timeout_add(50, Lang.bind(this, this._computeMousePos));
   }
 
+
   _computeMousePos() {
     let mask;
     [this._globalX, this._globalY, mask] = global.get_pointer();
 
     this._mousePosUpdateLoop = 0;
     return false;
-  }
+  }*/
 
   _onMinimized(metaWindow) {
     if (this._currentWindow == metaWindow) {
