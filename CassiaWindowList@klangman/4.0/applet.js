@@ -273,11 +273,15 @@ function pointInTriangle(pt, v1, v2, v3) {
   return ((b1 == b2) && (b2 == b3));
 } */
 
-function resizeActor(actor, time, toWidth) {
+function resizeActor(actor, time, toWidth, button) {
   Tweener.addTween(actor, {
     natural_width: toWidth,
     time: time * 0.001,
-    transition: "easeInOutQuad"
+    transition: "easeInOutQuad",
+    onCompleteScope: button /*,
+    onComplete() {
+       log( "ani is complete for button \"" + this._app.get_name() + "\" window list width: " + this._workspace.actor.get_width() );
+    }*/
   });
 }
 
@@ -599,6 +603,7 @@ class ThumbnailMenu extends PopupMenu.PopupMenu {
     }
   }
 
+  /*
   removeDelay() {
     if (this._delayId) {
       let doIt = GLib.MainContext.default().find_source_by_id(this._delayId);
@@ -614,7 +619,7 @@ class ThumbnailMenu extends PopupMenu.PopupMenu {
     this._delayId = Mainloop.timeout_add(this._settings.getValue("preview-timeout-hide"), Lang.bind(this, function() {
       this._appButton.closeThumbnailMenu();
     }));
-  }
+  }*/
 
   _onEnterEvent() {
     this._appButton.removeThumbnailMenuDelay();
@@ -889,6 +894,7 @@ class WindowListButton {
     this._signalManager.connect(this._settings, "changed::display-number", this._updateNumber, this);
     this._signalManager.connect(this._settings, "changed::menu-show-on-hover", this._updateTooltip, this);
     this._signalManager.connect(this._settings, "changed::menu-show-on-click", this._updateTooltip, this);
+    this._signalManager.connect(this._settings, "changed::show-tooltips", this._updateTooltip, this);
     this._signalManager.connect(this._settings, "changed::number-style", Lang.bind(this, function() { this._updateNumber(); this._updateLabel(); }), this);
     this._signalManager.connect(this._settings, "changed::label-width", this._updateLabel, this);
     this._signalManager.connect(this.actor, "enter-event", this._onEnterEvent, this);
@@ -1033,19 +1039,25 @@ class WindowListButton {
   }
 
   _updateTooltip() {
-    if (!this._tooltip)
+    let enableTooltips = this._settings.getValue("show-tooltips");
+    if (!enableTooltips || !this._tooltip) {
+       this._tooltip.preventShow = !enableTooltips
        return;
-    if (this._windows.length == 0 || this._currentWindow.get_title()==null || (this._windows.length > 1 && this._settings.getValue("menu-show-on-click")===true)) {
-       this._tooltip.set_text( this._app.get_name() );
-    } else {
-       let text = this._currentWindow.get_title();
-       if (!text) {
-          this._tooltip.preventShow = true;
-          return;
-       }
-       this._tooltip.set_text( text );
     }
-    if (this._settings.getValue("menu-show-on-hover") && this._windows.length > 0){
+    let text = null;
+    if (this._windows.length == 0 || this._currentWindow.get_title()==null || (this._windows.length > 1 && this._settings.getValue("menu-show-on-click")===true)) {
+       text = this._app.get_name();
+       if (text) {
+          this._tooltip.set_text( text );
+       }
+    } else {
+       text = this._currentWindow.get_title();
+       if (text) {
+          this._tooltip.set_text( text );
+       }
+    }
+    // Disable the tooltip if there is no text or the thumbnail menu is configured to automatically popup.
+    if (text === null || (this._settings.getValue("menu-show-on-hover") && this._windows.length > 0)) {
        this._tooltip.preventShow = true;
     } else {
        this._tooltip.preventShow = false;
@@ -1246,7 +1258,7 @@ class WindowListButton {
     this._label.set_text(text);
     if (width != this._labelWidth){
        let animTime = this._settings.getValue("label-animation") ? this._settings.getValue("label-animation-time") : 0;
-       resizeActor(this._labelBox, animTime, width);
+       resizeActor(this._labelBox, animTime, width, this);
        this._labelWidth = width;
     }
     this._updateTooltip();

@@ -40,7 +40,7 @@
     "general-settings" : {
       "type" : "section",
       "title" : "General window list settings",
-      "keys" : ["group-windows", "display-pinned", "trailing-pinned-behaviour", "animation-time", "show-windows-for-current-monitor"]
+      "keys" : ["group-windows", "display-pinned", "trailing-pinned-behaviour", "animation-time", "show-windows-for-current-monitor", "show-tooltips"]
     },
     "general-mouse" : {
       "type" : "section",
@@ -198,6 +198,12 @@
     "default": false,
     "description": "Only show windows on the same monitor",
     "tooltip": "If enabled, this applet instance only manages windows\nthat are displayed on the same monitor"
+  },
+  "show-tooltips": {
+    "type": "switch",
+    "default": true,
+    "description": "Show tooltips for window list buttons",
+    "tooltip": "Enable to show tooltips using window title or application name when hovering over window list buttons"
   },
 
 
