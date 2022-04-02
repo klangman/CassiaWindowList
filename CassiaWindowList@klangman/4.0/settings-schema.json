@@ -260,7 +260,6 @@
       "Close window": 2,
       "Minimize/Restore": 3,
       "Maximize/Restore": 4,
-      "Restore most recent application window": 13,
       "Group/Ungroup windows": 5,
       "Open new window": 6,
       "Move to workspace 1": 7,
@@ -280,7 +279,6 @@
       "Close window": 2,
       "Minimize/Restore": 3,
       "Maximize/Restore": 4,
-      "Restore most recent application window": 13,
       "Group/Ungroup windows": 5,
       "Open new window": 6,
       "Move to workspace 1": 7,
@@ -300,7 +298,6 @@
       "Close window": 2,
       "Minimize/Restore": 3,
       "Maximize/Restore": 4,
-      "Restore most recent application window": 13,
       "Group/Ungroup windows": 5,
       "Open new window": 6,
       "Move to workspace 1": 7,
@@ -437,10 +434,10 @@
 
   "custom-label-app": {
     "type": "generic",
-    "default": ["Xlet-settings.py"]
+    "default": ["Xlet-settings.py", "Cinnamon-desktop-editor.py", "Xlet-about-dialog"]
   },
   "custom-label-type": {
     "type": "generic",
-    "default": [1]
+    "default": [1, 1, 1]
   }
 }

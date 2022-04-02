@@ -170,7 +170,7 @@ const MouseAction = {
   MoveWorkspace2: 8,  // 2
   MoveWorkspace3: 9,  // 3
   MoveWorkspace4: 10, // 4
-  WS_Visability: 11,  // Toggle workspace visability from all to only this workspace
+  WS_Visibility: 11,  // Toggle workspace visibility from all to only this workspace
   None: 12,           // No action performed
   LastFocused: 13     // Restore the window that was most recently the focused window for the application
 }
@@ -223,66 +223,12 @@ function hasFocus(metaWindow) {
   return transientHasFocus;
 }
 
-/*
-function compareObject(x, y) {
-  // mimic non-extisting logical xor
-  // to determine if one of the
-  // parameters is undefined and the other one is not
-  if (!(x == undefined) != !(y == undefined)) {
-    return false;
-  }
-  if (x === y) {
-    return true;
-  }
-
-  if (!(x instanceof Object) || !(y instanceof Object)) {
-    return false;
-  }
-
-  if (Object.getPrototypeOf(x) !== Object.getPrototypeOf(y)) {
-    return false;
-  }
-
-  let keysX = Object.keys(x);
-  let keysY = Object.keys(y);
-
-  if (keysX.length != keysY.length) {
-    return false;
-  }
-
-  for (let i = 0; i < keysX.length; i++) {
-    let key = keysX[i];
-    if (!y.hasOwnProperty(key)) {
-      return false;
-    }
-    if (!compareObject(x[key], y[key])) {
-      return false;
-    }
-  }
-
-  return true;
-} 
-
-function sign(p1, p2, p3) {
-  return (p1.x - p3.x) * (p2.y - p3.y) - (p2.x - p3.x) * (p1.y - p3.y);
-}
-
-function pointInTriangle(pt, v1, v2, v3) {
-  let b1 = sign(pt, v1, v2) < 0.0;
-  let b2 = sign(pt, v2, v3) < 0.0;
-  let b3 = sign(pt, v3, v1) < 0.0;
-  return ((b1 == b2) && (b2 == b3));
-} */
-
 function resizeActor(actor, time, toWidth, button) {
   Tweener.addTween(actor, {
     natural_width: toWidth,
     time: time * 0.001,
     transition: "easeInOutQuad",
-    onCompleteScope: button /*,
-    onComplete() {
-       log( "ani is complete for button \"" + this._app.get_name() + "\" window list width: " + this._workspace.actor.get_width() );
-    }*/
+    onCompleteScope: button
   });
 }
 
@@ -609,24 +555,6 @@ class ThumbnailMenu extends PopupMenu.PopupMenu {
     }
   }
 
-  /*
-  removeDelay() {
-    if (this._delayId) {
-      let doIt = GLib.MainContext.default().find_source_by_id(this._delayId);
-      if (doIt) {
-        Mainloop.source_remove(this._delayId);
-      }
-      this._delayId = null;
-    }
-  }
-
-  closeDelay() {
-    this.removeDelay();
-    this._delayId = Mainloop.timeout_add(this._settings.getValue("preview-timeout-hide"), Lang.bind(this, function() {
-      this._appButton.closeThumbnailMenu();
-    }));
-  }*/
-
   _onEnterEvent() {
     this._appButton.removeThumbnailMenuDelay();
     return false;
@@ -677,7 +605,6 @@ class ThumbnailMenu extends PopupMenu.PopupMenu {
     this.updateUrgentState();
     this.recalcItemSizes();
 
-    //this._appButton._computeMousePos();
     super.open(false);
   }
 
@@ -904,7 +831,6 @@ class WindowListButton {
     this._signalManager.connect(this._settings, "changed::label-width", this._updateLabel, this);
     this._signalManager.connect(this.actor, "enter-event", this._onEnterEvent, this);
     this._signalManager.connect(this.actor, "leave-event", this._onLeaveEvent, this);
-    //this._signalManager.connect(this.actor, "motion-event", this._onMotionEvent, this);
     this._signalManager.connect(this.actor, "notify::hover", this._updateVisualState, this);
 
     this._signalManager.connect(Main.themeManager, "theme-set", Lang.bind(this, function() {
@@ -1586,6 +1512,13 @@ class WindowListButton {
               if (this.menu != undefined) this.menu.removeWindow(window);
               window.change_workspace_by_index(3, false, 0);
            break;
+        case MouseAction.WS_Visibility:
+           if (window.is_on_all_workspaces()) {
+              window.unstick();
+           } else {
+              window.stick();
+           }
+           break;
         case MouseAction.LastFocused:
            if (this._windows.length > 1){
               this.closeThumbnailMenu();
@@ -1658,24 +1591,6 @@ class WindowListButton {
       this._mousePosUpdateLoop = 0;
     }
   }
-
-  /*
-  _onMotionEvent() {
-    if (this._mousePosUpdateLoop) {
-      Mainloop.source_remove(this._mousePosUpdateLoop);
-      this._mousePosUpdateLoop = 0;
-    }
-    this._mousePosUpdateLoop = Mainloop.timeout_add(50, Lang.bind(this, this._computeMousePos));
-  }
-
-
-  _computeMousePos() {
-    let mask;
-    [this._globalX, this._globalY, mask] = global.get_pointer();
-
-    this._mousePosUpdateLoop = 0;
-    return false;
-  }*/
 
   _onMinimized(metaWindow) {
     if (this._currentWindow == metaWindow) {
@@ -1817,7 +1732,7 @@ class WindowListButton {
              actionItem = new PopupMenu.PopupIconMenuItem(displayName, ICON_NAMES[actionProp], St.IconType.SYMBOLIC);
           } else {
              log( actionProp+": property not found!" );
-             actionItem = new PopupMenu.PopupMenuItem(displayName);
+             actionItem = new PopupMenu.PopupIconMenuItem(displayName, "", St.IconType.SYMBOLIC);
           }
           actionItem.connect("activate", Lang.bind(this, function() {
             appInfo.launch_action(action, global.create_app_launch_context());
@@ -2055,12 +1970,6 @@ class WindowListButton {
 
   closeThumbnailMenu(){
      this._workspace.closeThumbnailMenu();
-     //let menu = this._workspace.currentMenu; //this.menu;
-     //if (menu && menu.isOpen) {
-     //   this.removeThumbnailMenuDelay();
-     //   menu.closeMenu();
-     //   this._workspace.currentMenu = undefined;
-     //}
   }
 
   closeThumbnailMenuDelayed(){
@@ -2070,13 +1979,6 @@ class WindowListButton {
 
   removeThumbnailMenuDelay(){
      this._workspace.removeThumbnailMenuDelay();
-     //if (this._workspace._delayId) {
-     //   let doIt = GLib.MainContext.default().find_source_by_id(this._workspace._delayId);
-     //   if (doIt) {
-     //      Mainloop.source_remove(this._workspace._delayId);
-     //   }
-     //   this._workspace._delayId = null;
-     //}
   }
 
   // Return a list of the Recent Files that match the mime type of this buttons application
@@ -2749,7 +2651,7 @@ class Workspace {
         // If we don't yet have a PlaceHolder, create one, otherwise move it
         if (this._dragPlaceholder == undefined) {
           this._dragPlaceholder = new DND.GenericDragPlaceholderItem();
-          this._dragPlaceholder.child.set_width(source.actor.width/*this._settings.getValue("label-width")*/);
+          this._dragPlaceholder.child.set_width(source.actor.width);
           this._dragPlaceholder.child.set_height(source.actor.height);
           this.actor.insert_child_at_index(this._dragPlaceholder.actor, pos);
           source.actor.hide();
@@ -3135,7 +3037,6 @@ class WindowList extends Applet.Applet {
      if (i < oldBindings.length) {
         // deregister the all the hotkeys that have been removed
         while (i < oldBindings.length) {
-           //log( "deregistering #"+i );
            Main.keybindingManager.removeHotKey("hotkey-" + i + this.instanceId);
            i++;
         }
