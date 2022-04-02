@@ -171,7 +171,8 @@ const MouseAction = {
   MoveWorkspace3: 9,  // 3
   MoveWorkspace4: 10, // 4
   WS_Visability: 11,  // Toggle workspace visability from all to only this workspace
-  None: 11            // No action performed
+  None: 12,           // No action performed
+  LastFocused: 13     // Restore the window that was most recently the focused window for the application
 }
 
 // Possible values for the Pinned label setting
@@ -396,8 +397,13 @@ class ThumbnailMenuItem extends PopupMenu.PopupBaseMenuItem {
     this._closeBin.set_child(this._closeIcon);
     this._closeIcon.hide();
 
-    if ((this._appButton._windows.length > 1 && this._appButton._currentWindow === metaWindow) || this._appButton.appLastFocus) {
-       this._box.add_style_pseudo_class('outlined');
+    if (this._appButton._windows.length > 1 && this._appButton._currentWindow === metaWindow) {
+      this._box.add_style_pseudo_class('outlined');
+    } else if (this._appButton.appLastFocus &&
+              (this._settings.getValue("group-windows")===GroupType.Pooled || this._settings.getValue("group-windows")===GroupType.Auto)) {
+      let btns = appButton._workspace._lookupAllAppButtonsForApp(appButton._app);
+      if (btns.length > 1)
+         this._box.add_style_pseudo_class('outlined');
     }
 
     if (!Main.software_rendering && this._settings.getValue("show-previews")) {
@@ -656,7 +662,6 @@ class ThumbnailMenu extends PopupMenu.PopupMenu {
     let windows = [];
     if (this._appButton._windows.length>1 || btns.length == 1 || (groupingType != GroupType.Pooled && groupingType != GroupType.Auto)){
       windows = this._appButton._windows;
-      this._appButton.appLastFocus = false; // For one appButton case, reset the appLastFocus so we don't outline a one windows menu
     } else {
        for( let i=0 ; i< btns.length ; i++ ) {
           windows.push(btns[i]._windows[0]);
@@ -1580,6 +1585,23 @@ class WindowListButton {
            if (window && this._applet._workspaces.length <= 4)
               if (this.menu != undefined) this.menu.removeWindow(window);
               window.change_workspace_by_index(3, false, 0);
+           break;
+        case MouseAction.LastFocused:
+           if (this._windows.length > 1){
+              this.closeThumbnailMenu();
+              Main.activateWindow(this._currentWindow);
+           } else if (this._windows.length == 1) {
+              let btns = this._workspace._lookupAllAppButtonsForApp(this._app);
+              for (let idx=0 ; idx < btns.length ; idx++ ) {
+                 if (btns[idx].appLastFocus === true) {
+                    this.closeThumbnailMenu();
+                    Main.activateWindow(btns[idx]._currentWindow);
+                    return;
+                 }
+              }
+              this.closeThumbnailMenu();
+              Main.activateWindow(this._currentWindow);
+           }
            break;
       }
   }
@@ -2657,14 +2679,11 @@ class Workspace {
                 }
              }
              // Since we don't have a app specific data structure, we need to unset all app button appLastFocus values
-             let groupingType = this._settings.getValue("group-windows");
-             if (groupingType === GroupType.Pooled || groupingType === GroupType.Auto) {
-                let btns = this._lookupAllAppButtonsForApp(newFocus._app);
-                for (let i=0 ; i<btns.length ; i++) {
-                   btns[i].appLastFocus = false;
-                }
-                newFocus.appLastFocus = true;
+             let btns = this._lookupAllAppButtonsForApp(newFocus._app);
+             for (let i=0 ; i<btns.length ; i++) {
+                btns[i].appLastFocus = false;
              }
+             newFocus.appLastFocus = true;
           }
           newFocus._updateFocus();
           this._currentFocus = newFocus;

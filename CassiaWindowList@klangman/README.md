@@ -5,7 +5,7 @@ This applet requires at least Cinnamon 4.0
 
 ## Installation
 1. Download the latest release
-2. Deompress the zip into the cinnamon applets directory
+2. Decompress the zip into the cinnamon applets directory
     ```
     cd ~/.local/share/cinnamon/applets/
     unzip ~/Downloads/CassiaWindowlist.zip
