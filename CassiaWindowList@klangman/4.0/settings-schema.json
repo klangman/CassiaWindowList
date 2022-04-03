@@ -254,7 +254,7 @@
   },
   "preview-middle-click": {
     "type": "combobox",
-    "default": 3,
+    "default": 0,
     "options": {
       "Close thumbnail menu": 0,
       "Close window": 2,
@@ -273,7 +273,7 @@
   },
   "preview-back-click": {
     "type": "combobox",
-    "default": 4,
+    "default": 3,
     "options": {
       "Close thumbnail menu": 0,
       "Close window": 2,
@@ -405,7 +405,14 @@
         {"id": "description", "title": "Description",  "type": "string"}
     ],
     "tooltip": "Define a list of hotkeys used to bring to the foreground specific windows.",
-    "default" : []
+    "default" : [
+            {
+                "enabled": true,
+                "cycle": true,
+                "keyCombo": "<Alt><Super>c::",
+                "description": "org.gnome.Calculator.desktop"
+            }
+    ]
   },
   "hotkey-minimize": {
     "type": "switch",
