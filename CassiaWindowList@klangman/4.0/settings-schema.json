@@ -118,7 +118,7 @@
   },
   "trailing-pinned-behaviour": {
     "type": "switch",
-    "default": true,
+    "default": false,
     "description": "Add new window buttons ahead of trailing pinned buttons"
   },
   "label-width": {
@@ -233,7 +233,7 @@
   },
   "preview-timeout-show": {
     "type": "spinbutton",
-    "default": 1000,
+    "default": 500,
     "min": 5,
     "max": 10000,
     "units": "milliseconds",
@@ -244,7 +244,7 @@
   },
   "preview-timeout-hide": {
     "type": "spinbutton",
-    "default": 1000,
+    "default": 500,
     "min": 5,
     "max": 10000,
     "units": "milliseconds",

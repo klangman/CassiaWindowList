@@ -971,8 +971,10 @@ class WindowListButton {
 
   _updateTooltip() {
     let enableTooltips = this._settings.getValue("show-tooltips");
-    if (!enableTooltips || !this._tooltip) {
-       this._tooltip.preventShow = !enableTooltips
+    let hoverEnabled = this._settings.getValue("menu-show-on-hover");
+    if (!enableTooltips || !this._tooltip || (hoverEnabled && this._windows.length > 0)) {
+       if (this._tooltip)
+          this._tooltip.preventShow = false
        return;
     }
     let text = null;
@@ -988,7 +990,7 @@ class WindowListButton {
        }
     }
     // Disable the tooltip if there is no text or the thumbnail menu is configured to automatically popup.
-    if (text === null || (this._settings.getValue("menu-show-on-hover") && this._windows.length > 0)) {
+    if (text === null) {
        this._tooltip.preventShow = true;
     } else {
        this._tooltip.preventShow = false;
@@ -2886,6 +2888,7 @@ class Workspace {
         button.removeWindow(window, true);
         this._windowAdded(window);
      }
+     button.appLastFocus = false;
      let lastFocusBtn = button._workspace._lookupAppButtonForWindow(appLastFocus);
      lastFocusBtn.appLastFocus = true;
      button._updateLabel();
