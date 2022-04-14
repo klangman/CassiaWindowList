@@ -57,6 +57,8 @@ const ICON_HEIGHT_FACTOR = 0.8;
 const FLASH_INTERVAL = 500;
 
 const PANEL_EDIT_MODE_KEY = "panel-edit-mode";
+const PANEL_ZONE_TEXT_SIZES = "panel-zone-text-sizes";
+
 
 const STYLE_CLASS_ATTENTION_STATE = "grouped-window-list-item-demands-attention";
 
@@ -775,6 +777,7 @@ class WindowListButton {
                                    can_focus: true,
                                    reactive: true});
     this._shrukenLabel = false;
+    this._minLabelSize = -1;
     this._lableWidth = 0;
     this._label = new St.Label();
     this._labelBox = new St.Bin({natural_width: 0, min_width: 0,
@@ -841,6 +844,7 @@ class WindowListButton {
     this._draggable = DND.makeDraggable(this.actor);
     this._draggable.inhibit = global.settings.get_boolean(PANEL_EDIT_MODE_KEY);
     global.settings.connect("changed::" + PANEL_EDIT_MODE_KEY, Lang.bind(this, this._updateDragInhibit));
+    this._applet.panel.connect("icon-size-changed", Lang.bind(this, this._updateTextSizes));
     this._draggable.connect("drag-begin", Lang.bind(this, this._onDragBegin));
     this._draggable.connect("drag-end", Lang.bind(this, this._onDragEnd));
 
@@ -851,6 +855,11 @@ class WindowListButton {
     return this._app.get_id();
   }
 
+  _updateTextSizes(){
+     this._minLabelSize = -1;    // Forget the min size of shrunken labels since the text size has been modified!
+     if (this._shrukenLabel)
+        this._updateLabel();     // Re-calculate the button size
+  }
   _updateDragInhibit() {
     this._draggable.inhibit = global.settings.get_boolean(PANEL_EDIT_MODE_KEY);
   }
@@ -900,6 +909,9 @@ class WindowListButton {
 
   addWindow(metaWindow) {
     this._windows.push(metaWindow);
+    if (this._windows.length == 1) {
+       this._currentWindow = metaWindow;
+    }
     if (this.menu && this.menu.isOpen) {
       this.menu.addWindow(metaWindow);
     }
@@ -1115,10 +1127,10 @@ class WindowListButton {
           needsCaption = true;
        }
     }
-    if (minimizedSetting === true && lastButton /*&& this._currentWindow && this._currentWindow.minimized*/ && lastButton._currentWindow && lastButton._currentWindow.minimized) {
+    if (minimizedSetting === true && lastButton && lastButton._currentWindow && lastButton._currentWindow.minimized) {
        lastButton._updateLabel(); // The button with the label in this pool might need to add/remove its label
     }
-    if (needsCaption === true && minimizedSetting === true && this._currentWindow && this._currentWindow.minimized /*&& oneCaption === false*/) {
+    if (needsCaption === true && minimizedSetting === true && this._currentWindow && this._currentWindow.minimized) {
        if (this._windows.length > 1) {
           let minimized=0;
           for (let idx=0 ; idx < this._windows.length ; idx++ ) {
@@ -1154,9 +1166,10 @@ class WindowListButton {
 
     if (needsCaption) {
        text = this.getCaption();
+       this._shrukenLabel = false;
     } else {
-       width = 0;
        text = "";
+       this._shrukenLabel = true;
     }
 
     // Do we need a window number char
@@ -1168,27 +1181,41 @@ class WindowListButton {
       } else {
         text = String.fromCharCode(9331+number) + " " + text; // Bracketed number
       }
-      if (width<preferredWidth) width += 17;
     }
     // Do we need a minimized char
     if (this._currentWindow && this._currentWindow.minimized && (this._applet.indicators&IndicatorType.Minimized) && this._workspace.autoIndicatorsOff==false) {
       text = "\u{2193}" + text;  // The Unicode character "down arrow"
-      if (width<preferredWidth) width += 12;
     } 
     // Do we need a pinned char
     if (this._pinned && (this._applet.indicators&IndicatorType.Pinned) && this._workspace.autoIndicatorsOff==false) {
         text = "\u{1F4CC}" + text; // Unicode for the "push pin" character
-        if (width<preferredWidth) width += 17;
     }
-    if ((this._applet.indicators&IndicatorType.Minimized) && width < 12 )
-       width = 12;
 
-    if (width != preferredWidth)
-       this._shrukenLabel = true;
-    else
-       this._shrukenLabel = false;
+    // If we don't have a minimum label size, calculate it now!
+    if (this._minLabelSize === -1) {
+       if (this._workspace.autoIndicatorsOff==true || this._applet.indicators==IndicatorType.None) {
+          this._minLabelSize = 0;
+       } else {
+          let minText = (this._pinned && (this._applet.indicators&IndicatorType.Pinned)) ? "\u{1F4CC}\u{2193}" : "\u{2193}";
+          this._label.set_text(minText);
+          let layout = this._label.get_clutter_text().get_layout();
+          let [minWidth, minHeight] = layout.get_pixel_size();
+          this._minLabelSize = minWidth;
+       }
+    }
 
     this._label.set_text(text);
+
+    if (this._shrukenLabel) {
+       let layout = this._label.get_clutter_text().get_layout();
+       let [curWidth, curHeight] = layout.get_pixel_size();
+       if (curWidth < this._minLabelSize) {
+          width = this._minLabelSize+2;
+       } else {
+          width = curWidth+2;
+       }
+    }
+
     if (width != this._labelWidth){
        let animTime = this._settings.getValue("label-animation") ? this._settings.getValue("label-animation-time") : 0;
        resizeActor(this._labelBox, animTime, width, this);
@@ -2241,7 +2268,7 @@ class Workspace {
     return appButtons.length > 0 ? appButtons[0] : undefined;
   }
 
-  _windowAdded(metaWindow, /*groupingType=GroupingType.Unspecified,*/ skipSizeChk=false) {
+  _windowAdded(metaWindow, skipSizeChk=false) {
     if (this._settings.getValue("show-windows-for-current-monitor") &&
         this._applet.panel.monitorIndex != metaWindow.get_monitor()) {
       return;
@@ -2404,6 +2431,7 @@ class Workspace {
           }
         }
         appButton._pinned = true;
+        appButton._minLabelSize = -1; // Must re-calculate
         appButton._updateLabel()
       }
     }
@@ -2485,6 +2513,7 @@ class Workspace {
     let appButtons = this._lookupAllAppButtonsForApp(app);
     for (let i = 0; i < appButtons.length; i++) {
       appButtons[i]._pinned = false;
+      appButtons[i]._minLabelSize = -1;  // Must re-calculate
     }
 
     appButton._pinned = true;
@@ -2493,6 +2522,7 @@ class Workspace {
 
   unpinAppButton(appButton) {
     appButton._pinned = false;
+    appButton._minLabelSize = -1 // Must re-calculate
     appButton.updateView();
     if (appButton._windows.length == 0) {
       this._removeAppButton(appButton);
@@ -2804,6 +2834,7 @@ class Workspace {
         this.autoIndicatorsOff = false;
         for (let i=0 ; i<this._appButtons.length ; i++) {
            if (this._appButtons[i]._pinned || this._appButtons[i]._currentWindow.minimized) {
+              this._appButtons[i]._minLabelSize = -1; // Re-calculate
               this._appButtons[i]._updateLabel();
            }
         }
@@ -2840,6 +2871,7 @@ class Workspace {
            this.autoIndicatorsOff = true;
            for (let i=0 ; i<this._appButtons.length ; i++) {
               if (this._appButtons[i]._pinned || this._appButtons[i]._currentWindow.minimized) {
+                 this._minLabelSize = -1; // Re-calculate
                  this._appButtons[i]._updateLabel();
               }
            }
@@ -3065,6 +3097,7 @@ class WindowList extends Applet.Applet {
         for (let btnIdx=0 ; btnIdx < ws._appButtons.length ; btnIdx++) {
            let btn = ws._appButtons[btnIdx];
            if (btn._pinned || btn._shrukenLabel || (btn._windows.length > 0 && btn._windows[0].minimized)) {
+              btn._minLabelSize = -1;
               btn._updateLabel();
            }
         }

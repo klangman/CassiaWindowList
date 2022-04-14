@@ -160,7 +160,7 @@
     "default": 1,
     "options": {
       "Icon overlay": 0,
-      "Caption prepend": 1
+      "Label prepend": 1
     },
     "description": "Number style"
   },
