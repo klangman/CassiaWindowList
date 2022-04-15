@@ -1066,6 +1066,9 @@ class WindowListButton {
       text += number;
     }
 
+    if (style == 1 && (this._applet.orientation == St.Side.LEFT || this._applet.orientation == St.Side.RIGHT))
+       style = 0;  // No space for a label based window group counter, so force the icon overlay option if it's not disabled!
+
     if (text == "" || style == 1) {
       this._labelNumberBox.hide();
       if (style == 1)

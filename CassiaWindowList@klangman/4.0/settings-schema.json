@@ -162,7 +162,8 @@
       "Icon overlay": 0,
       "Label prepend": 1
     },
-    "description": "Number style"
+    "description": "Number style",
+    "tooltip": "Controls how the number of windows in a grouped button is presented. When on a vertical panel, the \"label prepend\" option is not possible so \"icon overlay\" will be used instead"
   },
 
 
