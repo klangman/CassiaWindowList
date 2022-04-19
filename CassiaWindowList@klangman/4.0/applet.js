@@ -583,7 +583,7 @@ class ThumbnailMenu extends PopupMenu.PopupMenu {
   }
 
   openMenu() {
-    if (this.isOpen || this._appButton._windows.length==0) {
+    if (this.isOpen || this._appButton._windows.length==0 || global.settings.get_boolean("panel-edit-mode") === true) {
       return;
     }
     this._updateOrientation();
@@ -1429,9 +1429,11 @@ class WindowListButton {
       this._performMouseAction(action, this._currentWindow);
     } else if (mouseBtn == 3) {
       // right mouse button, show context menu
-      this._populateContextMenu();
-      this._contextMenu.open();
-      this._updateFocus();
+      if (global.settings.get_boolean("panel-edit-mode")===false) {
+         this._populateContextMenu();
+         this._contextMenu.open();
+         this._updateFocus();
+      }
     } else if (mouseBtn == 8) {
        // back mouse button
        let action = this._settings.getValue("mouse-action-btn8");
