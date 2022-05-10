@@ -40,7 +40,7 @@
     "general-settings" : {
       "type" : "section",
       "title" : "General window list settings",
-      "keys" : ["group-windows", "display-pinned", "trailing-pinned-behaviour", "animation-time", "show-windows-for-current-monitor", "show-tooltips"]
+      "keys" : ["group-windows", "display-pinned", "trailing-pinned-behaviour", "animation-time", "show-windows-for-current-monitor", "show-tooltips", "hide-panel-apps"]
     },
     "general-mouse" : {
       "type" : "section",
@@ -206,6 +206,12 @@
     "description": "Show tooltips for window list buttons",
     "tooltip": "Enable to show tooltips using window title or application name when hovering over window list buttons"
   },
+  "hide-panel-apps": {
+    "type": "switch",
+    "default": false,
+    "description": "Hide window buttons for applications on the CassiaPanelLaunchers applet",
+    "tooltip": "When enabled, windows for applications with buttons on the CassiaPanelLaunchers applet will not show up in the window list"
+  },
 
 
   "menu-show-on-hover": {
@@ -217,7 +223,7 @@
   "show-previews": {
     "type": "switch",
     "default": true,
-    "description": "Show thumbnails",
+    "description": "Show window thumbnails in the popup window list menu",
     "tooltip": "If enabled, the popup menu will show window thumbnails\n(Always disabled when running Cinnamon in Software Rendering Mode)"
   },
   "number-of-unshrunk-previews": {

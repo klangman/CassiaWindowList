@@ -159,7 +159,7 @@ const GroupingType = {
   Unspecified: 5    // Only used to signal that the user setting shuld be queried, not a valid WindowListButton._grouped value
 }
 
-// Possable value for the Mouse Action setting
+// Possible value for the Mouse Action setting
 const MouseAction = {
   Preview: 0,      // Toggle the preview menu (open/close)
   PreviewHold: 1,  // Show the window preview menu on button press and hide it again on button release
@@ -1012,7 +1012,7 @@ class WindowListButton {
   updateIcon() {
     let panelHeight = this._applet._panelHeight;
 
-    this.iconSize = this._applet.getPanelIconSize(St.IconType.FULLCOLOR);
+    this.iconSize = this._applet.getPanelIconSize(St.IconType.FULLCOLOR) -2;
 
     let icon = null;
 
@@ -1336,7 +1336,9 @@ class WindowListButton {
   }
 
   _updateVisibility() {
-    if (this._windows.length) {
+    if (this._applet.shouldAppBeHidden(this._app)) {
+       this.actor.hide();
+    } else if (this._windows.length) {
       this.actor.show();
     } else if (this._pinned) {
       this.actor.show();
@@ -2230,7 +2232,7 @@ class Workspace {
           }
        }
     }
-    appButton.actor.show();
+    //appButton.actor.show();
     appButton._updateLabel();
     return appButton;
   }
@@ -2986,6 +2988,7 @@ class WindowList extends Applet.Applet {
 
     this._workspaces = [];
     this._keyBindings = [];
+    this._hiddenApps = []; // List of applications that should not be visible buttons
     this.indicators = 3;
     this.on_orientation_changed(orientation);
   }
@@ -3181,6 +3184,8 @@ class WindowList extends Applet.Applet {
     }
     this._updateKeybinding();
 
+    this.checkForLauncherApplications();
+
     for (let i = 0; i < nWorkspaces; i++) {
       this._onWorkspaceAdded(global.screen, i);
     }
@@ -3195,6 +3200,7 @@ class WindowList extends Applet.Applet {
     this._signalManager.connect(this._settings, "changed::hotkey-bindings", this._updateKeybinding, this);
     this._signalManager.connect(this._settings, "changed::display-indicators", this._updateIndicators, this);
     this._signalManager.connect(this._settings, "changed::number-of-unshrunk-previews", this._updateThumbnailWindowSize, this);
+    this._signalManager.connect(this._settings, "changed::hide-panel-apps", this._updateCurrentWorkspace, this);
   }
 
   on_applet_removed_from_panel() {
@@ -3346,6 +3352,46 @@ class WindowList extends Applet.Applet {
         break;
       }
     }
+  }
+
+  // Check if the CassiaPanelLunchers applet is loaded and populate the list of hidden applications
+  // based on which applications the panel launchers applet has buttons for.
+  checkForLauncherApplications() {
+     let applets = AppletManager.getRunningInstancesForUuid("CassiaPanelLaunchers@klangman");
+     log( `Found ${applets.length} cassia panel launchers applets!` );
+     for (let i=0 ; i < applets.length ; i++) {
+        let appList = applets[i].getApplicationList();
+        log( `Found ${appList.length} apps to hide` );
+        this._hiddenApps.push(...appList); // Use the "Spread Syntax" to concat to existing array
+     }
+     for (let i=0 ; i < this._hiddenApps.length ; i++) {
+        log( "Hiding app: "+ this._hiddenApps[i].get_name() );
+     }
+  }
+
+
+  shouldAppBeHidden(app) {
+     if (this._settings.getValue("hide-panel-apps")) {
+        for (let i=0 ; i < this._hiddenApps.length ; i++) {
+           if (this._hiddenApps[i] === app)
+              return(true);
+        }
+     }
+     return(false);
+  }
+
+  // API that the CassiaPanelLauncher can use to inform the windowlist of new launcher state
+  cassiaPanelLaunchersUpdate() {
+     this._hiddenApps = [];
+     this.checkForLauncherApplications();
+     // Call _updateVisibility() for all buttons
+     let workspace;
+     for ( let wsIdx=0 ; wsIdx < this._workspaces.length ; wsIdx++) {
+        workspace = this._workspaces[wsIdx];
+        for ( let btnIdx=0 ; btnIdx < workspace._appButtons.length ; btnIdx++) {
+           workspace._appButtons[btnIdx]._updateVisibility();
+        }
+     }
   }
 }
 
