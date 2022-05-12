@@ -1038,7 +1038,7 @@ class WindowListButton {
     this._icon = icon;
     this._iconBin.set_child(this._icon);
 
-    if (this._applet.orientation == St.Side.LEFT || this._applet.orientation == St.Side.LEFT) {
+    if (this._applet.orientation == St.Side.LEFT || this._applet.orientation == St.Side.RIGHT) {
       panelHeight--;
     }
     // let the difference between icon size and panel size be even
