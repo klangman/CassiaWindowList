@@ -210,19 +210,27 @@ function _(text) {
   return locText;
 }
 
-function hasFocus(metaWindow) {
-  if (metaWindow.appears_focused) {
-    return true;
-  }
-  let transientHasFocus = false;
-  metaWindow.foreach_transient(function(transient) {
-    if (transient.appears_focused) {
-      transientHasFocus = true;
-      return false;
+function hasFocus(metaWindow, allowTransient=true) {
+    let window = global.display.get_focus_window();
+    if (window === metaWindow) {
+       return true;
     }
-    return true;
-  });
-  return transientHasFocus;
+    //if (metaWindow.appears_focused) {
+    //    log( "appears_focused" );
+    //    return true;
+    //}
+    if (allowTransient===false) {
+       return false;
+    }
+    let transientHasFocus = false;
+    metaWindow.foreach_transient(function(transient) {
+        if (transient.appears_focused) {
+            transientHasFocus = true;
+            return false;
+        }
+        return true;
+    });
+    return transientHasFocus;
 }
 
 function resizeActor(actor, time, toWidth, button) {
@@ -1319,7 +1327,7 @@ class WindowListButton {
   _updateFocus() {
     for (let i = 0; i < this._windows.length; i++) {
       let metaWindow = this._windows[i];
-      if (hasFocus(metaWindow) && !metaWindow.minimized) {
+      if (hasFocus(metaWindow, false) && !metaWindow.minimized) {
         this.actor.add_style_pseudo_class("focus");
         this.actor.remove_style_class_name(STYLE_CLASS_ATTENTION_STATE);
         this._currentWindow = metaWindow;
@@ -1409,11 +1417,12 @@ class WindowListButton {
     if (mouseBtn == 1) {
       if (this._currentWindow) {
         if (this._windows.length == 1 || !(this._settings.getValue("menu-show-on-click"))) {
-          if (hasFocus(this._currentWindow)) {
+          if (hasFocus(this._currentWindow, false) && !this._currentWindow.minimized) {
             this._currentWindow.minimize();
           } else {
             this.closeThumbnailMenu();
-            Main.activateWindow(this._currentWindow);
+            //Main.activateWindow(this._currentWindow);
+            this._currentWindow.activate(0);
           }
         } else if (this._settings.getValue("menu-show-on-click")) {
           if (this.menu && this.menu.isOpen) {
