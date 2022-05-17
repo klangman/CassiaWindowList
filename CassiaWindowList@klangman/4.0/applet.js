@@ -1616,8 +1616,10 @@ class WindowListButton {
     }
     let curMenu = this._workspace.currentMenu;
     if (curMenu && curMenu != this.menu && curMenu.isOpen) {
+       let holdPopup = this._workspace.holdPopup;
        this.closeThumbnailMenu();
        this.openThumbnailMenu();
+       this._workspace.holdPopup = holdPopup;
     } else if (this._windows.length > 0 && this._settings.getValue("menu-show-on-hover")) {
       this.openThumbnailMenuDelayed();
     }
@@ -3373,9 +3375,9 @@ class WindowList extends Applet.Applet {
         log( `Found ${appList.length} apps to hide` );
         this._hiddenApps.push(...appList); // Use the "Spread Syntax" to concat to existing array
      }
-     for (let i=0 ; i < this._hiddenApps.length ; i++) {
-        log( "Hiding app: "+ this._hiddenApps[i].get_name() );
-     }
+     //for (let i=0 ; i < this._hiddenApps.length ; i++) {
+     //   log( "Hiding app: "+ this._hiddenApps[i].get_name() );
+     //}
   }
 
 

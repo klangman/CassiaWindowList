@@ -437,7 +437,6 @@
   "hotkey-help" : {
     "type" : "label",
     "description" : "Hotkeys can be assigned to a window in two ways:\n1. Manual:\n\tUse the \"Assign window to a hotkey\" item in a button context menu.\n2. Automatic:\n\tEnter a \"Description\" matching an application name or desktop file.\n\tFor example: \"Google Chrome\" or \"firefox.desktop\"\n\nNote: If a hotkey is not working, it's possible that a key combination is already assigned elsewhere. If you remove or rearrange any hotkeys, manual window assignments may need to be reassigned",
-    "tooltip": "This is a tooltip!!!"
   },
 
   "pinned-apps": {
