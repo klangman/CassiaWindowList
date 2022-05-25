@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2022-05-17 09:20-0400\n"
+"POT-Creation-Date: 2022-05-25 09:58-0400\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -17,19 +17,19 @@ msgstr ""
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
 
-#: 4.0/applet.js:1662
+#: 4.0/applet.js:1720
 msgid "Preferences"
 msgstr ""
 
-#: 4.0/applet.js:1666
+#: 4.0/applet.js:1724
 msgid "About..."
 msgstr ""
 
-#: 4.0/applet.js:1670
+#: 4.0/applet.js:1728
 msgid "Configure..."
 msgstr ""
 
-#: 4.0/applet.js:1674
+#: 4.0/applet.js:1732
 #, javascript-format
 msgid "Remove '%s'"
 msgstr ""
@@ -40,87 +40,87 @@ msgstr ""
 #. 4.0->settings-schema.json->mouse-action-btn2->options
 #. 4.0->settings-schema.json->mouse-action-btn8->options
 #. 4.0->settings-schema.json->mouse-action-btn9->options
-#: 4.0/applet.js:1683
+#: 4.0/applet.js:1741
 msgid "Open new window"
 msgstr ""
 
-#: 4.0/applet.js:1689
+#: 4.0/applet.js:1747
 msgid "Pin to this workspace"
 msgstr ""
 
-#: 4.0/applet.js:1702
+#: 4.0/applet.js:1760
 msgid "Pin to other workspaces"
 msgstr ""
 
-#: 4.0/applet.js:1733
+#: 4.0/applet.js:1791
 msgid "Recent files"
 msgstr ""
 
-#: 4.0/applet.js:1757
+#: 4.0/applet.js:1815
 msgid "Places"
 msgstr ""
 
-#: 4.0/applet.js:1799
+#: 4.0/applet.js:1857
 msgid "Only on this workspace"
 msgstr ""
 
-#: 4.0/applet.js:1801
+#: 4.0/applet.js:1859
 msgid "Visible on all workspaces"
 msgstr ""
 
-#: 4.0/applet.js:1802
+#: 4.0/applet.js:1860
 msgid "Move to another workspace"
 msgstr ""
 
-#: 4.0/applet.js:1821
+#: 4.0/applet.js:1879
 msgid "Move to another monitor"
 msgstr ""
 
-#: 4.0/applet.js:1829
+#: 4.0/applet.js:1887
 msgid "Monitor"
 msgstr ""
 
-#: 4.0/applet.js:1845
+#: 4.0/applet.js:1903
 msgid "Assign window to a hotkey"
 msgstr ""
 
-#: 4.0/applet.js:1869
+#: 4.0/applet.js:1927
 msgid "Change application label contents"
 msgstr ""
 
-#: 4.0/applet.js:1911
+#: 4.0/applet.js:1969
 msgid "Ungroup windows"
 msgstr ""
 
-#: 4.0/applet.js:1922
+#: 4.0/applet.js:1980
 msgid "Group windows"
 msgstr ""
 
-#: 4.0/applet.js:1930
+#: 4.0/applet.js:1988
 msgid "Automatic grouping/ungrouping"
 msgstr ""
 
-#: 4.0/applet.js:1958
+#: 4.0/applet.js:2016
 msgid "Restore"
 msgstr ""
 
-#: 4.0/applet.js:1962
+#: 4.0/applet.js:2020
 msgid "Minimize"
 msgstr ""
 
-#: 4.0/applet.js:1968
+#: 4.0/applet.js:2026
 msgid "Unmaximize"
 msgstr ""
 
-#: 4.0/applet.js:1975
+#: 4.0/applet.js:2033
 msgid "Close others"
 msgstr ""
 
-#: 4.0/applet.js:1986
+#: 4.0/applet.js:2044
 msgid "Close all"
 msgstr ""
 
-#: 4.0/applet.js:1995
+#: 4.0/applet.js:2053
 msgid "Close"
 msgstr ""
 
@@ -286,6 +286,13 @@ msgstr ""
 msgid "Add new window buttons ahead of trailing pinned buttons"
 msgstr ""
 
+#. 4.0->settings-schema.json->trailing-pinned-behaviour->tooltip
+msgid ""
+"When enabled, new windows will be added to the left of any pinned buttons "
+"currently placed on the right of the window list, effectively this allows "
+"you to keep pinned buttons at the end of the window list"
+msgstr ""
+
 #. 4.0->settings-schema.json->label-width->units
 msgid "pixels"
 msgstr ""
@@ -294,12 +301,15 @@ msgstr ""
 msgid "Label width"
 msgstr ""
 
+#. 4.0->settings-schema.json->label-width->tooltip
+msgid "This defines the width of the label section of a window list button"
+msgstr ""
+
 #. 4.0->settings-schema.json->label-animation->description
 msgid "Animate label"
 msgstr ""
 
 #. 4.0->settings-schema.json->label-animation-time->units
-#. 4.0->settings-schema.json->animation-time->units
 #. 4.0->settings-schema.json->preview-timeout-show->units
 #. 4.0->settings-schema.json->preview-timeout-hide->units
 msgid "milliseconds"
@@ -363,14 +373,6 @@ msgstr ""
 
 #. 4.0->settings-schema.json->display-pinned->description
 msgid "Allow pinning of window list buttons"
-msgstr ""
-
-#. 4.0->settings-schema.json->animation-time->description
-msgid "Animation time"
-msgstr ""
-
-#. 4.0->settings-schema.json->animation-time->tooltip
-msgid "The flashing time when a new window is opened via a button"
 msgstr ""
 
 #. 4.0->settings-schema.json->show-windows-for-current-monitor->description
@@ -576,14 +578,30 @@ msgstr ""
 msgid "Thumbnail window forward button action"
 msgstr ""
 
-#. 4.0->settings-schema.json->menu-show-on-click->description
-msgid "Show thumbnail menu on left click of a window group"
+#. 4.0->settings-schema.json->grouped-mouse-action-btn1->options
+msgid "Restore most recent window"
 msgstr ""
 
-#. 4.0->settings-schema.json->menu-show-on-click->tooltip
+#. 4.0->settings-schema.json->grouped-mouse-action-btn1->options
+msgid "Restore/Minimize most recent window"
+msgstr ""
+
+#. 4.0->settings-schema.json->grouped-mouse-action-btn1->options
+msgid "Restore then cycle windows"
+msgstr ""
+
+#. 4.0->settings-schema.json->grouped-mouse-action-btn1->options
+msgid "Show Thumbnail menu"
+msgstr ""
+
+#. 4.0->settings-schema.json->grouped-mouse-action-btn1->description
+msgid "Left button for grouped buttons"
+msgstr ""
+
+#. 4.0->settings-schema.json->grouped-mouse-action-btn1->tooltip
 msgid ""
-"If enabled, the thumbnail menu will appear when clicking on a grouped window"
-" list button. (Only with 2 or more windows)"
+"Action taken when using the left mouse button on a window list entry for a "
+"group of windows"
 msgstr ""
 
 #. 4.0->settings-schema.json->mouse-action-btn2->options
@@ -702,11 +720,8 @@ msgstr ""
 #. 4.0->settings-schema.json->hotkey-help->description
 msgid ""
 "Hotkeys can be assigned to a window in two ways:\n"
-"1. Manual:\n"
-"\tUse the \"Assign window to a hotkey\" item in a button context menu.\n"
-"2. Automatic:\n"
-"\tEnter a \"Description\" matching an application name or desktop file.\n"
-"\tFor example: \"Google Chrome\" or \"firefox.desktop\"\n"
+"1. Manual:  Use the \"Assign window to a hotkey\" item in a button context menu.\n"
+"2. Automatic:  Enter a \"Description\" matching an application name or desktop file. For example: \"Google Chrome\" or \"firefox.desktop\"\n"
 "\n"
 "Note: If a hotkey is not working, it's possible that a key combination is already assigned elsewhere. If you remove or rearrange any hotkeys, manual window assignments may need to be reassigned"
 msgstr ""

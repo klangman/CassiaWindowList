@@ -168,13 +168,21 @@ const MouseAction = {
   Maximize: 4,     // Maximize/restore toggle for the window
   Group: 5,        // Group/Ungroup toggle (all the windows for this application under one window-list button)
   New: 6,          // Open a new window for this application
-  MoveWorkspace1: 7,  // Move window to WorkSPace #1
+  MoveWorkspace1: 7,  // Move window to WorkSpace #1
   MoveWorkspace2: 8,  // 2
   MoveWorkspace3: 9,  // 3
   MoveWorkspace4: 10, // 4
   WS_Visibility: 11,  // Toggle workspace visibility from all to only this workspace
   None: 12,           // No action performed
   LastFocused: 13     // Restore the window that was most recently the focused window for the application
+}
+
+// Possible settings for the left mouse action for grouped buttons
+const LeftClickGrouped = {
+   Restore: 0,        // Restore only
+   Toggle: 1,         // Restore most resent window or minimize if already in focus
+   Cycle: 2,          // Restore most recent window or cycle windows of any window is already in focus
+   Thumbnail: 3       // Show the Thumbnail menu of windows
 }
 
 // Possible values for the Pinned label setting
@@ -494,7 +502,7 @@ class ThumbnailMenuItem extends PopupMenu.PopupBaseMenuItem {
     this._closeBin.hide();
 
     if (this._cloneBin) {
-      let animTime = this._settings.getValue("label-animation-time") * 0.001;
+      let animTime = 0.5; //this._settings.getValue("label-animation-time") * 0.001;
       Tweener.addTween(this.actor, {
         width: 0,
         time: animTime,
@@ -836,7 +844,7 @@ class WindowListButton {
     this._signalManager.connect(this._settings, "changed::display-caption-for", this._updateLabel, this);
     this._signalManager.connect(this._settings, "changed::display-number", this._updateNumber, this);
     this._signalManager.connect(this._settings, "changed::menu-show-on-hover", this._updateTooltip, this);
-    this._signalManager.connect(this._settings, "changed::menu-show-on-click", this._updateTooltip, this);
+    this._signalManager.connect(this._settings, "changed::grouped-mouse-action-btn1", this._updateTooltip, this);
     this._signalManager.connect(this._settings, "changed::show-tooltips", this._updateTooltip, this);
     this._signalManager.connect(this._settings, "changed::number-style", Lang.bind(this, function() { this._updateNumber(); this._updateLabel(); }), this);
     this._signalManager.connect(this._settings, "changed::label-width", this._updateLabel, this);
@@ -857,6 +865,7 @@ class WindowListButton {
     this._draggable.connect("drag-end", Lang.bind(this, this._onDragEnd));
 
     this.isDraggableApp = true;
+    this._updateNumber();
   }
 
   get_app_id() {
@@ -994,11 +1003,12 @@ class WindowListButton {
     let hoverEnabled = this._settings.getValue("menu-show-on-hover");
     if (!enableTooltips || !this._tooltip || (hoverEnabled && this._windows.length > 0)) {
        if (this._tooltip)
+          this._tooltip.set_text("");
           this._tooltip.preventShow = false
        return;
     }
     let text = null;
-    if (this._windows.length == 0 || this._currentWindow.get_title()==null || (this._windows.length > 1 && this._settings.getValue("menu-show-on-click")===true)) {
+    if (this._windows.length == 0 || this._currentWindow.get_title()==null || (this._windows.length > 1 && this._settings.getValue("grouped-mouse-action-btn1")===LeftClickGrouped.Thumbnail)) {
        text = this._app.get_name();
        if (text) {
           this._tooltip.set_text( text );
@@ -1010,7 +1020,8 @@ class WindowListButton {
        }
     }
     // Disable the tooltip if there is no text or the thumbnail menu is configured to automatically popup.
-    if (text === null) {
+    if (!text) {
+       this._tooltip.set_text("");
        this._tooltip.preventShow = true;
     } else {
        this._tooltip.preventShow = false;
@@ -1103,7 +1114,7 @@ class WindowListButton {
     let style = this._settings.getValue("number-style");
     let preferredWidth = this._settings.getValue("label-width");
     let number = this._windows.length;
-    let text;
+    let text = "";
     let width = preferredWidth;
     let needsCaption = false;
     let oneCaption = false;
@@ -1416,7 +1427,8 @@ class WindowListButton {
     // left mouse button
     if (mouseBtn == 1) {
       if (this._currentWindow) {
-        if (this._windows.length == 1 || !(this._settings.getValue("menu-show-on-click"))) {
+        let leftGroupedAction = this._settings.getValue("grouped-mouse-action-btn1");
+        if (this._windows.length == 1 || leftGroupedAction == LeftClickGrouped.Toggle) {
           if (hasFocus(this._currentWindow, false) && !this._currentWindow.minimized) {
             this._currentWindow.minimize();
           } else {
@@ -1424,12 +1436,31 @@ class WindowListButton {
             //Main.activateWindow(this._currentWindow);
             this._currentWindow.activate(0);
           }
-        } else if (this._settings.getValue("menu-show-on-click")) {
+        } else if (leftGroupedAction == LeftClickGrouped.Thumbnail) {
           if (this.menu && this.menu.isOpen) {
             this.closeThumbnailMenu();
           } else {
             this.openThumbnailMenu();
           }
+        } else if (leftGroupedAction == LeftClickGrouped.Restore) {
+            this.closeThumbnailMenu();
+            this._currentWindow.activate(0);
+        } else { // leftGroupedAction == LeftClickGrouped.Cycle
+            if (hasFocus(this._currentWindow)) {
+               for( let idx=0 ; idx < this._windows.length ; idx++ ) {
+                  if (this._windows[idx] === this._currentWindow) {
+                     this.closeThumbnailMenu();
+                     if (idx === this._windows.length-1) {
+                        Main.activateWindow(this._windows[0]);
+                     } else {
+                        Main.activateWindow(this._windows[idx+1]);
+                     }
+                     break;
+                  }
+               }
+            } else {
+               this._currentWindow.activate(0);
+            }
         }
       } else {
         this._startApp();
@@ -1584,6 +1615,7 @@ class WindowListButton {
       }
   }
 
+  /*
   _animateIcon(animationTime) {
     Tweener.addTween(this._icon, {
       opacity: 70,
@@ -1599,11 +1631,37 @@ class WindowListButton {
       })
     });
   }
+  */
+
+    _animateIcon(step) {
+        if (step >= 3) return;
+        this._icon.set_pivot_point(0.5, 0.5);
+        Tweener.addTween(this._icon,
+                         { scale_x: 0.7,
+                           scale_y: 0.7,
+                           time: 0.2,
+                           transition: 'easeOutQuad',
+                           onComplete() {
+                               Tweener.addTween(this._icon,
+                                                { scale_x: 1.0,
+                                                  scale_y: 1.0,
+                                                  time: 0.2,
+                                                  transition: 'easeOutQuad',
+                                                  onComplete() {
+                                                      this._animateIcon(step + 1);
+                                                  },
+                                                  onCompleteScope: this
+                                                });
+                           },
+                           onCompleteScope: this
+                         });
+    }
 
   _startApp() {
     this._app.open_new_window(-1);
-    let animationTime = this._settings.getValue("animation-time") / 1000;
-    this._animateIcon(animationTime);
+    //let animationTime = this._settings.getValue("animation-time") / 1000;
+    //this._animateIcon(animationTime);
+    this._animateIcon(0);
   }
 
   _onEnterEvent() {
@@ -2332,7 +2390,7 @@ class Workspace {
       appButton = this._addAppButton(app);
     }
     appButton.addWindow(metaWindow);
-    this._updateAppButtonVisibility();
+    //this._updateAppButtonVisibility();
     // Keep growing the maxSize as we see bigger window list widths
     if (this.actor.get_width() > this.maxSize) {
       let width = appButton._labelBox.get_width();

@@ -40,12 +40,12 @@
     "general-settings" : {
       "type" : "section",
       "title" : "General window list settings",
-      "keys" : ["group-windows", "display-pinned", "trailing-pinned-behaviour", "animation-time", "show-windows-for-current-monitor", "show-tooltips", "hide-panel-apps"]
+      "keys" : ["group-windows", "display-pinned", "trailing-pinned-behaviour", "show-windows-for-current-monitor", "show-tooltips", "hide-panel-apps"]
     },
     "general-mouse" : {
       "type" : "section",
       "title" : "Window list mouse settings",
-    "keys" : ["mouse-action-btn2", "mouse-action-btn8", "mouse-action-btn9"]
+    "keys" : ["grouped-mouse-action-btn1", "mouse-action-btn2", "mouse-action-btn8", "mouse-action-btn9"]
     },
     "preview-settings" : {
       "type" : "section",
@@ -55,7 +55,7 @@
     "preview-mouse-section" : {
       "type" : "section",
       "title" : "Thumbnails mouse settings",
-      "keys" : ["menu-show-on-hover", "preview-timeout-show", "preview-timeout-hide", "menu-show-on-click", "wheel-adjusts-preview-size", "preview-middle-click", "preview-back-click", "preview-forward-click"]
+      "keys" : ["menu-show-on-hover", "preview-timeout-show", "preview-timeout-hide", "wheel-adjusts-preview-size", "preview-middle-click", "preview-back-click", "preview-forward-click"]
     },
     "hotkey-settings" : {
       "type" : "section",
@@ -119,7 +119,8 @@
   "trailing-pinned-behaviour": {
     "type": "switch",
     "default": false,
-    "description": "Add new window buttons ahead of trailing pinned buttons"
+    "description": "Add new window buttons ahead of trailing pinned buttons",
+    "tooltip": "When enabled, new windows will be added to the left of any pinned buttons currently placed on the right of the window list, effectively this allows you to keep pinned buttons at the end of the window list"
   },
   "label-width": {
     "type": "spinbutton",
@@ -129,7 +130,7 @@
     "units": "pixels",
     "step": 1,
     "description": "Label width",
-    "toolip": "This defines the width of the button label"
+    "tooltip": "This defines the width of the label section of a window list button"
   },
   "label-animation": {
     "type": "switch",
@@ -143,6 +144,7 @@
     "max": 10000,
     "units": "milliseconds",
     "step": 1,
+    "dependency": "label-animation",
     "description": "Label animation time"
   },
   "display-number": {
@@ -183,16 +185,6 @@
     "type": "switch",
     "default": true,
     "description": "Allow pinning of window list buttons"
-  },
-  "animation-time": {
-    "type": "spinbutton",
-    "default": 2000,
-    "min": 5,
-    "max": 10000,
-    "units": "milliseconds",
-    "step": 1,
-    "description": "Animation time",
-    "tooltip": "The flashing time when a new window is opened via a button"
   },
   "show-windows-for-current-monitor": {
     "type": "switch",
@@ -316,12 +308,19 @@
     },
     "description": "Thumbnail window forward button action"
   },
-  "menu-show-on-click": {
-    "type": "switch",
-    "default": true,
-    "description": "Show thumbnail menu on left click of a window group",
-    "tooltip": "If enabled, the thumbnail menu will appear when clicking on a grouped window list button. (Only with 2 or more windows)"
+  "grouped-mouse-action-btn1": {
+    "type": "combobox",
+    "default": 3,
+    "options": {
+      "Restore most recent window": 0,
+      "Restore/Minimize most recent window": 1,
+      "Restore then cycle windows": 2,
+      "Show Thumbnail menu": 3
+    },
+    "description": "Left button for grouped buttons",
+    "tooltip": "Action taken when using the left mouse button on a window list entry for a group of windows"
   },
+
   "mouse-action-btn2": {
     "type": "combobox",
     "default": 0,
@@ -436,7 +435,7 @@
 
   "hotkey-help" : {
     "type" : "label",
-    "description" : "Hotkeys can be assigned to a window in two ways:\n1. Manual:\n\tUse the \"Assign window to a hotkey\" item in a button context menu.\n2. Automatic:\n\tEnter a \"Description\" matching an application name or desktop file.\n\tFor example: \"Google Chrome\" or \"firefox.desktop\"\n\nNote: If a hotkey is not working, it's possible that a key combination is already assigned elsewhere. If you remove or rearrange any hotkeys, manual window assignments may need to be reassigned",
+    "description" : "Hotkeys can be assigned to a window in two ways:\n1. Manual:  Use the \"Assign window to a hotkey\" item in a button context menu.\n2. Automatic:  Enter a \"Description\" matching an application name or desktop file. For example: \"Google Chrome\" or \"firefox.desktop\"\n\nNote: If a hotkey is not working, it's possible that a key combination is already assigned elsewhere. If you remove or rearrange any hotkeys, manual window assignments may need to be reassigned",
     "tooltip": "This is a tooltip!!!"
   },
 
