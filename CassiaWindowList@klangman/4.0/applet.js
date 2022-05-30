@@ -241,11 +241,24 @@ function hasFocus(metaWindow, allowTransient=true) {
     return transientHasFocus;
 }
 
-function resizeActor(actor, time, toWidth, button) {
+function resizeActor(actor, time, toWidth, text, button) {
   Tweener.addTween(actor, {
     natural_width: toWidth,
     time: time * 0.001,
     transition: "easeInOutQuad",
+    onComplete() {
+       // Since some fonts don't seem to report the right size when calling get_pixel_size() before animation is complete
+       // so we need to see what the actual size is now and set _minLabelSize accordingly.
+       if (this._shrukenLabel) {
+          let minText = (this._pinned && (this._applet.indicators&IndicatorType.Pinned)) ? "\u{1F4CC}\u{2193}" : "\u{2193}";
+          if (text == minText) {
+             let layout = this._label.get_clutter_text().get_layout();
+             let [curWidth, curHeight] = layout.get_pixel_size();
+             log( `After ani size: ${curWidth}` );
+             this._minLabelSize = curWidth;
+          }
+       }
+    },
     onCompleteScope: button
   });
 }
@@ -1240,7 +1253,7 @@ class WindowListButton {
 
     if (width != this._labelWidth){
        let animTime = this._settings.getValue("label-animation") ? this._settings.getValue("label-animation-time") : 0;
-       resizeActor(this._labelBox, animTime, width, this);
+       resizeActor(this._labelBox, animTime, width, text, this);
        this._labelWidth = width;
     }
     this._updateTooltip();
@@ -2943,11 +2956,10 @@ class Workspace {
   _tryGroupingApps() {
      if (this._areButtonsShrunk()==true) {
         if (this._applet.indicators == IndicatorType.Auto) {
-           // Remove the indicator characters
-           this.autoIndicatorsOff = true;
+           this.autoIndicatorsOff = true;   // Remove the indicator characters
            for (let i=0 ; i<this._appButtons.length ; i++) {
               if (this._appButtons[i]._pinned || this._appButtons[i]._currentWindow.minimized) {
-                 this._minLabelSize = -1; // Re-calculate
+                 this._appButtons[i]._minLabelSize = -1; // Re-calculate
                  this._appButtons[i]._updateLabel();
               }
            }
