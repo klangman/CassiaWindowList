@@ -254,7 +254,6 @@ function resizeActor(actor, time, toWidth, text, button) {
           if (text == minText) {
              let layout = this._label.get_clutter_text().get_layout();
              let [curWidth, curHeight] = layout.get_pixel_size();
-             log( `After ani size: ${curWidth}` );
              this._minLabelSize = curWidth;
           }
        }
@@ -2982,8 +2981,8 @@ class Workspace {
     let windows = [];
     for (let i=0 ; i<btns.length-1 ; i++) {
        windows.push(btns[i]._windows[0])
-       this._windowRemoved(window);
-       this._removeAppButton(btns[i]);
+       this._windowRemoved(btns[i]._windows[0]);
+       //this._removeAppButton(btns[i]);
     }
     btns[btns.length-1]._grouped = type;
     for (let i=0 ; i < windows.length ; i++) {
