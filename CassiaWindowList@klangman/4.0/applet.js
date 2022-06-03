@@ -247,9 +247,9 @@ function resizeActor(actor, time, toWidth, text, button) {
     time: time * 0.001,
     transition: "easeInOutQuad",
     onComplete() {
-       // Since some fonts don't seem to report the right size when calling get_pixel_size() before animation is complete
-       // so we need to see what the actual size is now and set _minLabelSize accordingly.
        if (this._shrukenLabel) {
+          // Since some fonts don't seem to report the right size when calling get_pixel_size() before animation is complete
+          // so we need to see what the actual size is now and set _minLabelSize accordingly.
           let minText = (this._pinned && (this._applet.indicators&IndicatorType.Pinned)) ? "\u{1F4CC}\u{2193}" : "\u{2193}";
           if (text == minText) {
              let layout = this._label.get_clutter_text().get_layout();
@@ -1996,31 +1996,33 @@ class WindowListButton {
       }
 
       // Menu option to Allow/Prevent windows from Automatic grouping/ungoruping 
-      let auto = !(this._grouped == GroupingType.ForcedOff || this._grouped == GroupingType.ForcedOn);
-      item = new PopupMenu.PopupSwitchMenuItem(_("Automatic grouping/ungrouping"), auto);
-      item.connect("toggled", Lang.bind(this, function(menuItem, state) {
-        if (state) {
-           // Automatic has been enabled
-           if (this._grouped > GroupingType.NotGrouped) {
-              this._grouped=GroupingType.Auto;
-              this._workspace._tryExpandingAppGroups();
+      if (this._settings.getValue("group-windows")===GroupType.Auto) {
+         let auto = !(this._grouped == GroupingType.ForcedOff || this._grouped == GroupingType.ForcedOn);
+         item = new PopupMenu.PopupSwitchMenuItem(_("Automatic grouping/ungrouping"), auto);
+         item.connect("toggled", Lang.bind(this, function(menuItem, state) {
+           if (state) {
+              // Automatic has been enabled
+              if (this._grouped > GroupingType.NotGrouped) {
+                 this._grouped=GroupingType.Auto;
+                 this._workspace._tryExpandingAppGroups();
+              } else {
+                 let btns = this._workspace._lookupAllAppButtonsForApp(this._app);
+                 for (let i=0 ; i<btns.length ; i++)
+                    btns[i]._grouped = GroupingType.NotGrouped;
+              }
            } else {
-              let btns = this._workspace._lookupAllAppButtonsForApp(this._app);
-              for (let i=0 ; i<btns.length ; i++)
-                 btns[i]._grouped = GroupingType.NotGrouped;
+              // Automatic has been disabled
+              if (this._grouped > GroupingType.NotGrouped) {
+                 this._grouped = GroupingType.ForcedOn;
+              } else {
+                 let btns = this._workspace._lookupAllAppButtonsForApp(this._app);
+                 for (let i=0 ; i<btns.length ; i++)
+                    btns[i]._grouped = GroupingType.ForcedOff;
+              }
            }
-        } else {
-           // Automatic has been disabled
-           if (this._grouped > GroupingType.NotGrouped) {
-              this._grouped = GroupingType.ForcedOn;
-           } else {
-              let btns = this._workspace._lookupAllAppButtonsForApp(this._app);
-              for (let i=0 ; i<btns.length ; i++)
-                 btns[i]._grouped = GroupingType.ForcedOff;
-           }
-        }
-      }));
-      this._contextMenu.addMenuItem(item);
+         }));
+         this._contextMenu.addMenuItem(item);
+      }
 
       this._contextMenu.addMenuItem(new PopupMenu.PopupSeparatorMenuItem());
       // window specific
@@ -2191,6 +2193,7 @@ class Workspace {
 
     this.maxSize = this._settings.getValue("label-width"); // The size where buttons start shrinking (estimated until we see shrinking button widths)
     this.autoIndicatorsOff = false;  // Were the indicator characters automatically removed to save space
+    this._status = 0;  // 0=Normal   1=Grouping/Ungrouping in progress
 
     this.dragInProgress = false;
     this.prevDragLocation = undefined;
@@ -2413,11 +2416,9 @@ class Workspace {
         this.maxSize = this.actor.get_width() + this._settings.getValue("label-width");
       }
     }
-    if (skipSizeChk==false && groupingType == GroupType.Auto) {
-       // Check if a button size is smaller then the configured size setting.
-       if (this._appButtons.length > 0) {
-          this._tryGroupingApps();
-       }
+    if (skipSizeChk==false && groupingType == GroupType.Auto && this._appButtons.length > 0) {
+       // Check if a button size is smaller then the configured size setting and then group apps if needed
+       this._tryGroupingApps();
     }
     this._applet.assignHotKeysToNewWindow(appButton, this);
     return false;
@@ -2647,7 +2648,7 @@ class Workspace {
            if (allButtons.length > 1){
               apps.push(appButtons[i]._app);
               let windows = [];
-              allButtons.forEach((element) => {windows.push(element._windows[0]); element.removeWindow(element._windows[0]);} );
+              allButtons.forEach((element) => {windows.push(element._windows[0]); this._windowRemoved(element._windows[0]);} );
               windows.forEach((element) => {this._windowAdded(element);} );
            }
         }
@@ -2905,6 +2906,9 @@ class Workspace {
   // can be expanded without causing the button size to shrink below the preferred size.
   // Repeat this process while available space remains or no ungroupable buttons are found.
   _tryExpandingAppGroups() {
+     if (this._status != 0) {
+        return;
+     }
      let settingsWidth = this._settings.getValue("label-width");
      let captionType = this._settings.getValue("display-caption-for");
      let width = 12; // 12 is the width of a button without a caption (just the space for the minimized flag char) 
@@ -2927,6 +2931,7 @@ class Workspace {
            }
         }
      }
+     this._status = 1;
      while (spaceAvailable>0) {
         btnToUngroup = null;
         willConsume = 0;
@@ -2948,22 +2953,27 @@ class Workspace {
            break; // Nothing we can ungroup, we're done!
         }
      }
+     this._status = 0;
   }
 
   // Look for applications with more then one button so that we can group them to make more space on the windowlist
   // and avoid having the captions shrink.
   _tryGroupingApps() {
+     if (this._status != 0) {
+        return;
+     }
      if (this._areButtonsShrunk()==true) {
         if (this._applet.indicators == IndicatorType.Auto) {
            this.autoIndicatorsOff = true;   // Remove the indicator characters
            for (let i=0 ; i<this._appButtons.length ; i++) {
-              if (this._appButtons[i]._pinned || this._appButtons[i]._currentWindow.minimized) {
+              if (this._appButtons[i]._pinned || (this._appButtons[i]._currentWindow && this._appButtons[i]._currentWindow.minimized)) {
                  this._appButtons[i]._minLabelSize = -1; // Re-calculate
                  this._appButtons[i]._updateLabel();
               }
            }
         }
         // Shrink all the applications into single group buttons
+        this._status = 1;
         do {
            let btns = this.getAppWithMostButtons();
            if (btns != undefined) {
@@ -2972,6 +2982,7 @@ class Workspace {
               break;
            }
         } while (this._areButtonsShrunk()==true);
+        this._status = 0;
      }
   }
 
@@ -2980,13 +2991,12 @@ class Workspace {
   _groupOneApp(btns, type=GroupingType.Auto) {
     let windows = [];
     for (let i=0 ; i<btns.length-1 ; i++) {
-       windows.push(btns[i]._windows[0])
+       windows.push(btns[i]._windows[0]);
        this._windowRemoved(btns[i]._windows[0]);
-       //this._removeAppButton(btns[i]);
     }
     btns[btns.length-1]._grouped = type;
     for (let i=0 ; i < windows.length ; i++) {
-       this._windowAdded(windows[i]);
+       this._windowAdded(windows[i], true);
     }
     // Setup the windows array so that the window list is the same order as it was before the grouping occurred!
     let x = btns[btns.length-1]._windows.shift();
@@ -2997,8 +3007,8 @@ class Workspace {
   // which creates new appButtons. Assumes the passed in button is already grouped
   _ungroupOneApp(button, type=GroupingType.NotGrouped) {
      let windows = button._windows;
-     let appLastFocus = button._currentWindow;
      if (windows.length < 2) return;
+     let appLastFocus = button._currentWindow;
      let window = undefined;
      button._grouped = type;
      // remove all but one window from this appButton
