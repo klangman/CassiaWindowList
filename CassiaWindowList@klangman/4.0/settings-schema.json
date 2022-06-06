@@ -216,7 +216,7 @@
     "type": "switch",
     "default": true,
     "description": "Show window thumbnails in the popup window list menu",
-    "tooltip": "If enabled, the popup menu will show window thumbnails\n(Always disabled when running Cinnamon in Software Rendering Mode)"
+    "tooltip": "If enabled, the popup menu will show window thumbnails,\notherwise the menu will only show window titles\n(Always disabled when running Cinnamon in Software Rendering Mode)"
   },
   "number-of-unshrunk-previews": {
     "type": "combobox",
@@ -310,14 +310,13 @@
   },
   "grouped-mouse-action-btn1": {
     "type": "combobox",
-    "default": 3,
+    "default": 2,
     "options": {
-      "Restore most recent window": 0,
-      "Restore/Minimize most recent window": 1,
-      "Restore then cycle windows": 2,
-      "Show Thumbnail menu": 3
+      "Restore/Minimize most recent window": 0,
+      "Restore then cycle windows": 1,
+      "Show thumbnail menu": 2
     },
-    "description": "Left button for grouped buttons",
+    "description": "Left button action for grouped buttons",
     "tooltip": "Action taken when using the left mouse button on a window list entry for a group of windows"
   },
 
@@ -340,7 +339,7 @@
       "Visible on this/all workspaces": 11,
       "Do nothing": 12
     },
-    "description": "Middle button",
+    "description": "Middle button action",
     "tooltip": "Action taken when using the middle mouse button on window list entries"
   },
   "mouse-action-btn8": {
@@ -362,7 +361,7 @@
       "Visible on this/all workspaces": 11,
       "Do nothing": 12
     },
-    "description": "Back button",
+    "description": "Back button action",
     "tooltip": "Action taken when using the back mouse button on window list entries"
   },
   "mouse-action-btn9": {
@@ -384,7 +383,7 @@
       "Visible on this/all workspaces": 11,
       "Do nothing": 12
     },
-    "description": "Forward button",
+    "description": "Forward button action",
     "tooltip": "Action taken when using the forward mouse button on window list entries"
   },
 

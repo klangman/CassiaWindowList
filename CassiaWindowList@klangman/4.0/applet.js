@@ -179,10 +179,9 @@ const MouseAction = {
 
 // Possible settings for the left mouse action for grouped buttons
 const LeftClickGrouped = {
-   Restore: 0,        // Restore only
-   Toggle: 1,         // Restore most resent window or minimize if already in focus
-   Cycle: 2,          // Restore most recent window or cycle windows of any window is already in focus
-   Thumbnail: 3       // Show the Thumbnail menu of windows
+   Toggle: 0,         // Restore most resent window or minimize if already in focus
+   Cycle: 1,          // Restore most recent window or cycle windows if any window is already in focus
+   Thumbnail: 2       // Show the Thumbnail menu of windows
 }
 
 // Possible values for the Pinned label setting
@@ -1454,9 +1453,6 @@ class WindowListButton {
           } else {
             this.openThumbnailMenu();
           }
-        } else if (leftGroupedAction == LeftClickGrouped.Restore) {
-            this.closeThumbnailMenu();
-            this._currentWindow.activate(0);
         } else { // leftGroupedAction == LeftClickGrouped.Cycle
             if (hasFocus(this._currentWindow)) {
                for( let idx=0 ; idx < this._windows.length ; idx++ ) {

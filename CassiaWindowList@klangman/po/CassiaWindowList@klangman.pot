@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2022-06-03 09:45-0400\n"
+"POT-Creation-Date: 2022-06-06 09:17-0400\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -17,19 +17,19 @@ msgstr ""
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
 
-#: 4.0/applet.js:1732
+#: 4.0/applet.js:1728
 msgid "Preferences"
 msgstr ""
 
-#: 4.0/applet.js:1736
+#: 4.0/applet.js:1732
 msgid "About..."
 msgstr ""
 
-#: 4.0/applet.js:1740
+#: 4.0/applet.js:1736
 msgid "Configure..."
 msgstr ""
 
-#: 4.0/applet.js:1744
+#: 4.0/applet.js:1740
 #, javascript-format
 msgid "Remove '%s'"
 msgstr ""
@@ -40,87 +40,87 @@ msgstr ""
 #. 4.0->settings-schema.json->mouse-action-btn2->options
 #. 4.0->settings-schema.json->mouse-action-btn8->options
 #. 4.0->settings-schema.json->mouse-action-btn9->options
-#: 4.0/applet.js:1753
+#: 4.0/applet.js:1749
 msgid "Open new window"
 msgstr ""
 
-#: 4.0/applet.js:1759
+#: 4.0/applet.js:1755
 msgid "Pin to this workspace"
 msgstr ""
 
-#: 4.0/applet.js:1772
+#: 4.0/applet.js:1768
 msgid "Pin to other workspaces"
 msgstr ""
 
-#: 4.0/applet.js:1803
+#: 4.0/applet.js:1799
 msgid "Recent files"
 msgstr ""
 
-#: 4.0/applet.js:1827
+#: 4.0/applet.js:1823
 msgid "Places"
 msgstr ""
 
-#: 4.0/applet.js:1869
+#: 4.0/applet.js:1865
 msgid "Only on this workspace"
 msgstr ""
 
-#: 4.0/applet.js:1871
+#: 4.0/applet.js:1867
 msgid "Visible on all workspaces"
 msgstr ""
 
-#: 4.0/applet.js:1872
+#: 4.0/applet.js:1868
 msgid "Move to another workspace"
 msgstr ""
 
-#: 4.0/applet.js:1891
+#: 4.0/applet.js:1887
 msgid "Move to another monitor"
 msgstr ""
 
-#: 4.0/applet.js:1899
+#: 4.0/applet.js:1895
 msgid "Monitor"
 msgstr ""
 
-#: 4.0/applet.js:1915
+#: 4.0/applet.js:1911
 msgid "Assign window to a hotkey"
 msgstr ""
 
-#: 4.0/applet.js:1939
+#: 4.0/applet.js:1935
 msgid "Change application label contents"
 msgstr ""
 
-#: 4.0/applet.js:1981
+#: 4.0/applet.js:1977
 msgid "Ungroup windows"
 msgstr ""
 
-#: 4.0/applet.js:1992
+#: 4.0/applet.js:1988
 msgid "Group windows"
 msgstr ""
 
-#: 4.0/applet.js:2001
+#: 4.0/applet.js:1997
 msgid "Automatic grouping/ungrouping"
 msgstr ""
 
-#: 4.0/applet.js:2030
+#: 4.0/applet.js:2026
 msgid "Restore"
 msgstr ""
 
-#: 4.0/applet.js:2034
+#: 4.0/applet.js:2030
 msgid "Minimize"
 msgstr ""
 
-#: 4.0/applet.js:2040
+#: 4.0/applet.js:2036
 msgid "Unmaximize"
 msgstr ""
 
-#: 4.0/applet.js:2047
+#: 4.0/applet.js:2043
 msgid "Close others"
 msgstr ""
 
-#: 4.0/applet.js:2058
+#: 4.0/applet.js:2054
 msgid "Close all"
 msgstr ""
 
-#: 4.0/applet.js:2067
+#: 4.0/applet.js:2063
 msgid "Close"
 msgstr ""
 
@@ -422,7 +422,8 @@ msgstr ""
 
 #. 4.0->settings-schema.json->show-previews->tooltip
 msgid ""
-"If enabled, the popup menu will show window thumbnails\n"
+"If enabled, the popup menu will show window thumbnails,\n"
+"otherwise the menu will only show window titles\n"
 "(Always disabled when running Cinnamon in Software Rendering Mode)"
 msgstr ""
 
@@ -579,10 +580,6 @@ msgid "Thumbnail window forward button action"
 msgstr ""
 
 #. 4.0->settings-schema.json->grouped-mouse-action-btn1->options
-msgid "Restore most recent window"
-msgstr ""
-
-#. 4.0->settings-schema.json->grouped-mouse-action-btn1->options
 msgid "Restore/Minimize most recent window"
 msgstr ""
 
@@ -591,11 +588,11 @@ msgid "Restore then cycle windows"
 msgstr ""
 
 #. 4.0->settings-schema.json->grouped-mouse-action-btn1->options
-msgid "Show Thumbnail menu"
+msgid "Show thumbnail menu"
 msgstr ""
 
 #. 4.0->settings-schema.json->grouped-mouse-action-btn1->description
-msgid "Left button for grouped buttons"
+msgid "Left button action for grouped buttons"
 msgstr ""
 
 #. 4.0->settings-schema.json->grouped-mouse-action-btn1->tooltip
@@ -623,7 +620,7 @@ msgid "Restore most recent application window"
 msgstr ""
 
 #. 4.0->settings-schema.json->mouse-action-btn2->description
-msgid "Middle button"
+msgid "Middle button action"
 msgstr ""
 
 #. 4.0->settings-schema.json->mouse-action-btn2->tooltip
@@ -631,7 +628,7 @@ msgid "Action taken when using the middle mouse button on window list entries"
 msgstr ""
 
 #. 4.0->settings-schema.json->mouse-action-btn8->description
-msgid "Back button"
+msgid "Back button action"
 msgstr ""
 
 #. 4.0->settings-schema.json->mouse-action-btn8->tooltip
@@ -639,7 +636,7 @@ msgid "Action taken when using the back mouse button on window list entries"
 msgstr ""
 
 #. 4.0->settings-schema.json->mouse-action-btn9->description
-msgid "Forward button"
+msgid "Forward button action"
 msgstr ""
 
 #. 4.0->settings-schema.json->mouse-action-btn9->tooltip
