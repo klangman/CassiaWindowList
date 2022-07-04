@@ -2810,15 +2810,16 @@ class Workspace {
                  this.actor.set_child_at_index(btns[idx].actor, actorPos);
               }
            }
+           this._clearDragPlaceholder();
         } else {
            this.actor.set_child_at_index(source.actor, actorPos);
-           if (this._settings.getValue("display-caption-for") == DisplayCaption.One) {
+           this._clearDragPlaceholder();
+           if (this._settings.getValue("display-caption-for") === DisplayCaption.One) {
               for (let i=0 ; i < btns.length ; i++ ) {
                 btns[i]._updateLabel();
               }
            }
         }
-        this._clearDragPlaceholder();
         if (source._pinned) {
           this.pinAppButton(source);
         }
