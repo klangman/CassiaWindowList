@@ -2796,54 +2796,31 @@ class Workspace {
     if (source.isDraggableApp || source instanceof DND.LauncherDraggable) {
       let actorPos = this._dragPlaceholderPos;
       if (source instanceof WindowListButton && this.actor.contains(source.actor)) {
-        this.actor.set_child_at_index(source.actor, actorPos);
+        let btns = source._workspace._lookupAllAppButtonsForApp(source._app);
+        let groupingType = this._settings.getValue("group-windows");
+        let children = this.actor.get_children();
+        // Check if we have to move an entire application pool just just the one button??
+        if (btns.length > 1 && (groupingType == GroupType.Pooled || groupingType == GroupType.Auto) && (actorPos < children.indexOf(btns[0].actor)-1 || actorPos > children.indexOf(btns[btns.length-1].actor)+1)) {
+           if (actorPos < children.indexOf(btns[0].actor)-1) {
+              for (let idx=btns.length-1 ; idx >= 0 ; idx--) {
+                 this.actor.set_child_at_index(btns[idx].actor, actorPos);
+              }
+           } else {
+              for (let idx=0 ; idx < btns.length ; idx++) {
+                 this.actor.set_child_at_index(btns[idx].actor, actorPos);
+              }
+           }
+        } else {
+           this.actor.set_child_at_index(source.actor, actorPos);
+           if (this._settings.getValue("display-caption-for") == DisplayCaption.One) {
+              for (let i=0 ; i < btns.length ; i++ ) {
+                btns[i]._updateLabel();
+              }
+           }
+        }
         this._clearDragPlaceholder();
         if (source._pinned) {
           this.pinAppButton(source);
-        }
-
-        let btns = source._workspace._lookupAllAppButtonsForApp(source._app);
-        let groupingType = this._settings.getValue("group-windows");
-        if (btns.length > 1 && (groupingType == GroupType.Pooled || groupingType == GroupType.Auto)) {
-          // Move all the buttons of the same application to the new location (if required)
-          let lowest=9999;
-          let highest=0;
-          let children = this.actor.get_children();
-          let droppedIdx = children.indexOf(source.actor);
-          let droppedBtnsIdx;
-          for (let i=btns.length-1 ; i >= 0 ; i--) {
-            let idx = children.indexOf(btns[i].actor);
-            if (lowest > idx) {
-              lowest = idx;
-            }
-            if (highest < idx) {
-              highest = idx;
-            }
-            if (idx == droppedIdx){
-              droppedBtnsIdx = i;
-            }
-          }
-          if (highest-lowest >= btns.length) {
-            for (let i=btns.length-1, idx=droppedIdx-1 ; i >= 0 ; i--) {
-              if (i != droppedBtnsIdx) {
-                if (droppedIdx == lowest) {
-                  this.actor.set_child_at_index(btns[i].actor, droppedIdx+1);
-                } else {
-                  this.actor.set_child_at_index(btns[i].actor, idx);
-                  idx-=1
-                }
-              }
-            }
-          }
-          for (let i=btns.length-1, idx=droppedIdx-1 ; i >= 0 ; i--) {
-            btns[i]._updateLabel();
-          }
-        } else if (groupingType === GroupType.Off) {
-           // We might need to expand the label
-           let btns = source._workspace._appButtons;
-           for (let i=0 ; i < btns.length ; i++ ) {
-             btns[i]._updateLabel();
-           }
         }
       } else {
         let appId;

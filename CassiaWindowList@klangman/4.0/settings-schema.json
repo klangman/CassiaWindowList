@@ -54,7 +54,7 @@
     },
     "preview-mouse-section" : {
       "type" : "section",
-      "title" : "Thumbnails mouse settings",
+      "title" : "Thumbnails menu mouse settings",
       "keys" : ["menu-show-on-hover", "preview-timeout-show", "preview-timeout-hide", "wheel-adjusts-preview-size", "preview-middle-click", "preview-back-click", "preview-forward-click"]
     },
     "hotkey-settings" : {
@@ -228,6 +228,7 @@
       "Small": 9,
       "Extra small": 11
     },
+    "dependency": "show-previews",
     "description": "Default thumbnail window size"
   },
   "preview-timeout-show": {
@@ -396,6 +397,7 @@
        "On (global default)": 2,
        "On (application default)": 3
     },
+    "dependency": "show-previews",
     "description": "Adjust the thumbnail window sizes using the scroll-wheel",
     "tooltip": "If enabled, the size of thumbnail windows will respond to the mouse scroll-wheel. The new size can have a temporary effect or persist on a global or per application basis"
   },
