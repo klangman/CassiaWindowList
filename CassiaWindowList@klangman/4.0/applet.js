@@ -1577,24 +1577,24 @@ class WindowListButton {
         case MouseAction.MoveWorkspace1:
            if (window) {
               if (this.menu != undefined) this.menu.removeWindow(window);
-              window.change_workspace_by_index(0, false, 0);
+              window.change_workspace_by_index(0, false);
            }
            break;
         case MouseAction.MoveWorkspace2:
            if (window && this._applet._workspaces.length <= 2) {
               if (this.menu != undefined) this.menu.removeWindow(window);
-              window.change_workspace_by_index(1, false, 1);
+              window.change_workspace_by_index(1, false);
            }
            break;
         case MouseAction.MoveWorkspace3:
            if (window && this._applet._workspaces.length <= 3)
               if (this.menu != undefined) this.menu.removeWindow(window);
-              window.change_workspace_by_index(2, false, 0);
+              window.change_workspace_by_index(2, false);
            break;
         case MouseAction.MoveWorkspace4:
            if (window && this._applet._workspaces.length <= 4)
               if (this.menu != undefined) this.menu.removeWindow(window);
-              window.change_workspace_by_index(3, false, 0);
+              window.change_workspace_by_index(3, false);
            break;
         case MouseAction.WS_Visibility:
            if (window.is_on_all_workspaces()) {
@@ -1875,7 +1875,7 @@ class WindowListButton {
             let name = Main.workspace_names[i] ? Main.workspace_names[i] : Main._makeDefaultWorkspaceName(i);
             let ws = new PopupMenu.PopupMenuItem(name);
             ws.connect("activate", Lang.bind(this, function() {
-                metaWindow.change_workspace_by_index(j, false, 0);
+                metaWindow.change_workspace_by_index(j, false);
             }));
             item.menu.addMenuItem(ws);
           }
