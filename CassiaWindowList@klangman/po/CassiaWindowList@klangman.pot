@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2022-07-03 21:44-0400\n"
+"POT-Creation-Date: 2022-12-30 14:57-0500\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -17,19 +17,19 @@ msgstr ""
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
 
-#: 4.0/applet.js:1728
+#: 4.0/applet.js:1730
 msgid "Preferences"
 msgstr ""
 
-#: 4.0/applet.js:1732
+#: 4.0/applet.js:1734
 msgid "About..."
 msgstr ""
 
-#: 4.0/applet.js:1736
+#: 4.0/applet.js:1738
 msgid "Configure..."
 msgstr ""
 
-#: 4.0/applet.js:1740
+#: 4.0/applet.js:1742
 #, javascript-format
 msgid "Remove '%s'"
 msgstr ""
@@ -40,87 +40,87 @@ msgstr ""
 #. 4.0->settings-schema.json->mouse-action-btn2->options
 #. 4.0->settings-schema.json->mouse-action-btn8->options
 #. 4.0->settings-schema.json->mouse-action-btn9->options
-#: 4.0/applet.js:1749
+#: 4.0/applet.js:1751
 msgid "Open new window"
 msgstr ""
 
-#: 4.0/applet.js:1755
+#: 4.0/applet.js:1757
 msgid "Pin to this workspace"
 msgstr ""
 
-#: 4.0/applet.js:1768
+#: 4.0/applet.js:1770
 msgid "Pin to other workspaces"
 msgstr ""
 
-#: 4.0/applet.js:1799
+#: 4.0/applet.js:1801
 msgid "Recent files"
 msgstr ""
 
-#: 4.0/applet.js:1823
+#: 4.0/applet.js:1825
 msgid "Places"
 msgstr ""
 
-#: 4.0/applet.js:1865
+#: 4.0/applet.js:1867
 msgid "Only on this workspace"
 msgstr ""
 
-#: 4.0/applet.js:1867
+#: 4.0/applet.js:1869
 msgid "Visible on all workspaces"
 msgstr ""
 
-#: 4.0/applet.js:1868
+#: 4.0/applet.js:1870
 msgid "Move to another workspace"
 msgstr ""
 
-#: 4.0/applet.js:1887
+#: 4.0/applet.js:1889
 msgid "Move to another monitor"
 msgstr ""
 
-#: 4.0/applet.js:1895
+#: 4.0/applet.js:1897
 msgid "Monitor"
 msgstr ""
 
-#: 4.0/applet.js:1911
+#: 4.0/applet.js:1913
 msgid "Assign window to a hotkey"
 msgstr ""
 
-#: 4.0/applet.js:1935
+#: 4.0/applet.js:1939
 msgid "Change application label contents"
 msgstr ""
 
-#: 4.0/applet.js:1977
+#: 4.0/applet.js:1981
 msgid "Ungroup windows"
 msgstr ""
 
-#: 4.0/applet.js:1988
+#: 4.0/applet.js:1992
 msgid "Group windows"
 msgstr ""
 
-#: 4.0/applet.js:1997
+#: 4.0/applet.js:2002
 msgid "Automatic grouping/ungrouping"
 msgstr ""
 
-#: 4.0/applet.js:2026
+#: 4.0/applet.js:2031
 msgid "Restore"
 msgstr ""
 
-#: 4.0/applet.js:2030
+#: 4.0/applet.js:2035
 msgid "Minimize"
 msgstr ""
 
-#: 4.0/applet.js:2036
+#: 4.0/applet.js:2041
 msgid "Unmaximize"
 msgstr ""
 
-#: 4.0/applet.js:2043
+#: 4.0/applet.js:2048
 msgid "Close others"
 msgstr ""
 
-#: 4.0/applet.js:2054
+#: 4.0/applet.js:2059
 msgid "Close all"
 msgstr ""
 
-#: 4.0/applet.js:2063
+#: 4.0/applet.js:2068
 msgid "Close"
 msgstr ""
 
@@ -355,20 +355,24 @@ msgid "Pooled"
 msgstr ""
 
 #. 4.0->settings-schema.json->group-windows->options
-#. 4.0->settings-schema.json->wheel-adjusts-preview-size->options
-msgid "Off"
+msgid "One to one"
+msgstr ""
+
+#. 4.0->settings-schema.json->group-windows->options
+msgid "Launcher"
 msgstr ""
 
 #. 4.0->settings-schema.json->group-windows->description
-msgid "Application window grouping"
+msgid "Window list behavior style"
 msgstr ""
 
 #. 4.0->settings-schema.json->group-windows->tooltip
 msgid ""
-"Grouped: all windows for an application are managed by the same button,\n"
-"Pooled: All windows for an application are pooled together side by side,\n"
-"Automatic: Windows are pooled, and then grouped when space is limited.\n"
-"Off: all windows get there own button and are not grouped together"
+"Grouped: All windows for an application are managed by one button,\n"
+"Pooled: All window list buttons for an application are pooled side by side,\n"
+"Automatic: Windows are pooled, and then grouped when space is limited,\n"
+"One to one: Each window gets their own button with no forced ordering,\n"
+"Launcher: Only pinned button are shown, behaves like a panel launcher."
 msgstr ""
 
 #. 4.0->settings-schema.json->display-pinned->description
@@ -397,13 +401,14 @@ msgstr ""
 
 #. 4.0->settings-schema.json->hide-panel-apps->description
 msgid ""
-"Hide window buttons for applications on the CassiaPanelLaunchers applet"
+"Hide window buttons of pinned buttons on other CassiaWindowList instances"
 msgstr ""
 
 #. 4.0->settings-schema.json->hide-panel-apps->tooltip
 msgid ""
-"When enabled, windows for applications with buttons on the "
-"CassiaPanelLaunchers applet will not show up in the window list"
+"When enabled, windows for applications with pinned buttons on other "
+"instances of the CassiaWindowList applet will not show up in this window "
+"list"
 msgstr ""
 
 #. 4.0->settings-schema.json->menu-show-on-hover->description
@@ -645,6 +650,10 @@ msgid ""
 msgstr ""
 
 #. 4.0->settings-schema.json->wheel-adjusts-preview-size->options
+msgid "Off"
+msgstr ""
+
+#. 4.0->settings-schema.json->wheel-adjusts-preview-size->options
 msgid "On (temporary)"
 msgstr ""
 
@@ -720,7 +729,7 @@ msgid ""
 "1. Manual:  Use the \"Assign window to a hotkey\" item in a button context menu.\n"
 "2. Automatic:  Enter a \"Description\" matching an application name or desktop file. For example: \"Google Chrome\" or \"firefox.desktop\"\n"
 "\n"
-"Note: If a hotkey is not working, it's possible that a key combination is already assigned elsewhere. If you remove or rearrange any hotkeys, manual window assignments may need to be reassigned"
+"Note: 1) If a hotkey is not working, it's possible that a key combination is already assigned elsewhere. 2) If you remove or rearrange any hotkeys, manual window assignments may need to be reassigned"
 msgstr ""
 
 #. 4.0->settings-schema.json->hotkey-help->tooltip

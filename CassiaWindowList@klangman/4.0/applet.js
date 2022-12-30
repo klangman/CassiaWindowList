@@ -130,7 +130,8 @@ const GroupType = {
    Grouped: 0,       // All windows for an application should be grouped under a single windowlist button
    Pooled: 1,        // All windows for an application should be pooled side-by-side on the windowlist
    Auto: 2,          // Application windows should automatically switch between Grouped and Pooled based on whether button caption space is constrained 
-   Off: 3            // All windows should have there own windowlist button and no ordering is maintained.
+   Off: 3,           // All windows should have there own windowlist button and no ordering is maintained.
+   Launcher: 4       // Behave like a panel launcher applet, only pinned buttons will be displayed
 }
 
 // The possible user setting for how windows list buttons should be captioned
@@ -836,6 +837,7 @@ class WindowListButton {
     this._labelNumberBin.add_actor(this._labelNumber);
 
     this._windows = [];
+    this._nextWindow = null;                  // When cycling windows, keep track of the next window to cycle to
     this._grouped = GroupingType.NotGrouped;  // If button is a group of windows and why it was grouped
     this._currentWindow = null;
 
@@ -946,6 +948,7 @@ class WindowListButton {
     this._updateCurrentWindow();
     this._updateNumber();
     this._updateLabel();
+    this._updateVisibility();
 
     this._signalManager.connect(metaWindow, "notify::title", this._updateLabel, this);
     this._signalManager.connect(metaWindow, "notify::minimized", this._onMinimized, this);
@@ -993,7 +996,8 @@ class WindowListButton {
   }
 
   _updateCurrentWindow() {
-    let windows = this._windows.slice();
+    // Without slice, this will reorder to windows in the this._windows array
+    let windows = this._windows;//.slice();
     if (windows.length > 1) {
       windows = windows.sort(function(a, b) {
         return b.user_time - a.user_time;
@@ -1084,6 +1088,7 @@ class WindowListButton {
   _updateNumber() {
     let setting = this._settings.getValue("display-number");
     let style = this._settings.getValue("number-style");
+    let groupType = this._settings.getValue("group-windows");
     let text = "";
     let number = this._windows.length;
     // If this button was a grouped app and now there is only one window, clear the grouped flag
@@ -1092,7 +1097,7 @@ class WindowListButton {
     }
     if ( (setting == DisplayNumber.All && number >= 1)    ||
          ((setting == DisplayNumber.Smart && number >= 2) &&
-         (this._settings.getValue("group-windows") == GroupType.Grouped || this._grouped > GroupingType.NotGrouped))) {
+         (groupType == GroupType.Grouped || groupType == GroupType.Launcher || this._grouped > GroupingType.NotGrouped))) {
       text += number;
     }
 
@@ -1366,11 +1371,9 @@ class WindowListButton {
   }
 
   _updateVisibility() {
-    if (this._applet.shouldAppBeHidden(this._app)) {
+    if ( (this._settings.getValue("group-windows")===GroupType.Launcher && !this._pinned) || this._applet.shouldAppBeHidden(this._app)) {
        this.actor.hide();
-    } else if (this._windows.length) {
-      this.actor.show();
-    } else if (this._pinned) {
+    } else if (this._windows.length || this._pinned) {
       this.actor.show();
     } else {
       this.actor.hide();
@@ -1455,19 +1458,17 @@ class WindowListButton {
           }
         } else { // leftGroupedAction == LeftClickGrouped.Cycle
             if (hasFocus(this._currentWindow)) {
-               for( let idx=0 ; idx < this._windows.length ; idx++ ) {
-                  if (this._windows[idx] === this._currentWindow) {
-                     this.closeThumbnailMenu();
-                     if (idx === this._windows.length-1) {
-                        Main.activateWindow(this._windows[0]);
-                     } else {
-                        Main.activateWindow(this._windows[idx+1]);
-                     }
-                     break;
-                  }
+               let idx = this._windows.indexOf(this._nextWindow);
+               Main.activateWindow(this._nextWindow);
+               if (idx === this._windows.length-1) {
+                  this._nextWindow = this._windows[0];
+               } else {
+                  this._nextWindow = this._windows[idx+1];
                }
             } else {
-               this._currentWindow.activate(0);
+               this._updateCurrentWindow(); // This will sort the windows array
+               this._nextWindow = this._windows[1];
+               Main.activateWindow(this._currentWindow);
             }
         }
       } else {
@@ -1723,9 +1724,10 @@ class WindowListButton {
   _populateContextMenu(metaWindow=undefined) {
     this._contextMenu.removeAll();
     let item;
+    let groupingType = this._settings.getValue("group-windows");
 
     // applet-wide
-    let subMenu = new PopupMenu.PopupSubMenuMenuItem(_("Preferences"));
+    let subMenu = new PopupMenu.PopupSubMenuMenuItem(_("Applet Preferences"));
 
     this._contextMenu.addMenuItem(subMenu);
 
@@ -1923,71 +1925,74 @@ class WindowListButton {
             item.menu.addMenuItem(hotKeyItem);
          }
       }
-      // Menu options for changing the type of label text
-      let customLabel = this._settings.getValue("custom-label-app");
-      let customLabelType = this._settings.getValue("custom-label-type");
-      let idx;
-      for (idx=0 ; idx < customLabel.length ; idx++) {
-         if (customLabel[idx] == this._app.get_name() || customLabel[idx] == this._app.get_id()) {
-            break;
-         }
-      }
-      item = new PopupMenu.PopupSubMenuMenuItem(_("Change application label contents"));
-      this._contextMenu.addMenuItem(item);
-      if (idx == customLabel.length) {
-         // No existing custom label setting
-         let forceName = new PopupMenu.PopupMenuItem("Use application name");
-         forceName.connect("activate", Lang.bind(this, function() {
-               this.addCustomLabel(CaptionType.Name, customLabel, customLabelType);
-               }));
-            item.menu.addMenuItem(forceName);
-         let forceTitle = new PopupMenu.PopupMenuItem("Use window title");
-         forceTitle.connect("activate", Lang.bind(this, function() {
-               this.addCustomLabel(CaptionType.Title, customLabel, customLabelType);
-               }));
-            item.menu.addMenuItem(forceTitle);
-      } else if (customLabelType == CaptionType.Name) {
-         // Currently forcing label to be the application name
-         let remove = new PopupMenu.PopupMenuItem("Remove custom setting");
-         remove.connect("activate", Lang.bind(this, function() {
-               this.removeCustomLabel(idx, customLabel, customLabelType);
-               }));
-         item.menu.addMenuItem(remove);
-         let forceTitle = new PopupMenu.PopupMenuItem("Use window title");
-         forceTitle.connect("activate", Lang.bind(this, function() {
-               this.setCustomLabel(idx, CaptionType.Title, customLabel, customLabelType);
-               }));
-         item.menu.addMenuItem(forceTitle);
-      } else {
-         // Currently forcing label to be the window title
-         let remove = new PopupMenu.PopupMenuItem("Remove custom setting");
-         remove.connect("activate", Lang.bind(this, function() {
-               this.removeCustomLabel(idx, customLabel, customLabelType);
-               }));
-         item.menu.addMenuItem(remove);
-         let forceTitle = new PopupMenu.PopupMenuItem("Use application name");
-         forceTitle.connect("activate", Lang.bind(this, function() {
-               this.setCustomLabel(idx, CaptionType.Name, customLabel, customLabelType);
-               }));
-         item.menu.addMenuItem(forceTitle);
-      }
 
-      this._contextMenu.addMenuItem(new PopupMenu.PopupSeparatorMenuItem());
-      if (this._windows.length > 1) {
-         item = new PopupMenu.PopupMenuItem(_("Ungroup windows"));
-         item.connect("activate", Lang.bind(this, function() {
-               let type = GroupingType.NotGrouped;
-               if (this._workspace._areButtonsShrunk())
-                  type = GroupingType.ForcedOff;
-               this._workspace._ungroupOneApp(this, type); 
-            }));
+      if (groupingType != GroupType.Launcher) {
+         // Menu options for changing the type of label text
+         let customLabel = this._settings.getValue("custom-label-app");
+         let customLabelType = this._settings.getValue("custom-label-type");
+         let idx;
+         for (idx=0 ; idx < customLabel.length ; idx++) {
+            if (customLabel[idx] == this._app.get_name() || customLabel[idx] == this._app.get_id()) {
+               break;
+            }
+         }
+         item = new PopupMenu.PopupSubMenuMenuItem(_("Change application label contents"));
          this._contextMenu.addMenuItem(item);
-      } else {
-         let btns = this._workspace._lookupAllAppButtonsForApp(this._app);
-         if (btns && btns.length > 1) {
-           item = new PopupMenu.PopupMenuItem(_("Group windows"));
-           item.connect("activate", Lang.bind(this, function() { this._workspace._groupOneApp(btns, GroupingType.ForcedOn); }));
-           this._contextMenu.addMenuItem(item);
+         if (idx == customLabel.length) {
+            // No existing custom label setting
+            let forceName = new PopupMenu.PopupMenuItem("Use application name");
+            forceName.connect("activate", Lang.bind(this, function() {
+                  this.addCustomLabel(CaptionType.Name, customLabel, customLabelType);
+                  }));
+               item.menu.addMenuItem(forceName);
+            let forceTitle = new PopupMenu.PopupMenuItem("Use window title");
+            forceTitle.connect("activate", Lang.bind(this, function() {
+                  this.addCustomLabel(CaptionType.Title, customLabel, customLabelType);
+                  }));
+               item.menu.addMenuItem(forceTitle);
+         } else if (customLabelType == CaptionType.Name) {
+            // Currently forcing label to be the application name
+            let remove = new PopupMenu.PopupMenuItem("Remove custom setting");
+            remove.connect("activate", Lang.bind(this, function() {
+                  this.removeCustomLabel(idx, customLabel, customLabelType);
+                  }));
+            item.menu.addMenuItem(remove);
+            let forceTitle = new PopupMenu.PopupMenuItem("Use window title");
+            forceTitle.connect("activate", Lang.bind(this, function() {
+                  this.setCustomLabel(idx, CaptionType.Title, customLabel, customLabelType);
+                  }));
+            item.menu.addMenuItem(forceTitle);
+         } else {
+            // Currently forcing label to be the window title
+            let remove = new PopupMenu.PopupMenuItem("Remove custom setting");
+            remove.connect("activate", Lang.bind(this, function() {
+                  this.removeCustomLabel(idx, customLabel, customLabelType);
+                  }));
+            item.menu.addMenuItem(remove);
+            let forceTitle = new PopupMenu.PopupMenuItem("Use application name");
+            forceTitle.connect("activate", Lang.bind(this, function() {
+                  this.setCustomLabel(idx, CaptionType.Name, customLabel, customLabelType);
+                  }));
+            item.menu.addMenuItem(forceTitle);
+         }
+
+         this._contextMenu.addMenuItem(new PopupMenu.PopupSeparatorMenuItem());
+         if (this._windows.length > 1) {
+            item = new PopupMenu.PopupMenuItem(_("Ungroup windows"));
+            item.connect("activate", Lang.bind(this, function() {
+                  let type = GroupingType.NotGrouped;
+                  if (this._workspace._areButtonsShrunk())
+                     type = GroupingType.ForcedOff;
+                  this._workspace._ungroupOneApp(this, type); 
+               }));
+            this._contextMenu.addMenuItem(item);
+         } else {
+            let btns = this._workspace._lookupAllAppButtonsForApp(this._app);
+            if (btns && btns.length > 1) {
+              item = new PopupMenu.PopupMenuItem(_("Group windows"));
+              item.connect("activate", Lang.bind(this, function() { this._workspace._groupOneApp(btns, GroupingType.ForcedOn); }));
+              this._contextMenu.addMenuItem(item);
+            }
          }
       }
 
@@ -2203,7 +2208,7 @@ class Workspace {
 
     this._appButtons = [];
     this._settings = this._applet._settings;
-    this._currentFocus;  // The WindowListButton that handles the window with the focus
+    this._currentFocus = null;  // The WindowListButton that handles the window with the focus
 
     this._keyBindingsWindows = [];
 
@@ -2226,7 +2231,7 @@ class Workspace {
 
     this.onOrientationChanged(this._applet.orientation);
 
-    this._signalManager.connect(this._windowTracker, "notify::focus-app", this._updateFocus, this);
+    //this._signalManager.connect(this._windowTracker, "notify::focus-app", this._updateFocus, this);
     this._signalManager.connect(global.settings, "changed::panel-edit-mode", this._onPanelEditModeChanged, this);
     this._signalManager.connect(this._settings, "changed::pinned-apps", this._updatePinnedApps, this);
     this._signalManager.connect(this._settings, "changed::show-windows-for-current-monitor", this._updateAllWindowsForMonitor, this);
@@ -2397,7 +2402,7 @@ class Workspace {
     }
     if (!appButton) {
       appButton = this._addAppButton(app);
-    } else if (groupingType != 0 && appButton._windows.length > 0 && appButton._grouped <= GroupingType.NotGrouped) {
+    } else if (groupingType != GroupType.Grouped && groupingType != GroupType.Launcher && appButton._windows.length > 0 && appButton._grouped <= GroupingType.NotGrouped) {
       appButton = this._addAppButton(app);
     }
     appButton.addWindow(metaWindow);
@@ -2553,6 +2558,8 @@ class Workspace {
     let pinSetting = this._settings.getValue("pinned-apps").slice();
     pinSetting[this._wsNum] = newSetting;
     this._settings.setValue("pinned-apps", pinSetting);
+    // Inform other windowlist that our pinned list changed in case they want to remove windowlist buttons
+    this._applet.updateOtherWindowLists()
   }
 
   pinAppId(appId, actorPos) {
@@ -2617,7 +2624,7 @@ class Workspace {
 
   _onGroupingChanged() {
      let setting = this._settings.getValue("group-windows");
-     switch(setting) { 
+     switch(setting) {
         case GroupType.Grouped:
            this._groupAllApps(GroupingType.ForcedOn);
            break;
@@ -2632,7 +2639,11 @@ class Workspace {
         case GroupType.Off:
            this._ungroupAllApps(GroupingType.ForcedOff);
            break;
+        case GroupType.Launcher:
+           break;
      }
+     this._updateAppButtonVisibility()
+
   }
 
   _poolAllApps() {
@@ -3052,8 +3063,9 @@ class WindowList extends Applet.Applet {
 
     this._workspaces = [];
     this._keyBindings = [];
-    this._hiddenApps = []; // List of applications that should not be visible buttons
+    this._hiddenApps = null; // List of applications that should not be visible buttons
     this.indicators = 3;
+    this.instanceId = instanceId;
     this.on_orientation_changed(orientation);
   }
 
@@ -3248,11 +3260,12 @@ class WindowList extends Applet.Applet {
     }
     this._updateKeybinding();
 
-    this.checkForLauncherApplications();
-
     for (let i = 0; i < nWorkspaces; i++) {
       this._onWorkspaceAdded(global.screen, i);
     }
+
+    this.checkForLauncherApplications(); // Check other windowlists for pinned items to be hidden
+    this.updateOtherWindowLists();       // Force other windowlists to query for pinned items on this windowlist
 
     this._signalManager.connect(global.window_manager, "switch-workspace", this._updateCurrentWorkspace, this);
     this._signalManager.connect(global.screen, "workspace-added", this._onWorkspaceAdded, this);
@@ -3260,11 +3273,19 @@ class WindowList extends Applet.Applet {
     this._signalManager.connect(global.screen, "window-added", this._windowAdded, this);
     this._signalManager.connect(global.screen, "window-removed", this._windowRemoved, this);
     this._signalManager.connect(global.screen, "window-monitor-changed", this.windowMonitorChanged, this);
+    this._signalManager.connect(global.display, "notify::focus-window", this._onFocusChanged, this);
     this._signalManager.connect(Main.layoutManager, "monitors-changed", this._updateMonitor, this);
     this._signalManager.connect(this._settings, "changed::hotkey-bindings", this._updateKeybinding, this);
     this._signalManager.connect(this._settings, "changed::display-indicators", this._updateIndicators, this);
     this._signalManager.connect(this._settings, "changed::number-of-unshrunk-previews", this._updateThumbnailWindowSize, this);
     this._signalManager.connect(this._settings, "changed::hide-panel-apps", this._updateCurrentWorkspace, this);
+  }
+
+  _onFocusChanged() {
+     let window = global.display.get_focus_window();
+     let currentWs = global.screen.get_active_workspace_index();
+     //log( `Global, focus changed to ${window.get_title()} for ws ${currentWs}` );
+     this._workspaces[currentWs]._updateFocus();
   }
 
   on_applet_removed_from_panel() {
@@ -3371,19 +3392,21 @@ class WindowList extends Applet.Applet {
   windowWorkspaceChanged(window, wsNumOld) {
     let stuck = window.is_on_all_workspaces();
     let wsWindow = window.get_workspace();
-    let wsNumNew = wsWindow.index();
-    for (let i = 0; i < this._workspaces.length; i++) {
-      let workspace = this._workspaces[i];
-      let wsIdx = workspace._wsNum;
-      if (stuck) {
-        workspace._windowAdded(window);
-      } else {
-        if (wsNumNew == wsIdx) {
-          workspace._windowAdded(window);
-        } else {
-          workspace._windowRemoved(window);
-        }
-      }
+    if (wsWindow) { // I am not sure why it's ever the case the wsWindow is NULL???
+       let wsNumNew = wsWindow.index();
+       for (let i = 0; i < this._workspaces.length; i++) {
+         let workspace = this._workspaces[i];
+         let wsIdx = workspace._wsNum;
+         if (stuck) {
+           workspace._windowAdded(window);
+         } else {
+           if (wsNumNew == wsIdx) {
+             workspace._windowAdded(window);
+           } else {
+             workspace._windowRemoved(window);
+           }
+         }
+       }
     }
   }
 
@@ -3407,7 +3430,21 @@ class WindowList extends Applet.Applet {
     }
   }
 
+  // May be called because this instance has locked the panel launcher role,
+  // or it may be called from another CassiaWindowList instance
   acceptNewLauncher(appId) {
+    // First check if another instance is configured as a panel launcher,
+    // if one is found, sent this new launcher to that instance
+    if (this._settings.getValue("group-windows")!=GroupType.Launcher) {
+       let applets = AppletManager.getRunningInstancesForUuid("CassiaWindowList@klangman");
+       for (let i=0 ; i < applets.length ; i++) {
+          if (applets[i] != this && applets[i].isLauncher()) {
+             log("Sending new launcher request to the launcher instance!");
+             applets[i].acceptNewLauncher(appId);
+             return;
+          }
+       }
+    }
     let currentWs = global.screen.get_active_workspace_index();
     for (let i = 0; i < this._workspaces.length; i++) {
       let ws = this._workspaces[i];
@@ -3418,34 +3455,48 @@ class WindowList extends Applet.Applet {
     }
   }
 
-  // Check if the CassiaPanelLunchers applet is loaded and populate the list of hidden applications
-  // based on which applications the panel launchers applet has buttons for.
+  // Check other instances of the CassiaWindowList applet and populate the list of hidden applications
+  // based on which applications other instances have pinned.
   checkForLauncherApplications() {
-     let applets = AppletManager.getRunningInstancesForUuid("CassiaPanelLaunchers@klangman");
-     log( `Found ${applets.length} cassia panel launchers applets!` );
+     let wsIdx = global.screen.get_active_workspace_index();
+     let applets = AppletManager.getRunningInstancesForUuid("CassiaWindowList@klangman");
+     log( `Found ${applets.length} cassia window list applets!` );
      for (let i=0 ; i < applets.length ; i++) {
-        let appList = applets[i].getApplicationList();
-        log( `Found ${appList.length} apps to hide` );
-        this._hiddenApps.push(...appList); // Use the "Spread Syntax" to concat to existing array
+        if (applets[i] != this) {
+           // TODO: Marge the list of pinned apps in case there are more then two instances
+           this._hiddenApps = applets[i].getPinnedList();
+           log( `Found ${this._hiddenApps[wsIdx].length} apps to hide on workspace ${wsIdx}` );
+           //this._hiddenApps.push(...appList); // Use the "Spread Syntax" to concat to existing array
+        }
      }
-     //for (let i=0 ; i < this._hiddenApps.length ; i++) {
-     //   log( "Hiding app: "+ this._hiddenApps[i].get_name() );
-     //}
   }
 
 
   shouldAppBeHidden(app) {
-     if (this._settings.getValue("hide-panel-apps")) {
-        for (let i=0 ; i < this._hiddenApps.length ; i++) {
-           if (this._hiddenApps[i] === app)
+     let wsIdx = global.screen.get_active_workspace_index();
+     let workspace = this.getCurrentWorkSpace();
+     if (this._settings.getValue("hide-panel-apps") && this._hiddenApps) {
+        for (let i=0 ; i < this._hiddenApps[wsIdx].length ; i++) {
+           if (workspace._lookupApp(this._hiddenApps[wsIdx][i]) === app)
               return(true);
         }
      }
      return(false);
   }
 
-  // API that the CassiaPanelLauncher can use to inform the windowlist of new launcher state
-  cassiaPanelLaunchersUpdate() {
+  // Request all other CassiaWindowLists to update there list of pinned apps to be hidden.
+  // This will trigger all other windowlist to call back to this windowlist to get the
+  // current list of pinned application!
+  updateOtherWindowLists(){
+      let applets = AppletManager.getRunningInstancesForUuid("CassiaWindowList@klangman");
+      for (let i=0 ; i < applets.length ; i++) {
+         if (applets[i] != this)
+            applets[i].pinnedListUpdated();
+      }
+  }
+
+  // API that other instances of CassiaWindowList can use to inform this windowlist of new launcher state
+  pinnedListUpdated() {
      this._hiddenApps = [];
      this.checkForLauncherApplications();
      // Call _updateVisibility() for all buttons
@@ -3456,6 +3507,25 @@ class WindowList extends Applet.Applet {
            workspace._appButtons[btnIdx]._updateVisibility();
         }
      }
+  }
+
+  // An API that returns a list of pinned applications on this window list
+  getPinnedList(){
+    let result;
+    result = this._settings.getValue("pinned-apps");
+    log( `pinned apps for ${result.length} work spaces` );
+    //for (let idx=0 ; idx < result.length ; idx++ ){
+    //   log( `pinned apps for ws ${idx}: ${result[idx].length}` );
+    //   for (let idx2=0 ; idx2 < result[idx].length ; idx2++ ){
+    //      log( `result[${idx}][${idx2}] = ${result[idx][idx2]}` );
+    //   }
+    //}
+    return(result);
+  }
+
+  // An API that returns true if this applet is configured as a Launcher (used by other app instances)
+  isLauncher(){
+     return(this._settings.getValue("group-windows")===GroupType.Launcher);
   }
 }
 

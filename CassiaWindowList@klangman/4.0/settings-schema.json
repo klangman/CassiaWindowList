@@ -30,6 +30,7 @@
     "caption-settings" : {
       "type" : "section",
       "title" : "Window list button label settings",
+      "dependency" : "group-windows<4",
       "keys" : ["caption-type", "display-caption-for", "display-caption-for-pined", "hide-caption-for-minimized", "display-indicators", "label-width", "label-animation", "label-animation-time"]
     },
     "caption-number-settings" : {
@@ -119,6 +120,7 @@
   "trailing-pinned-behaviour": {
     "type": "switch",
     "default": false,
+    "dependency" : "group-windows<4",
     "description": "Add new window buttons ahead of trailing pinned buttons",
     "tooltip": "When enabled, new windows will be added to the left of any pinned buttons currently placed on the right of the window list, effectively this allows you to keep pinned buttons at the end of the window list"
   },
@@ -164,6 +166,7 @@
       "Icon overlay": 0,
       "Label prepend": 1
     },
+    "dependency" : "group-windows<4",
     "description": "Number style",
     "tooltip": "Controls how the number of windows in a grouped button is presented. When on a vertical panel, the \"label prepend\" option is not possible so \"icon overlay\" will be used instead"
   },
@@ -176,14 +179,16 @@
       "Grouped": 0,
       "Pooled": 1,
       "Automatic": 2,
-      "Off": 3
+      "One to one": 3,
+      "Launcher": 4
     },
-    "description": "Application window grouping",
-    "tooltip": "Grouped: all windows for an application are managed by the same button,\nPooled: All windows for an application are pooled together side by side,\nAutomatic: Windows are pooled, and then grouped when space is limited.\nOff: all windows get there own button and are not grouped together"
+    "description": "Window list behavior style",
+    "tooltip": "Grouped: All windows for an application are managed by one button,\nPooled: All window list buttons for an application are pooled side by side,\nAutomatic: Windows are pooled, and then grouped when space is limited,\nOne to one: Each window gets their own button with no forced ordering,\nLauncher: Only pinned button are shown, behaves like a panel launcher."
   },
   "display-pinned": {
     "type": "switch",
     "default": true,
+    "dependency" : "group-windows<4",
     "description": "Allow pinning of window list buttons"
   },
   "show-windows-for-current-monitor": {
@@ -201,8 +206,9 @@
   "hide-panel-apps": {
     "type": "switch",
     "default": false,
-    "description": "Hide window buttons for applications on the CassiaPanelLaunchers applet",
-    "tooltip": "When enabled, windows for applications with buttons on the CassiaPanelLaunchers applet will not show up in the window list"
+    "dependency" : "group-windows<4",
+    "description": "Hide window buttons of pinned buttons on other CassiaWindowList instances",
+    "tooltip": "When enabled, windows for applications with pinned buttons on other instances of the CassiaWindowList applet will not show up in this window list"
   },
 
 
@@ -436,7 +442,7 @@
 
   "hotkey-help" : {
     "type" : "label",
-    "description" : "Hotkeys can be assigned to a window in two ways:\n1. Manual:  Use the \"Assign window to a hotkey\" item in a button context menu.\n2. Automatic:  Enter a \"Description\" matching an application name or desktop file. For example: \"Google Chrome\" or \"firefox.desktop\"\n\nNote: If a hotkey is not working, it's possible that a key combination is already assigned elsewhere. If you remove or rearrange any hotkeys, manual window assignments may need to be reassigned",
+    "description" : "Hotkeys can be assigned to a window in two ways:\n1. Manual:  Use the \"Assign window to a hotkey\" item in a button context menu.\n2. Automatic:  Enter a \"Description\" matching an application name or desktop file. For example: \"Google Chrome\" or \"firefox.desktop\"\n\nNote: 1) If a hotkey is not working, it's possible that a key combination is already assigned elsewhere. 2) If you remove or rearrange any hotkeys, manual window assignments may need to be reassigned",
     "tooltip": "This is a tooltip!!!"
   },
 
