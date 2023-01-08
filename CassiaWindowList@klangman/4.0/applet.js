@@ -1766,7 +1766,10 @@ class WindowListButton {
           menuItem.setIconSymbolicName("starred");
         } else {
           this._workspace.unpinAppButton(this);
-          menuItem.setIconSymbolicName("non-starred");
+          if (this._windows == 0 || this._settings.getValue("group-windows")===GroupType.Launcher)
+             this._contextMenu.close();
+          else
+             menuItem.setIconSymbolicName("non-starred");
         }
       }));
       this._contextMenu.addMenuItem(item);
@@ -2614,6 +2617,7 @@ class Workspace {
     }
 
     appButton._pinned = true;
+    appButton._updateVisibility()
     this._updatePinSettings();
   }
 
