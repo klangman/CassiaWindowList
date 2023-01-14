@@ -1121,8 +1121,10 @@ class WindowListButton {
 
   _updateLabel(actor, event) {
     // If we are in a left or right panel then we have no space for labels anyhow!
-    if (this._applet.orientation == St.Side.LEFT || this._applet.orientation == St.Side.RIGHT)
+    if (this._applet.orientation == St.Side.LEFT || this._applet.orientation == St.Side.RIGHT) {
+       this._updateTooltip();
        return;
+    }
 
     let capSetting = this._settings.getValue("display-caption-for");
     let numSetting = this._settings.getValue("display-number");
@@ -2433,7 +2435,7 @@ class Workspace {
     return false;
   }
 
-  _windowRemoved(metaWindow) {
+  _windowRemoved(metaWindow, removeBindings=true) {
      let appButton = this._lookupAppButtonForWindow(metaWindow);
      if (appButton) {
         appButton.removeWindow(metaWindow);
@@ -2455,12 +2457,14 @@ class Workspace {
            }
         }
         // Remove any hot key bindings.
-        let i = this._keyBindingsWindows.lastIndexOf(metaWindow);
-        while (i!=-1) {
-           this._keyBindingsWindows[i] = undefined;
-           // Since we removed a window from a hotkey, maybe there is another window that can get this hot key?
-           this._applet.assignHotKeysToExistingWindows(this._applet._keyBindings[i].description, i);
-           i = this._keyBindingsWindows.lastIndexOf(metaWindow);
+        if (removeBindings) {
+           let i = this._keyBindingsWindows.lastIndexOf(metaWindow);
+           while (i!=-1) {
+              this._keyBindingsWindows[i] = undefined;
+              // Since we removed a window from a hotkey, maybe there is another window that can get this hot key?
+              this._applet.assignHotKeysToExistingWindows(this._applet._keyBindings[i].description, i);
+              i = this._keyBindingsWindows.lastIndexOf(metaWindow);
+           }
         }
         // Now that we removed a window, see if there is enough space to expand automatically grouped windows
         this._tryExpandingAppGroups();
@@ -2986,7 +2990,7 @@ class Workspace {
     let windows = [];
     for (let i=0 ; i<btns.length-1 ; i++) {
        windows.push(btns[i]._windows[0]);
-       this._windowRemoved(btns[i]._windows[0]);
+       this._windowRemoved(btns[i]._windows[0], false); // 'false' means the keyBindings will not be cleared!
     }
     btns[btns.length-1]._grouped = type;
     for (let i=0 ; i < windows.length ; i++) {
@@ -3008,7 +3012,7 @@ class Workspace {
      // remove all but one window from this appButton
      for (let i=windows.length-2 ; i>=0 ; i--) {
         window = windows[i];
-        button.removeWindow(window, true);
+        button.removeWindow(window);
         this._windowAdded(window);
      }
      button.appLastFocus = false;
