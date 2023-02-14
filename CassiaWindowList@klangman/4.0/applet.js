@@ -802,9 +802,10 @@ class WindowListButton {
     this._pinned = false;
 
     this.actor = new St.BoxLayout({style_class: "grouped-window-list-item-box",
-                                   track_hover: true,
+                                   track_hover: false,
                                    can_focus: true,
                                    reactive: true});
+
     this._shrukenLabel = false;
     this._minLabelSize = -1;
     this._lableWidth = 0;
@@ -842,6 +843,10 @@ class WindowListButton {
     this._grouped = GroupingType.NotGrouped;  // If button is a group of windows and why it was grouped
     this._currentWindow = null;
 
+    //this.progressOverlay = new St.Widget({ style_class: "progress", reactive: false, important: true  });
+    //this.actor.add_actor(this.progressOverlay);
+    //this.progressOverlay.hide();
+
     this._updateOrientation();
 
     this._contextMenuManager = new PopupMenu.PopupMenuManager(this);
@@ -865,6 +870,7 @@ class WindowListButton {
     this._signalManager.connect(this.actor, "enter-event", this._onEnterEvent, this);
     this._signalManager.connect(this.actor, "leave-event", this._onLeaveEvent, this);
     this._signalManager.connect(this.actor, "notify::hover", this._updateVisualState, this);
+    this._signalManager.connect(this._contextMenu, "open-state-changed", this._contextState, this);
 
     this._signalManager.connect(Main.themeManager, "theme-set", Lang.bind(this, function() {
       this.updateView();
@@ -886,6 +892,21 @@ class WindowListButton {
     return this._app.get_id();
   }
 
+  _contextState(menu, open) {
+     // Get current window with focus
+     let window = global.display.get_focus_window();
+     let focus = null;
+     if (window) {
+        focus = this._workspace._lookupAppButtonForWindow(window);
+     }
+
+     if (open) {
+        this.actor.set_hover(true);
+     } else {
+        this.actor.set_hover(false);
+     }
+  }
+
   _updateTextSizes(){
      this._minLabelSize = -1;    // Forget the min size of shrunken labels since the text size has been modified!
      if (this._shrukenLabel)
@@ -896,7 +917,6 @@ class WindowListButton {
   }
 
   _onDragBegin() {
-    this.actor.set_track_hover(false);
     this.actor.set_hover(false);
     this._tooltip.hide();
     this._tooltip.preventShow = true;
@@ -904,7 +924,6 @@ class WindowListButton {
   }
 
   _onDragEnd() {
-    this.actor.set_track_hover(true);
     this._workspace._clearDragPlaceholder();
     this._updateVisibility();
     this._updateTooltip();
@@ -957,6 +976,7 @@ class WindowListButton {
     this._signalManager.connect(metaWindow, "notify::demands-attention", this._updateUrgentState, this);
     this._signalManager.connect(metaWindow, "notify::gtk-application-id", this._onGtkApplicationChanged, this);
     this._signalManager.connect(metaWindow, "notify::wm-class", this._onWmClassChanged, this);
+    //this._signalManager.connect(metaWindow, "notify::progress", this._onProgressChange, this);
     this._signalManager.connect(metaWindow, "workspace-changed", this._onWindowWorkspaceChanged, this);
 
     this.actor.add_style_pseudo_class("active");
@@ -995,6 +1015,23 @@ class WindowListButton {
     this._updateLabel();
     this._updateVisibility();
   }
+
+  /*
+  _onProgressChange() {
+     if (this._currentWindow && this._currentWindow.progress !== undefined && this.actor.is_visible()) {
+        if (this._currentWindow.progress !== 0 ) {
+           let width = Math.max((this.actor.width) * (this._currentWindow.progress / 100.0), 1.0);
+           let height = Math.max((this._applet._panelHeight * 0.15), 1.0);
+           let box = Clutter.ActorBox.new(0,0,width,height);
+           log( `Updating progress to ${this._currentWindow.progress}%` );
+           this.progressOverlay.allocate(box, 0);
+           this.progressOverlay.show();
+        } else if (this.progressOverlay.is_visible()){
+           log( "Disabling progress bar" );
+           this.progressOverlay.hide();
+        }
+     }
+  }*/
 
   _updateCurrentWindow() {
     // Without slice, this will reorder to windows in the this._windows array
@@ -1465,6 +1502,10 @@ class WindowListButton {
           }
         } else { // leftGroupedAction == LeftClickGrouped.Cycle
             if (hasFocus(this._currentWindow)) {
+               if (this._nextWindow===null || this._nextWindow===this._currentWindow) {
+                  this._updateCurrentWindow(); // This will sort the windows array
+                  this._nextWindow = this._windows[1];
+               }
                let idx = this._windows.indexOf(this._nextWindow);
                Main.activateWindow(this._nextWindow);
                if (idx === this._windows.length-1) {
@@ -1685,8 +1726,9 @@ class WindowListButton {
       return win.urgent || win.demands_attention;
     });
     if (state) {
-      this.actor.set_track_hover(false);
       this.actor.set_hover(false);
+    } else {
+      this.actor.set_hover(true);
     }
     let curMenu = this._workspace.currentMenu;
     if (curMenu && curMenu != this.menu && curMenu.isOpen) {
@@ -1706,7 +1748,9 @@ class WindowListButton {
     } else {
        this.removeThumbnailMenuDelay()
     }
-    this.actor.set_track_hover(true);
+    if (!this._contextMenu.isOpen && (!this.menu || !this.menu.isOpen)) {
+       this.actor.set_hover(false);
+    }
     if (this._mousePosUpdateLoop) {
       Mainloop.source_remove(this._mousePosUpdateLoop);
       this._mousePosUpdateLoop = 0;
@@ -2081,18 +2125,26 @@ class WindowListButton {
         this.removeThumbnailMenuDelay();
         this.menu.openMenu();
         this._workspace.currentMenu = this.menu;
+        this.actor.set_hover(true);
      }
   }
 
   openThumbnailMenuDelayed(){
-     if (!this._contextMenu.isOpen) {
+     if (!this.menu.isOpen) {
         this.removeThumbnailMenuDelay();
         this._workspace._delayId = Mainloop.timeout_add(this._settings.getValue("preview-timeout-show"), Lang.bind(this, this.openThumbnailMenu));
      }
   }
 
   closeThumbnailMenu(){
-     this._workspace.closeThumbnailMenu();
+     if (this.menu && this.menu.isOpen) {
+        this.removeThumbnailMenuDelay();
+        this.menu.closeMenu();
+        this._workspace.currentMenu = undefined;
+        this.actor.set_hover(false);
+     } else if (this._workspace.currentMenu!==this.menu) {
+        this._workspace.closeThumbnailMenu();
+     }
   }
 
   closeThumbnailMenuDelayed(){
@@ -2206,7 +2258,7 @@ class Workspace {
     this.autoIndicatorsOff = false;  // Were the indicator characters automatically removed to save space
     this._status = 0;  // 0=Normal   1=Grouping/Ungrouping in progress
 
-    this.dragInProgress = false;
+    //this.dragInProgress = false;
     this.prevDragLocation = undefined;
 
     this._windowTracker = Cinnamon.WindowTracker.get_default();
@@ -3040,11 +3092,8 @@ class Workspace {
   }
 
   closeThumbnailMenu(){
-     let menu = this.currentMenu; //this.menu;
-     if (menu && menu.isOpen) {
-        this.removeThumbnailMenuDelay();
-        menu.closeMenu();
-        this.currentMenu = undefined;
+     if (this.currentMenu) {
+        this.currentMenu._appButton.closeThumbnailMenu();
      }
   }
 
@@ -3105,6 +3154,10 @@ class WindowList extends Applet.Applet {
                        if (appButton && appButton._windows.length > 1) {
                           // All app windows are grouped under one appButton
                           if (hasFocus(appButton._currentWindow)===true) {
+                             if (appButton._nextWindow===null || appButton._nextWindow===appButton._currentWindow) {
+                                appButton._updateCurrentWindow(); // This will sort the windows array
+                                appButton._nextWindow = appButton._windows[1];
+                             }
                              let idx = appButton._windows.indexOf(appButton._nextWindow);
                              Main.activateWindow(appButton._nextWindow);
                              if (idx === appButton._windows.length-1) {
@@ -3121,8 +3174,8 @@ class WindowList extends Applet.Applet {
                        } else if(appButton) {
                           // App windows are not grouped under one button
                           let focusWindow = global.display.get_focus_window();
-                          if (workspace.cycleBtns != undefined && appButton._app == workspace.cycleBtns[workspace.cycleIdx]._app &&
-                              workspace.cycleBtns[workspace.cycleIdx]._windows[0] == focusWindow) 
+                          if (workspace.cycleBtns !== undefined && appButton._app === workspace.cycleBtns[workspace.cycleIdx]._app &&
+                              workspace.cycleBtns[workspace.cycleIdx]._windows[0] === focusWindow)
                           {
                              workspace.cycleIdx++;
                              if (workspace.cycleIdx >= workspace.cycleBtns.length)
@@ -3137,8 +3190,12 @@ class WindowList extends Applet.Applet {
                                    return b._windows[0].user_time - a._windows[0].user_time;
                                 });
                                 workspace.cycleBtns = btns;
-                                workspace.cycleIdx = 0;
-                                Main.activateWindow(btns[0]._windows[0]);
+                                if (btns[0]._windows[0] === focusWindow) {
+                                   workspace.cycleIdx = 1
+                                } else {
+                                   workspace.cycleIdx = 0;
+                                }
+                                Main.activateWindow(btns[workspace.cycleIdx]._windows[0]);
                                 return;
                              }
                           }
