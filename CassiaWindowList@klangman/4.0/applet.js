@@ -958,6 +958,9 @@ class WindowListButton {
   }
 
   addWindow(metaWindow) {
+    if (this._pinned && this._windows.length===0) {
+       this._minLabelSize = -1;
+    }
     this._windows.push(metaWindow);
     if (this._windows.length == 1) {
        this._currentWindow = metaWindow;
@@ -1007,6 +1010,7 @@ class WindowListButton {
       if (!this._currentWindow) {
         this.actor.remove_style_pseudo_class("focus");
         this.actor.remove_style_pseudo_class("active");
+        this._minLabelSize = -1
         this.closeThumbnailMenu();
       }
     }
@@ -1275,7 +1279,7 @@ class WindowListButton {
 
     // If we don't have a minimum label size, calculate it now!
     if (this._minLabelSize === -1) {
-       if (this._workspace.autoIndicatorsOff==true || this._applet.indicators==IndicatorType.None) {
+       if (this._workspace.autoIndicatorsOff==true || this._applet.indicators==IndicatorType.None || (this._pinned && this._windows.length==0)) {
           this._minLabelSize = 0;
        } else {
           let minText = (this._pinned && (this._applet.indicators&IndicatorType.Pinned)) ? "\u{1F4CC}\u{2193}" : "\u{2193}";
@@ -1848,6 +1852,27 @@ class WindowListButton {
       }
     }
 
+    // If this is a pinned button without open windows, add a item to allow creating a Hotkey right on the root menu
+    if (this._pinned && !this._currentWindow && metaWindow === undefined) {
+      let hotKeys = this._applet._keyBindings;
+      let appHasExistingHotkey = false;
+      for (let i=0 ; i < hotKeys.length ; i++) {
+         if (this._app.get_id() == hotKeys[i].description) {
+            appHasExistingHotkey = true;
+         }
+      }
+      if (appHasExistingHotkey===false) {
+         this._contextMenu.addMenuItem(new PopupMenu.PopupSeparatorMenuItem());
+         item = new PopupMenu.PopupMenuItem(_("Add new Hotkey for")+" \""+this._app.get_id()+"\"");
+         item.connect("activate", Lang.bind(this, function() {
+               hotKeys.push( {enabled:false, cycle:true, keyCombo:"", description:this._app.get_id()} );
+               this._settings.setValue("hotkey-bindings", hotKeys);
+               this._applet.configureApplet(3);
+               }));
+         this._contextMenu.addMenuItem(item);
+      }
+    }
+
     // Recent File menu items
     let recentFiles = this.getRecentFiles();
     if (recentFiles.length > 0) {
@@ -1963,21 +1988,32 @@ class WindowListButton {
 
       // Menu options to attach a hotkey to a window
       this._contextMenu.addMenuItem(new PopupMenu.PopupSeparatorMenuItem());
-      if (this._applet._keyBindings.length > 0 && this._windows.length <= 1) {
-         item = new PopupMenu.PopupSubMenuMenuItem(_("Assign window to a hotkey"));
-         this._contextMenu.addMenuItem(item);
-         let hotKeys = this._applet._keyBindings;
-         for (let i=0 ; i < hotKeys.length ; i++) {
-            let idx = i;
-            let text = (hotKeys[i].description)?hotKeys[i].description+" ("+hotKeys[i].keyCombo+")":hotKeys[i].keyCombo;
-            let hotKeyItem = new PopupMenu.PopupMenuItem(text);
-            hotKeyItem.connect("activate", Lang.bind(this, function() {
-               //log( "Setting hotkey #"+idx+" to activate "+this._app.get_name() );
-               let workspace = this._applet.getCurrentWorkSpace();
-               workspace._keyBindingsWindows[idx] = metaWindow;
-               }));
-            item.menu.addMenuItem(hotKeyItem);
+      let appHasExistingHotkey = false;
+      item = new PopupMenu.PopupSubMenuMenuItem(_("Assign window to a hotkey"));
+      this._contextMenu.addMenuItem(item);
+      let hotKeys = this._applet._keyBindings;
+      for (let i=0 ; i < hotKeys.length ; i++) {
+         let idx = i;
+         let text = (hotKeys[i].description)?hotKeys[i].description+" ("+hotKeys[i].keyCombo+")":hotKeys[i].keyCombo;
+         let hotKeyItem = new PopupMenu.PopupMenuItem(text);
+         hotKeyItem.connect("activate", Lang.bind(this, function() {
+            //log( "Setting hotkey #"+idx+" to activate "+this._app.get_name() );
+            let workspace = this._applet.getCurrentWorkSpace();
+            workspace._keyBindingsWindows[idx] = metaWindow;
+            }));
+         item.menu.addMenuItem(hotKeyItem);
+         if (this._app.get_id() == hotKeys[i].description || metaWindow.get_title() == hotKeys[i].description) {
+            appHasExistingHotkey = true;
          }
+      }
+      if (appHasExistingHotkey===false) {
+         let hotKeyItem = new PopupMenu.PopupMenuItem(_("Add new Hotkey for")+" \""+this._app.get_id()+"\"");
+         hotKeyItem.connect("activate", Lang.bind(this, function() {
+               hotKeys.push( {enabled:false, cycle:true, keyCombo:"", description:this._app.get_id()} );
+               this._settings.setValue("hotkey-bindings", hotKeys);
+               this._applet.configureApplet(3);
+               }));
+         item.menu.addMenuItem(hotKeyItem);
       }
 
       if (groupingType != GroupType.Launcher) {
@@ -2023,6 +2059,7 @@ class WindowListButton {
             }
          }
 
+         // Menu options for grouping or ungrouping a button
          this._contextMenu.addMenuItem(new PopupMenu.PopupSeparatorMenuItem());
          if (this._windows.length > 1) {
             item = new PopupMenu.PopupMenuItem(_("Ungroup windows"));

@@ -420,7 +420,7 @@
     "tooltip": "Define a list of hotkeys used to bring to the foreground specific windows.",
     "default" : [
             {
-                "enabled": true,
+                "enabled": false,
                 "cycle": true,
                 "keyCombo": "<Alt><Super>c::",
                 "description": "org.gnome.Calculator.desktop"
