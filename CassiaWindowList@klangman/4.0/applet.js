@@ -1863,7 +1863,7 @@ class WindowListButton {
       }
       if (appHasExistingHotkey===false) {
          this._contextMenu.addMenuItem(new PopupMenu.PopupSeparatorMenuItem());
-         item = new PopupMenu.PopupMenuItem(_("Add new Hotkey for")+" \""+this._app.get_id()+"\"");
+         item = new PopupMenu.PopupIconMenuItem(_("Add new Hotkey for")+" \""+this._app.get_id()+"\"", "input-keyboard", St.IconType.SYMBOLIC);
          item.connect("activate", Lang.bind(this, function() {
                hotKeys.push( {enabled:false, cycle:true, keyCombo:"", description:this._app.get_id()} );
                this._settings.setValue("hotkey-bindings", hotKeys);
@@ -1993,21 +1993,27 @@ class WindowListButton {
       this._contextMenu.addMenuItem(item);
       let hotKeys = this._applet._keyBindings;
       for (let i=0 ; i < hotKeys.length ; i++) {
-         let idx = i;
-         let text = (hotKeys[i].description)?hotKeys[i].description+" ("+hotKeys[i].keyCombo+")":hotKeys[i].keyCombo;
-         let hotKeyItem = new PopupMenu.PopupMenuItem(text);
-         hotKeyItem.connect("activate", Lang.bind(this, function() {
-            //log( "Setting hotkey #"+idx+" to activate "+this._app.get_name() );
-            let workspace = this._applet.getCurrentWorkSpace();
-            workspace._keyBindingsWindows[idx] = metaWindow;
-            }));
-         item.menu.addMenuItem(hotKeyItem);
+         if (hotKeys[i].description.endsWith(".desktop")!==true) {
+            let idx = i;
+            let keyString = hotKeys[i].keyCombo.toString();
+            if (keyString.endsWith("::")) {
+               keyString = keyString.slice(0,-2);
+            }
+            let text = (hotKeys[i].description)?hotKeys[i].description+" ("+keyString+")":keyString;
+            let hotKeyItem = new PopupMenu.PopupIconMenuItem(text, "input-keyboard", St.IconType.SYMBOLIC);
+            hotKeyItem.connect("activate", Lang.bind(this, function() {
+               //log( "Setting hotkey #"+idx+" to activate "+this._app.get_name() );
+               let workspace = this._applet.getCurrentWorkSpace();
+               workspace._keyBindingsWindows[idx] = metaWindow;
+               }));
+            item.menu.addMenuItem(hotKeyItem);
+         }
          if (this._app.get_id() == hotKeys[i].description || metaWindow.get_title() == hotKeys[i].description) {
             appHasExistingHotkey = true;
          }
       }
       if (appHasExistingHotkey===false) {
-         let hotKeyItem = new PopupMenu.PopupMenuItem(_("Add new Hotkey for")+" \""+this._app.get_id()+"\"");
+         let hotKeyItem = new PopupMenu.PopupIconMenuItem(_("Add new Hotkey for")+" \""+this._app.get_id()+"\"", "list-add", St.IconType.SYMBOLIC);
          hotKeyItem.connect("activate", Lang.bind(this, function() {
                hotKeys.push( {enabled:false, cycle:true, keyCombo:"", description:this._app.get_id()} );
                this._settings.setValue("hotkey-bindings", hotKeys);
