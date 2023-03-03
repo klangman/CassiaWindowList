@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2023-02-26 12:55-0500\n"
+"POT-Creation-Date: 2023-03-03 09:38-0500\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -52,7 +52,7 @@ msgstr ""
 msgid "Pin to other workspaces"
 msgstr ""
 
-#: 4.0/applet.js:1866 4.0/applet.js:2010
+#: 4.0/applet.js:1866 4.0/applet.js:2029
 msgid "Add new Hotkey for"
 msgstr ""
 
@@ -88,59 +88,63 @@ msgstr ""
 msgid "Assign window to a hotkey"
 msgstr ""
 
-#: 4.0/applet.js:2030
+#: 4.0/applet.js:2005
+msgid "unassigned"
+msgstr ""
+
+#: 4.0/applet.js:2049
 msgid "Change application label contents"
 msgstr ""
 
-#: 4.0/applet.js:2033
+#: 4.0/applet.js:2052
 msgid "Remove custom setting"
 msgstr ""
 
-#: 4.0/applet.js:2040
+#: 4.0/applet.js:2059
 msgid "Use window title"
 msgstr ""
 
-#: 4.0/applet.js:2047
+#: 4.0/applet.js:2066
 msgid "Use application name"
 msgstr ""
 
-#: 4.0/applet.js:2054
+#: 4.0/applet.js:2073
 msgid "No label"
 msgstr ""
 
-#: 4.0/applet.js:2065
+#: 4.0/applet.js:2084
 msgid "Ungroup windows"
 msgstr ""
 
-#: 4.0/applet.js:2076
+#: 4.0/applet.js:2095
 msgid "Group windows"
 msgstr ""
 
-#: 4.0/applet.js:2086
+#: 4.0/applet.js:2105
 msgid "Automatic grouping/ungrouping"
 msgstr ""
 
-#: 4.0/applet.js:2115
+#: 4.0/applet.js:2134
 msgid "Restore"
 msgstr ""
 
-#: 4.0/applet.js:2119
+#: 4.0/applet.js:2138
 msgid "Minimize"
 msgstr ""
 
-#: 4.0/applet.js:2125
+#: 4.0/applet.js:2144
 msgid "Unmaximize"
 msgstr ""
 
-#: 4.0/applet.js:2132
+#: 4.0/applet.js:2151
 msgid "Close others"
 msgstr ""
 
-#: 4.0/applet.js:2143
+#: 4.0/applet.js:2162
 msgid "Close all"
 msgstr ""
 
-#: 4.0/applet.js:2152
+#: 4.0/applet.js:2171
 msgid "Close"
 msgstr ""
 
@@ -750,8 +754,4 @@ msgid ""
 "2. Automatic:  Enter a \"Description\" matching an application name or desktop file. For example: \"Google Chrome\" or \"firefox.desktop\"\n"
 "\n"
 "Note: 1) If a hotkey is not working, it's possible that a key combination is already assigned elsewhere. 2) If you remove or rearrange any hotkeys, manual window assignments may need to be reassigned"
-msgstr ""
-
-#. 4.0->settings-schema.json->hotkey-help->tooltip
-msgid "This is a tooltip!!!"
 msgstr ""

@@ -1993,14 +1993,27 @@ class WindowListButton {
       this._contextMenu.addMenuItem(item);
       let hotKeys = this._applet._keyBindings;
       for (let i=0 ; i < hotKeys.length ; i++) {
-         if (hotKeys[i].description.endsWith(".desktop")!==true) {
+         if (hotKeys[i].enabled===true && hotKeys[i].description.endsWith(".desktop")!==true) {
             let idx = i;
-            let keyString = hotKeys[i].keyCombo.toString();
-            if (keyString.endsWith("::")) {
-               keyString = keyString.slice(0,-2);
+            let keyString;
+            if (hotKeys[i].keyCombo!==null) {
+               keyString = hotKeys[i].keyCombo.toString();
+               if (keyString.endsWith("::")) {
+                  keyString = keyString.slice(0,-2);
+               }
+            } else {
+               keyString = _("unassigned");
+            }
+            let icon;
+            if (this._workspace._keyBindingsWindows.length > i && this._workspace._keyBindingsWindows[i] === metaWindow) {
+               icon = "checkbox-checked"; //"emblem-default";
+            } else if (this._workspace._keyBindingsWindows.length > i && this._workspace._keyBindingsWindows[i] != undefined) {
+               icon = "checkbox-mixed"; //"selection-mode"; //"emblem-ok";
+            } else {
+               icon = "checkbox"; //"system-shutdown"; //"input-keyboard";
             }
             let text = (hotKeys[i].description)?hotKeys[i].description+" ("+keyString+")":keyString;
-            let hotKeyItem = new PopupMenu.PopupIconMenuItem(text, "input-keyboard", St.IconType.SYMBOLIC);
+            let hotKeyItem = new PopupMenu.PopupIconMenuItem(text, icon, St.IconType.SYMBOLIC);
             hotKeyItem.connect("activate", Lang.bind(this, function() {
                //log( "Setting hotkey #"+idx+" to activate "+this._app.get_name() );
                let workspace = this._applet.getCurrentWorkSpace();
