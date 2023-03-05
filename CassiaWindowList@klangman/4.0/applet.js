@@ -1067,20 +1067,30 @@ class WindowListButton {
     let text = null;
     if (this._windows.length == 0 || this._currentWindow.get_title()==null || (this._windows.length > 1 && this._settings.getValue("grouped-mouse-action-btn1")===LeftClickGrouped.Thumbnail)) {
        text = this._app.get_name();
-       if (text) {
-          this._tooltip.set_text( text );
-       }
     } else {
        text = this._currentWindow.get_title();
-       if (text) {
-          this._tooltip.set_text( text );
+    }
+    // If this button's window is associated with a hotkey sequence, then append the hotkey sequence to the tooltip
+    let hotKeys = this._applet._keyBindings;
+    let hotKeyWindows = this._workspace._keyBindingsWindows;
+    for (let i=0 ; i < hotKeys.length ; i++) {
+       if (hotKeyWindows[i] != undefined && hotKeys[i].enabled===true && hotKeys[i].keyCombo!==null) {
+          if (hotKeyWindows[i] === this._currentWindow || (hotKeys[i].cycle===true && (hotKeys[i].description == this._app.get_name() || hotKeys[i].description == this._app.get_id()))) {
+             let keyString = hotKeys[i].keyCombo.toString();
+             if (keyString.endsWith("::")) {
+                keyString = keyString.slice(0,-2);
+             }
+             text = text + "\n" + keyString + "";
+          }
        }
     }
+
     // Disable the tooltip if there is no text or the thumbnail menu is configured to automatically popup.
     if (!text) {
        this._tooltip.set_text("");
        this._tooltip.preventShow = true;
     } else {
+       this._tooltip.set_text( text );
        this._tooltip.preventShow = false;
     }
   }
@@ -1993,7 +2003,7 @@ class WindowListButton {
       this._contextMenu.addMenuItem(item);
       let hotKeys = this._applet._keyBindings;
       for (let i=0 ; i < hotKeys.length ; i++) {
-         if (hotKeys[i].enabled===true && hotKeys[i].description.endsWith(".desktop")!==true) {
+         if (hotKeys[i].enabled===true && (hotKeys[i].description.endsWith(".desktop")!==true || (hotKeys[i].cycle===false && hotKeys[i].description==this._app.get_id()))) {
             let idx = i;
             let keyString;
             if (hotKeys[i].keyCombo!==null) {
@@ -2017,7 +2027,10 @@ class WindowListButton {
             hotKeyItem.connect("activate", Lang.bind(this, function() {
                //log( "Setting hotkey #"+idx+" to activate "+this._app.get_name() );
                let workspace = this._applet.getCurrentWorkSpace();
+               let oldButton = (workspace._keyBindingsWindows[idx]) ? workspace._lookupAppButtonForWindow(workspace._keyBindingsWindows[idx]) : null;
                workspace._keyBindingsWindows[idx] = metaWindow;
+               this._updateTooltip();
+               if (oldButton) oldButton._updateTooltip();
                }));
             item.menu.addMenuItem(hotKeyItem);
          }
@@ -3296,6 +3309,13 @@ class WindowList extends Applet.Applet {
         }
      }
      this._keyBindings = keyBindings;
+     for (let wsIdx=0 ; wsIdx<this._workspaces.length ; wsIdx++) {
+        let ws = this._workspaces[wsIdx];
+        for (let btnIdx=0 ; btnIdx < ws._appButtons.length ; btnIdx++) {
+           let btn = ws._appButtons[btnIdx];
+           btn._updateTooltip();
+        }
+     }
   }
 
   _updateThumbnailWindowSize(){
