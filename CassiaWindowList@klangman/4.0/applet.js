@@ -1074,13 +1074,13 @@ class WindowListButton {
     let hotKeys = this._applet._keyBindings;
     let hotKeyWindows = this._workspace._keyBindingsWindows;
     for (let i=0 ; i < hotKeys.length ; i++) {
-       if (hotKeyWindows[i] != undefined && hotKeys[i].enabled===true && hotKeys[i].keyCombo!==null) {
+       if (hotKeys[i].enabled===true && hotKeys[i].keyCombo!==null) {
           if (hotKeyWindows[i] === this._currentWindow || (hotKeys[i].cycle===true && (hotKeys[i].description == this._app.get_name() || hotKeys[i].description == this._app.get_id()))) {
              let keyString = hotKeys[i].keyCombo.toString();
              if (keyString.endsWith("::")) {
                 keyString = keyString.slice(0,-2);
              }
-             text = text + "\n" + keyString + "";
+             text = text + "\n" + keyString;
           }
        }
     }
