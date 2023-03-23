@@ -1039,11 +1039,12 @@ class WindowListButton {
 
   _updateCurrentWindow() {
     // Without slice, this will reorder to windows in the this._windows array
-    let windows = this._windows;//.slice();
+    let windows = this._windows.slice();
     if (windows.length > 1) {
       windows = windows.sort(function(a, b) {
         return b.user_time - a.user_time;
       });
+      this.sortedWindows = windows;
     }
     this._currentWindow = windows.length > 0 ? windows[0] : null;
     if (this._currentWindow) {
@@ -1517,19 +1518,19 @@ class WindowListButton {
         } else { // leftGroupedAction == LeftClickGrouped.Cycle
             if (hasFocus(this._currentWindow)) {
                if (this._nextWindow===null || this._nextWindow===this._currentWindow) {
-                  this._updateCurrentWindow(); // This will sort the windows array
-                  this._nextWindow = this._windows[1];
+                  this._updateCurrentWindow(); // This will set this.sortedWindows
+                  this._nextWindow = this.sortedWindows[1];
                }
                let idx = this._windows.indexOf(this._nextWindow);
                Main.activateWindow(this._nextWindow);
                if (idx === this._windows.length-1) {
-                  this._nextWindow = this._windows[0];
+                  this._nextWindow = this.sortedWindows[0];
                } else {
-                  this._nextWindow = this._windows[idx+1];
+                  this._nextWindow = this.sortedWindows[idx+1];
                }
             } else {
-               this._updateCurrentWindow(); // This will sort the windows array
-               this._nextWindow = this._windows[1];
+               this._updateCurrentWindow(); // This will set this.sortedWindows
+               this._nextWindow = this.sortedWindows[1];
                Main.activateWindow(this._currentWindow);
             }
         }
@@ -3224,19 +3225,19 @@ class WindowList extends Applet.Applet {
                           // All app windows are grouped under one appButton
                           if (hasFocus(appButton._currentWindow)===true) {
                              if (appButton._nextWindow===null || appButton._nextWindow===appButton._currentWindow) {
-                                appButton._updateCurrentWindow(); // This will sort the windows array
-                                appButton._nextWindow = appButton._windows[1];
+                                appButton._updateCurrentWindow(); // This will set this.sortedWindows
+                                appButton._nextWindow = appButton.sortedWindows[1];
                              }
                              let idx = appButton._windows.indexOf(appButton._nextWindow);
                              Main.activateWindow(appButton._nextWindow);
                              if (idx === appButton._windows.length-1) {
-                                appButton._nextWindow = appButton._windows[0];
+                                appButton._nextWindow = appButton.sortedWindows[0];
                              } else {
-                                appButton._nextWindow = appButton._windows[idx+1];
+                                appButton._nextWindow = appButton.sortedWindows[idx+1];
                              }
                           } else {
-                             appButton._updateCurrentWindow(); // This will sort the windows array
-                             appButton._nextWindow = appButton._windows[1];
+                             appButton._updateCurrentWindow(); // This will set this.sortedWindows
+                             appButton._nextWindow = appButton.sortedWindows[1];
                              Main.activateWindow(appButton._currentWindow);
                           }
                           return;
