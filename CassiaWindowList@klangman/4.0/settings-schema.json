@@ -273,6 +273,10 @@
       "Move to workspace 3": 9,
       "Move to workspace 4": 10,
       "Visible on this/all workspaces": 11,
+      "Move to monitor 1": 14,
+      "Move to monitor 2": 15,
+      "Move to monitor 3": 16,
+      "Move to monitor 4": 17,
       "Do nothing": 12
     },
     "description": "Thumbnail window middle button action"
@@ -292,6 +296,10 @@
       "Move to workspace 3": 9,
       "Move to workspace 4": 10,
       "Visible on this/all workspaces": 11,
+      "Move to monitor 1": 14,
+      "Move to monitor 2": 15,
+      "Move to monitor 3": 16,
+      "Move to monitor 4": 17,
       "Do nothing": 12
     },
     "description": "Thumbnail window back button action"
@@ -311,6 +319,10 @@
       "Move to workspace 3": 9,
       "Move to workspace 4": 10,
       "Visible on this/all workspaces": 11,
+      "Move to monitor 1": 14,
+      "Move to monitor 2": 15,
+      "Move to monitor 3": 16,
+      "Move to monitor 4": 17,
       "Do nothing": 12
     },
     "description": "Thumbnail window forward button action"
@@ -344,6 +356,10 @@
       "Move to workspace 3": 9,
       "Move to workspace 4": 10,
       "Visible on this/all workspaces": 11,
+      "Move to monitor 1": 14,
+      "Move to monitor 2": 15,
+      "Move to monitor 3": 16,
+      "Move to monitor 4": 17,
       "Do nothing": 12
     },
     "description": "Middle button action",
@@ -366,6 +382,10 @@
       "Move to workspace 3": 9,
       "Move to workspace 4": 10,
       "Visible on this/all workspaces": 11,
+      "Move to monitor 1": 14,
+      "Move to monitor 2": 15,
+      "Move to monitor 3": 16,
+      "Move to monitor 4": 17,
       "Do nothing": 12
     },
     "description": "Back button action",
@@ -388,6 +408,10 @@
       "Move to workspace 3": 9,
       "Move to workspace 4": 10,
       "Visible on this/all workspaces": 11,
+      "Move to monitor 1": 14,
+      "Move to monitor 2": 15,
+      "Move to monitor 3": 16,
+      "Move to monitor 4": 17,
       "Do nothing": 12
     },
     "description": "Forward button action",

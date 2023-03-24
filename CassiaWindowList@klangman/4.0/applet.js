@@ -176,7 +176,11 @@ const MouseAction = {
   MoveWorkspace4: 10, // 4
   WS_Visibility: 11,  // Toggle workspace visibility from all to only this workspace
   None: 12,           // No action performed
-  LastFocused: 13     // Restore the window that was most recently the focused window for the application
+  LastFocused: 13,    // Restore the window that was most recently the focused window for the application
+  MoveMonitor1: 14,   // Move window to monitor #1
+  MoveMonitor2: 15,   // 2
+  MoveMonitor3: 16,   // 3
+  MoveMonitor4: 17    // 4
 }
 
 // Possible settings for the left mouse action for grouped buttons
@@ -1682,6 +1686,26 @@ class WindowListButton {
               }
               this.closeThumbnailMenu();
               Main.activateWindow(this._currentWindow);
+           }
+           break;
+        case MouseAction.MoveMonitor1:
+           if (window && this._applet.xrandrMonitors[0] != null) {
+              window.move_to_monitor(0);
+           }
+           break;
+        case MouseAction.MoveMonitor2:
+           if (window && this._applet.xrandrMonitors[1] != null) {
+              window.move_to_monitor(1);
+           }
+           break;
+        case MouseAction.MoveMonitor3:
+           if (window && this._applet.xrandrMonitors[2] != null) {
+              window.move_to_monitor(2);
+           }
+           break;
+        case MouseAction.MoveMonitor4:
+           if (window && this._applet.xrandrMonitors[3] != null) {
+              window.move_to_monitor(3);
            }
            break;
       }
