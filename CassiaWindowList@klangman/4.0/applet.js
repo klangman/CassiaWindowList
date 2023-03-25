@@ -1525,9 +1525,9 @@ class WindowListButton {
                   this._updateCurrentWindow(); // This will set this.sortedWindows
                   this._nextWindow = this.sortedWindows[1];
                }
-               let idx = this._windows.indexOf(this._nextWindow);
+               let idx = this.sortedWindows.indexOf(this._nextWindow);
                Main.activateWindow(this._nextWindow);
-               if (idx === this._windows.length-1) {
+               if (idx === this.sortedWindows.length-1) {
                   this._nextWindow = this.sortedWindows[0];
                } else {
                   this._nextWindow = this.sortedWindows[idx+1];
@@ -3249,18 +3249,18 @@ class WindowList extends Applet.Applet {
                           // All app windows are grouped under one appButton
                           if (hasFocus(appButton._currentWindow)===true) {
                              if (appButton._nextWindow===null || appButton._nextWindow===appButton._currentWindow) {
-                                appButton._updateCurrentWindow(); // This will set this.sortedWindows
+                                appButton._updateCurrentWindow(); // This will set appButton.sortedWindows
                                 appButton._nextWindow = appButton.sortedWindows[1];
                              }
-                             let idx = appButton._windows.indexOf(appButton._nextWindow);
+                             let idx = appButton.sortedWindows.indexOf(appButton._nextWindow);
                              Main.activateWindow(appButton._nextWindow);
-                             if (idx === appButton._windows.length-1) {
+                             if (idx === appButton.sortedWindows.length-1) {
                                 appButton._nextWindow = appButton.sortedWindows[0];
                              } else {
                                 appButton._nextWindow = appButton.sortedWindows[idx+1];
                              }
                           } else {
-                             appButton._updateCurrentWindow(); // This will set this.sortedWindows
+                             appButton._updateCurrentWindow(); // This will set appButton.sortedWindows
                              appButton._nextWindow = appButton.sortedWindows[1];
                              Main.activateWindow(appButton._currentWindow);
                           }
