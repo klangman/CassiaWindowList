@@ -1,7 +1,7 @@
 {
   "layout" : {
     "type" : "layout",
-    "pages" : ["general-page", "caption-page", "preview-page", "hotkey-page"],
+    "pages" : ["general-page", "caption-page", "preview-page", "hotkey-page", "advanced-page"],
 
     "caption-page" : {
       "type" : "page",
@@ -25,6 +25,12 @@
       "type" : "page",
       "title" : "Hotkeys",
       "sections" : ["hotkey-settings"]
+    },
+
+    "advanced-page" : {
+      "type" : "page",
+      "title" : "Advanced",
+      "sections" : ["adv-mouse-settings"]
     },
 
     "caption-settings" : {
@@ -62,6 +68,11 @@
       "type" : "section",
       "title" : "Hotkey settings",
       "keys" : ["hotkey-bindings", "hotkey-minimize", "hotkey-new", "hotkey-help"]
+    },
+    "adv-mouse-settings" : {
+      "type" : "section",
+      "title" : "Ctrl/Shift + mouse button actions",
+      "keys" : ["adv-mouse-list", "adv-mouse-help"]
     }
   },
   "caption-type": {
@@ -277,6 +288,7 @@
       "Move to monitor 2": 15,
       "Move to monitor 3": 16,
       "Move to monitor 4": 17,
+      "Move to current/next monitor": 18,
       "Do nothing": 12
     },
     "description": "Thumbnail window middle button action"
@@ -300,6 +312,7 @@
       "Move to monitor 2": 15,
       "Move to monitor 3": 16,
       "Move to monitor 4": 17,
+      "Move to current/next monitor": 18,
       "Do nothing": 12
     },
     "description": "Thumbnail window back button action"
@@ -323,6 +336,7 @@
       "Move to monitor 2": 15,
       "Move to monitor 3": 16,
       "Move to monitor 4": 17,
+      "Move to current/next monitor": 18,
       "Do nothing": 12
     },
     "description": "Thumbnail window forward button action"
@@ -360,6 +374,7 @@
       "Move to monitor 2": 15,
       "Move to monitor 3": 16,
       "Move to monitor 4": 17,
+      "Move to current/next monitor": 18,
       "Do nothing": 12
     },
     "description": "Middle button action",
@@ -386,6 +401,7 @@
       "Move to monitor 2": 15,
       "Move to monitor 3": 16,
       "Move to monitor 4": 17,
+      "Move to current/next monitor": 18,
       "Do nothing": 12
     },
     "description": "Back button action",
@@ -412,6 +428,7 @@
       "Move to monitor 2": 15,
       "Move to monitor 3": 16,
       "Move to monitor 4": 17,
+      "Move to current/next monitor": 18,
       "Do nothing": 12
     },
     "description": "Forward button action",
@@ -467,6 +484,68 @@
   "hotkey-help" : {
     "type" : "label",
     "description" : "Hotkeys can be assigned to a window in two ways:\n1. Manual:  Use the \"Assign window to a hotkey\" item in a button context menu.\n2. Automatic:  Enter a \"Description\" matching an application name or desktop file. For example: \"Google Chrome\" or \"firefox.desktop\"\n\nNote: 1) If a hotkey is not working, it's possible that a key combination is already assigned elsewhere. 2) If you remove or rearrange any hotkeys, manual window assignments may need to be reassigned"
+  },
+
+  "adv-mouse-list": {
+    "type" : "list",
+    "description" : "Ctrl/Shift + mouse button actions",
+    "columns" : [
+        {"id": "enabled", "title": "Enabled", "type": "boolean", "default": true},
+        {"id": "keyAndButton", "title": "Key and mouse button", "type": "integer", "default": 0, "options": {
+           "Ctrl  + Left": 0,
+           "Ctrl  + Middle": 1,
+           "Ctrl  + Right": 2,
+           "Ctrl  + Back": 3,
+           "Ctrl  + Forward": 4,
+           "Shift + Left": 5,
+           "Shift + Middle": 6,
+           "Shift + Right": 7,
+           "Shift + Back": 8,
+           "Shift + Forward": 9
+           }
+        },
+        {"id": "context", "title": "Mouse click context", "type": "integer", "default": 0, "options": {
+           "Windowlist button": 0,
+           "Thumbnail window": 1
+           }
+        },
+        {"id": "action", "title": "Action to perform", "type": "integer", "default": 0, "options": {
+           "Thumbnail menu toggle": 0,
+           "Thumbnail menu hold": 1,
+           "Close window": 2,
+           "Minimize/Restore": 3,
+           "Maximize/Restore": 4,
+           "Restore most recent application window": 13,
+           "Group/Ungroup windows": 5,
+           "Open new window": 6,
+           "Move to workspace 1": 7,
+           "Move to workspace 2": 8,
+           "Move to workspace 3": 9,
+           "Move to workspace 4": 10,
+           "Visible on this/all workspaces": 11,
+           "Move to monitor 1": 14,
+           "Move to monitor 2": 15,
+           "Move to monitor 3": 16,
+           "Move to monitor 4": 17,
+           "Move to current/next monitor": 18,
+           "Do nothing": 12
+           }
+        }
+    ],
+    "tooltip": "Define a set of mouse button action when the Ctrl or Shift keys are pressed.",
+    "default" : [
+            {
+                "enabled": false,
+                "keyAndButton": 0,
+                "context": 0,
+                "action": 6
+            }
+    ]
+  },
+
+  "adv-mouse-help" : {
+    "type" : "label",
+    "description" : "Note: The above list contents are frequently incorrectly displayed due to what I suspect is a Cinnamon bug. The values displayed in the edit dialog box are the correct values and the ones that will take effect. I will be looking into the cause of this issue at some point."
   },
 
   "pinned-apps": {

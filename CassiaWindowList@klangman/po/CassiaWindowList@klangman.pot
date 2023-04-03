@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2023-03-24 10:55-0400\n"
+"POT-Creation-Date: 2023-04-03 10:23-0400\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -17,19 +17,19 @@ msgstr ""
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
 
-#: 4.0/applet.js:1820
+#: 4.0/applet.js:1916
 msgid "Applet Preferences"
 msgstr ""
 
-#: 4.0/applet.js:1824
+#: 4.0/applet.js:1920
 msgid "About..."
 msgstr ""
 
-#: 4.0/applet.js:1828
+#: 4.0/applet.js:1924
 msgid "Configure..."
 msgstr ""
 
-#: 4.0/applet.js:1832
+#: 4.0/applet.js:1928
 #, javascript-format
 msgid "Remove '%s'"
 msgstr ""
@@ -40,111 +40,111 @@ msgstr ""
 #. 4.0->settings-schema.json->mouse-action-btn2->options
 #. 4.0->settings-schema.json->mouse-action-btn8->options
 #. 4.0->settings-schema.json->mouse-action-btn9->options
-#: 4.0/applet.js:1841
+#: 4.0/applet.js:1937
 msgid "Open new window"
 msgstr ""
 
-#: 4.0/applet.js:1847
+#: 4.0/applet.js:1943
 msgid "Pin to this workspace"
 msgstr ""
 
-#: 4.0/applet.js:1863
+#: 4.0/applet.js:1959
 msgid "Pin to other workspaces"
 msgstr ""
 
-#: 4.0/applet.js:1901 4.0/applet.js:2067
+#: 4.0/applet.js:1997 4.0/applet.js:2163
 msgid "Add new Hotkey for"
 msgstr ""
 
-#: 4.0/applet.js:1915
+#: 4.0/applet.js:2011
 msgid "Recent files"
 msgstr ""
 
-#: 4.0/applet.js:1939
+#: 4.0/applet.js:2035
 msgid "Places"
 msgstr ""
 
-#: 4.0/applet.js:1981
+#: 4.0/applet.js:2077
 msgid "Only on this workspace"
 msgstr ""
 
-#: 4.0/applet.js:1983
+#: 4.0/applet.js:2079
 msgid "Visible on all workspaces"
 msgstr ""
 
-#: 4.0/applet.js:1984
+#: 4.0/applet.js:2080
 msgid "Move to another workspace"
 msgstr ""
 
-#: 4.0/applet.js:2003
+#: 4.0/applet.js:2099
 msgid "Move to another monitor"
 msgstr ""
 
-#: 4.0/applet.js:2011
+#: 4.0/applet.js:2107
 msgid "Monitor"
 msgstr ""
 
-#: 4.0/applet.js:2027
+#: 4.0/applet.js:2123
 msgid "Assign window to a hotkey"
 msgstr ""
 
-#: 4.0/applet.js:2040
+#: 4.0/applet.js:2136
 msgid "unassigned"
 msgstr ""
 
-#: 4.0/applet.js:2087
+#: 4.0/applet.js:2183
 msgid "Change application label contents"
 msgstr ""
 
-#: 4.0/applet.js:2090
+#: 4.0/applet.js:2186
 msgid "Remove custom setting"
 msgstr ""
 
-#: 4.0/applet.js:2097
+#: 4.0/applet.js:2193
 msgid "Use window title"
 msgstr ""
 
-#: 4.0/applet.js:2104
+#: 4.0/applet.js:2200
 msgid "Use application name"
 msgstr ""
 
-#: 4.0/applet.js:2111
+#: 4.0/applet.js:2207
 msgid "No label"
 msgstr ""
 
-#: 4.0/applet.js:2122
+#: 4.0/applet.js:2218
 msgid "Ungroup windows"
 msgstr ""
 
-#: 4.0/applet.js:2133
+#: 4.0/applet.js:2229
 msgid "Group windows"
 msgstr ""
 
-#: 4.0/applet.js:2143
+#: 4.0/applet.js:2239
 msgid "Automatic grouping/ungrouping"
 msgstr ""
 
-#: 4.0/applet.js:2172
+#: 4.0/applet.js:2268
 msgid "Restore"
 msgstr ""
 
-#: 4.0/applet.js:2176
+#: 4.0/applet.js:2272
 msgid "Minimize"
 msgstr ""
 
-#: 4.0/applet.js:2182
+#: 4.0/applet.js:2278
 msgid "Unmaximize"
 msgstr ""
 
-#: 4.0/applet.js:2189
+#: 4.0/applet.js:2285
 msgid "Close others"
 msgstr ""
 
-#: 4.0/applet.js:2200
+#: 4.0/applet.js:2296
 msgid "Close all"
 msgstr ""
 
-#: 4.0/applet.js:2209
+#: 4.0/applet.js:2305
 msgid "Close"
 msgstr ""
 
@@ -170,6 +170,10 @@ msgstr ""
 
 #. 4.0->settings-schema.json->hotkey-page->title
 msgid "Hotkeys"
+msgstr ""
+
+#. 4.0->settings-schema.json->advanced-page->title
+msgid "Advanced"
 msgstr ""
 
 #. 4.0->settings-schema.json->caption-settings->title
@@ -198,6 +202,11 @@ msgstr ""
 
 #. 4.0->settings-schema.json->hotkey-settings->title
 msgid "Hotkey settings"
+msgstr ""
+
+#. 4.0->settings-schema.json->adv-mouse-settings->title
+#. 4.0->settings-schema.json->adv-mouse-list->description
+msgid "Ctrl/Shift + mouse button actions"
 msgstr ""
 
 #. 4.0->settings-schema.json->caption-type->options
@@ -629,6 +638,15 @@ msgstr ""
 #. 4.0->settings-schema.json->mouse-action-btn2->options
 #. 4.0->settings-schema.json->mouse-action-btn8->options
 #. 4.0->settings-schema.json->mouse-action-btn9->options
+msgid "Move to current/next monitor"
+msgstr ""
+
+#. 4.0->settings-schema.json->preview-middle-click->options
+#. 4.0->settings-schema.json->preview-back-click->options
+#. 4.0->settings-schema.json->preview-forward-click->options
+#. 4.0->settings-schema.json->mouse-action-btn2->options
+#. 4.0->settings-schema.json->mouse-action-btn8->options
+#. 4.0->settings-schema.json->mouse-action-btn9->options
 msgid "Do nothing"
 msgstr ""
 
@@ -741,6 +759,7 @@ msgid "Hotkey binding available for assignment to a window"
 msgstr ""
 
 #. 4.0->settings-schema.json->hotkey-bindings->columns->title
+#. 4.0->settings-schema.json->adv-mouse-list->columns->title
 msgid "Enabled"
 msgstr ""
 
@@ -790,4 +809,29 @@ msgid ""
 "2. Automatic:  Enter a \"Description\" matching an application name or desktop file. For example: \"Google Chrome\" or \"firefox.desktop\"\n"
 "\n"
 "Note: 1) If a hotkey is not working, it's possible that a key combination is already assigned elsewhere. 2) If you remove or rearrange any hotkeys, manual window assignments may need to be reassigned"
+msgstr ""
+
+#. 4.0->settings-schema.json->adv-mouse-list->columns->title
+msgid "Key and mouse button"
+msgstr ""
+
+#. 4.0->settings-schema.json->adv-mouse-list->columns->title
+msgid "Mouse click context"
+msgstr ""
+
+#. 4.0->settings-schema.json->adv-mouse-list->columns->title
+msgid "Action to perform"
+msgstr ""
+
+#. 4.0->settings-schema.json->adv-mouse-list->tooltip
+msgid ""
+"Define a set of mouse button action when the Ctrl or Shift keys are pressed."
+msgstr ""
+
+#. 4.0->settings-schema.json->adv-mouse-help->description
+msgid ""
+"Note: The above list contents are frequently incorrectly displayed due to "
+"what I suspect is a Cinnamon bug. The values displayed in the edit dialog "
+"box are the correct values and the ones that will take effect. I will be "
+"looking into the cause of this issue at some point."
 msgstr ""

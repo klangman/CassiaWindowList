@@ -180,7 +180,8 @@ const MouseAction = {
   MoveMonitor1: 14,   // Move window to monitor #1
   MoveMonitor2: 15,   // 2
   MoveMonitor3: 16,   // 3
-  MoveMonitor4: 17    // 4
+  MoveMonitor4: 17,   // 4
+  MoveCurrMonitor: 18 // Move window to the current monitor (or to next monitor if window is already on current monitor)
 }
 
 // Possible settings for the left mouse action for grouped buttons
@@ -211,6 +212,29 @@ const ScrollWheelAction = {
    On: 1,
    OnGlobal: 2,
    OnApplication: 3
+}
+
+const KeyAndButton = {
+   CtrlLeft: 0,
+   CtrlMiddle: 1,
+   CtrlRight: 2,
+   CtrlBack: 3,
+   CtrlForward: 4,
+   ShiftLeft: 5,
+   ShiftMiddle: 6,
+   ShiftRight: 7,
+   ShiftBack: 8,
+   ShiftForward: 9
+}
+
+const Context = {
+   WindowListButton: 0,
+   ThumbnailWindow: 1
+}
+
+const Modifier = {
+   Shift: 0,
+   Ctrl: 1
 }
 
 Gettext.bindtextdomain(UUID, GLib.get_home_dir() + "/.local/share/locale");
@@ -313,6 +337,20 @@ function getMonitors() {
   }
 
   return result;
+}
+
+// Return a MouseAction if a mount action is defined for the ctrlHeld state, context and mouse button
+//       mouseBtn = 1-3 (left, middle, right) or 8-9 (back, forward)
+function getKeyAndButtonMouseAction(mouseActionList, modifier, context, mouseBtn) {
+   let keyAndButton = ((modifier)?0:5) + ((mouseBtn<4)?mouseBtn-1:mouseBtn-4);
+   //log( `Looking for adv mouse action for ctrlHeld=${modifier}, thumbContext=${context}, btn=${mouseBtn}, k&b=${keyAndButton}` );
+   for (let i=0 ; i < mouseActionList.length ; i++) {
+      //log( `enabled=${mouseActionList[i].enabled}, context=${mouseActionList[i].context}, k&b=${mouseActionList[i].keyAndButton}, action=${mouseActionList[i].action}` );
+      if (mouseActionList[i].enabled && mouseActionList[i].context == context && mouseActionList[i].keyAndButton == keyAndButton) {
+         return mouseActionList[i].action;
+      }
+   }
+   return -1;
 }
 
 // Represents an item in the Thumbnail popup menu
@@ -477,6 +515,15 @@ class ThumbnailMenuItem extends PopupMenu.PopupBaseMenuItem {
        this._appButton.closeThumbnailMenu()
        Main.activateWindow(this._metaWindow);
        return true;
+    }
+    // If the Ctrl or Shift key is held, and there is a defined action for that key+button combination then do the specified action
+    if (event.has_control_modifier() || event.has_shift_modifier()) {
+       let mouseActionList = this._settings.getValue("adv-mouse-list");
+       let action = getKeyAndButtonMouseAction( mouseActionList, event.has_control_modifier()?Modifier.Ctrl:Modifier.Shift, Context.ThumbnailWindow, mouseBtn );
+       if (action!=-1) {
+          this._appButton._performMouseAction(action, this._metaWindow);
+          return true;
+       }
     }
     if (mouseBtn == 2) {  // Middle button
       let action = this._settings.getValue("preview-middle-click");
@@ -1470,7 +1517,17 @@ class WindowListButton {
 
   // Check if any of the mouse buttons are setup to display the preview menu on holding down a button
   _onButtonPress(actor, event) {
-     let mouseBtn = event.get_button(); 
+     let mouseBtn = event.get_button();
+     // If the Ctrl or Shift key is held, and there is a defined action for that key+button combination then do the specified action
+     if (event.has_control_modifier() || event.has_shift_modifier()) {
+        let mouseActionList = this._settings.getValue("adv-mouse-list");
+        let action = getKeyAndButtonMouseAction( mouseActionList, event.has_control_modifier()?Modifier.Ctrl:Modifier.Shift, Context.WindowListButton, mouseBtn );
+        if (action==MouseAction.PreviewHold) {
+           this.openThumbnailMenu();
+           this._workspace.holdPopup = mouseBtn;
+           return true;
+        }
+     }
      if (mouseBtn == 2) {
         let action = this._settings.getValue("mouse-action-btn2");
         if (action == MouseAction.PreviewHold) {
@@ -1494,13 +1551,22 @@ class WindowListButton {
 
   // Check if there are mouse action to be taken on button release
   _onButtonRelease(actor, event) {
+    let mouseBtn = event.get_button();
+    // If the Ctrl or Shift key is held, and there is a defined action for that key+button combination then do the specified action
+    if (event.has_control_modifier() || event.has_shift_modifier()) {
+       let mouseActionList = this._settings.getValue("adv-mouse-list");
+       let action = getKeyAndButtonMouseAction( mouseActionList, event.has_control_modifier()?Modifier.Ctrl:Modifier.Shift, Context.WindowListButton, mouseBtn );
+       if (action!==-1) {
+          this._performMouseAction(action, this._currentWindow);
+          return true;
+       }
+    }
     if (this.menu) {
        this.removeThumbnailMenuDelay();
     }
     if (this._contextMenu.isOpen) {
       this._contextMenu.close();
     }
-    let mouseBtn = event.get_button();
     // left mouse button
     if (mouseBtn == 1) {
       if (this._currentWindow) {
@@ -1608,8 +1674,9 @@ class WindowListButton {
            this.closeThumbnailMenu();
            break;
         case MouseAction.Close:
-           if (window)
+           if (window) {
               window.delete(global.get_current_time());
+           }
            break;
         case MouseAction.Minimize:
            if (window) {
@@ -1708,6 +1775,25 @@ class WindowListButton {
               window.move_to_monitor(3);
            }
            break;
+        case MouseAction.MoveCurrMonitor:
+           if (window) {
+              if (this._applet.panel.monitorIndex != window.get_monitor()) {
+                 window.move_to_monitor(this._applet.panel.monitorIndex);
+              } else {
+                 let nMonitors = Main.layoutManager.monitors.length;
+                 for (let i=this._applet.panel.monitorIndex+1 ; i != this._applet.panel.monitorIndex ; i++) {
+                    if (i >= Main.layoutManager.monitors.length) {
+                       i=-1;
+                    } else {
+                       if (this._applet.xrandrMonitors[i] != null) {
+                          window.move_to_monitor(i);
+                          return;
+                       }
+                    }
+                 }
+              }
+           }
+           break;
       }
   }
 
@@ -1770,6 +1856,16 @@ class WindowListButton {
       this.actor.set_hover(true);
     }
     let curMenu = this._workspace.currentMenu;
+    /*
+    if (curMenu && curMenu != this.menu && curMenu.isOpen) {
+       let groupSetting = this._settings.getValue("group-windows");
+       if (groupSetting===GroupType.Pooled || groupedSetting===GroupType.Auto && curMenu._appButton._app === this._app) {
+          // Just keep the same menu since it's for the same pool and the current thumbnail menu is still appropriate
+          this.removeThumbnailMenuDelay();
+          return;
+       }
+    }
+    */
     if (curMenu && curMenu != this.menu && curMenu.isOpen) {
        let holdPopup = this._workspace.holdPopup;
        this.closeThumbnailMenu();
@@ -1785,15 +1881,15 @@ class WindowListButton {
     if (curMenu) {
        this.closeThumbnailMenuDelayed();
     } else {
-       this.removeThumbnailMenuDelay()
+       this.removeThumbnailMenuDelay();
     }
     if (!this._contextMenu.isOpen && (!this.menu || !this.menu.isOpen)) {
        this.actor.set_hover(false);
     }
-    if (this._mousePosUpdateLoop) {
-      Mainloop.source_remove(this._mousePosUpdateLoop);
-      this._mousePosUpdateLoop = 0;
-    }
+    //if (this._mousePosUpdateLoop) {
+    //  Mainloop.source_remove(this._mousePosUpdateLoop);
+    //  this._mousePosUpdateLoop = 0;
+    //}
   }
 
   _onMinimized(metaWindow) {
@@ -2247,7 +2343,8 @@ class WindowListButton {
   }
 
   removeThumbnailMenuDelay(){
-     this._workspace.removeThumbnailMenuDelay();
+     if (this._workspace._delayId)
+        this._workspace.removeThumbnailMenuDelay();
   }
 
   // Return a list of the Recent Files that match the mime type of this buttons application
