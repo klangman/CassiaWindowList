@@ -532,7 +532,7 @@
            }
         }
     ],
-    "tooltip": "Define a set of mouse button action when the Ctrl or Shift keys are pressed.",
+    "tooltip": "Define a set of mouse button actions when the Ctrl or Shift keys are pressed.",
     "default" : [
             {
                 "enabled": false,

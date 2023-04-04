@@ -46,6 +46,7 @@ const DND = imports.ui.dnd;
 const Settings = imports.ui.settings;
 const SignalManager = imports.misc.signalManager;
 const CinnamonDesktop = imports.gi.CinnamonDesktop;
+const ModalDialog = imports.ui.modalDialog;
 
 const UUID = "CassiaWindowList@klangman";
 
@@ -1927,7 +1928,9 @@ class WindowListButton {
 
     item = new PopupMenu.PopupIconMenuItem(_("Remove '%s'").format(_(this._applet._meta.name)), "edit-delete", St.IconType.SYMBOLIC);
     item.connect("activate", Lang.bind(this, function() {
-      AppletManager._removeAppletFromPanel(this._applet._uuid, this._applet.instance_id);
+        new ModalDialog.ConfirmDialog(_("Do you really want to remove this instance of CassiaWindowList?"), Lang.bind(this, function() {
+            AppletManager._removeAppletFromPanel(this._applet._uuid, this._applet.instance_id);
+        })).open(global.get_current_time());
     }));
     subMenu.menu.addMenuItem(item);
 
@@ -2120,9 +2123,8 @@ class WindowListButton {
       // Menu options to attach a hotkey to a window
       this._contextMenu.addMenuItem(new PopupMenu.PopupSeparatorMenuItem());
       let appHasExistingHotkey = false;
-      item = new PopupMenu.PopupSubMenuMenuItem(_("Assign window to a hotkey"));
-      this._contextMenu.addMenuItem(item);
       let hotKeys = this._applet._keyBindings;
+      item = null;
       for (let i=0 ; i < hotKeys.length ; i++) {
          if (hotKeys[i].enabled===true && (hotKeys[i].description.endsWith(".desktop")!==true || (hotKeys[i].cycle===false && hotKeys[i].description==this._app.get_id()))) {
             let idx = i;
@@ -2143,6 +2145,10 @@ class WindowListButton {
             } else {
                icon = "checkbox"; //"system-shutdown"; //"input-keyboard";
             }
+            if (item === null) {
+               item = new PopupMenu.PopupSubMenuMenuItem(_("Assign window to a hotkey"));
+               this._contextMenu.addMenuItem(item);
+            }
             let text = (hotKeys[i].description)?hotKeys[i].description+" ("+keyString+")":keyString;
             let hotKeyItem = new PopupMenu.PopupIconMenuItem(text, icon, St.IconType.SYMBOLIC);
             hotKeyItem.connect("activate", Lang.bind(this, function() {
@@ -2160,6 +2166,10 @@ class WindowListButton {
          }
       }
       if (appHasExistingHotkey===false) {
+         if (item === null) {
+            item = new PopupMenu.PopupSubMenuMenuItem(_("Assign window to a hotkey"));
+            this._contextMenu.addMenuItem(item);
+         }
          let hotKeyItem = new PopupMenu.PopupIconMenuItem(_("Add new Hotkey for")+" \""+this._app.get_id()+"\"", "list-add", St.IconType.SYMBOLIC);
          hotKeyItem.connect("activate", Lang.bind(this, function() {
                hotKeys.push( {enabled:false, cycle:true, keyCombo:"", description:this._app.get_id()} );
