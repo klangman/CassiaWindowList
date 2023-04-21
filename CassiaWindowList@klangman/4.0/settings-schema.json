@@ -72,7 +72,7 @@
     "adv-mouse-settings" : {
       "type" : "section",
       "title" : "Ctrl/Shift + mouse button actions",
-      "keys" : ["adv-mouse-list", "adv-mouse-help"]
+      "keys" : ["adv-mouse-list", "adv-mouse-help", "backup-file-name"]
     }
   },
   "caption-type": {
@@ -117,7 +117,7 @@
   },
   "display-indicators": {
     "type": "combobox",
-    "default": 3,
+    "default": 1,
     "options": {
       "None": 0,
       "Minimized windows": 1,
@@ -535,7 +535,7 @@
     "tooltip": "Define a set of mouse button actions when the Ctrl or Shift keys are pressed.",
     "default" : [
             {
-                "enabled": false,
+                "enabled": true,
                 "keyAndButton": 0,
                 "context": 0,
                 "action": 6
@@ -546,6 +546,13 @@
   "adv-mouse-help" : {
     "type" : "label",
     "description" : "Note: The above list contents are frequently incorrectly displayed due to what I suspect is a Cinnamon bug. The values displayed in the edit dialog box are the correct values and the ones that will take effect. I will be looking into the cause of this issue at some point."
+  },
+
+  "backup-file-name" : {
+    "type" : "entry",
+    "default" : "",
+    "description" : "Settings backup name",
+    "tooltip" : "If a name is entered here, the configuration of this applet instance will be backed up under that name. Backups will be listed in the Setup Wizard restore page when adding a new instance of CassiaWindowList to a panel."
   },
 
   "pinned-apps": {
@@ -562,5 +569,10 @@
   "custom-label-type": {
     "type": "generic",
     "default": [1, 1, 1]
+  },
+
+  "runWizard": {
+     "type": "generic",
+     "default": 1
   }
 }

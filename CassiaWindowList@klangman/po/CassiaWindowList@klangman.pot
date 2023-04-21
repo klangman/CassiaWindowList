@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2023-04-04 10:01-0400\n"
+"POT-Creation-Date: 2023-04-19 23:07-0400\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -152,6 +152,14 @@ msgstr ""
 msgid "Close"
 msgstr ""
 
+#: SetupWizard.py:159
+msgid "Exit"
+msgstr ""
+
+#: SetupWizard.py:181
+msgid "Next"
+msgstr ""
+
 #. metadata.json->name
 msgid "Cassia Window List"
 msgstr ""
@@ -259,7 +267,8 @@ msgid ""
 "Never: No windows get labels\n"
 "Always: All windows get labels\n"
 "Focused: The window with focus will have a label\n"
-"One per application pool: Only one label for a set of adjacent application windows"
+"One per application pool: Only one label for a set of adjacent application "
+"windows"
 msgstr ""
 
 #. 4.0->settings-schema.json->display-caption-for-pined->options
@@ -315,8 +324,11 @@ msgstr ""
 
 #. 4.0->settings-schema.json->display-indicators->tooltip
 msgid ""
-"Choose if the minimized and the pinned indicator characters will be prepended to button label text. Buttons without a text label will not reserve as much space.\n"
-"Automatic: The minimized and pinned indicators will only show when space is not constrained."
+"Choose if the minimized and the pinned indicator characters will be "
+"prepended to button label text. Buttons without a text label will not "
+"reserve as much space.\n"
+"Automatic: The minimized and pinned indicators will only show when space is "
+"not constrained."
 msgstr ""
 
 #. 4.0->settings-schema.json->trailing-pinned-behaviour->description
@@ -378,8 +390,8 @@ msgstr ""
 
 #. 4.0->settings-schema.json->number-style->tooltip
 msgid ""
-"Controls how the number of windows in a grouped button is presented. When on"
-" a vertical panel, the \"label prepend\" option is not possible so \"icon "
+"Controls how the number of windows in a grouped button is presented. When on "
+"a vertical panel, the \"label prepend\" option is not possible so \"icon "
 "overlay\" will be used instead"
 msgstr ""
 
@@ -432,8 +444,8 @@ msgstr ""
 
 #. 4.0->settings-schema.json->show-tooltips->tooltip
 msgid ""
-"Enable to show tooltips using window title or application name when hovering"
-" over window list buttons"
+"Enable to show tooltips using window title or application name when hovering "
+"over window list buttons"
 msgstr ""
 
 #. 4.0->settings-schema.json->hide-panel-apps->description
@@ -444,8 +456,7 @@ msgstr ""
 #. 4.0->settings-schema.json->hide-panel-apps->tooltip
 msgid ""
 "When enabled, windows for applications with pinned buttons on other "
-"instances of the CassiaWindowList applet will not show up in this window "
-"list"
+"instances of the CassiaWindowList applet will not show up in this window list"
 msgstr ""
 
 #. 4.0->settings-schema.json->menu-show-on-hover->description
@@ -499,7 +510,8 @@ msgstr ""
 
 #. 4.0->settings-schema.json->preview-timeout-show->tooltip
 msgid ""
-"The waiting time before the thumbnail menu appears when hovering over a button\n"
+"The waiting time before the thumbnail menu appears when hovering over a "
+"button\n"
 "(Not used when moving directly to a different button in the list)"
 msgstr ""
 
@@ -727,8 +739,7 @@ msgid "Forward button action"
 msgstr ""
 
 #. 4.0->settings-schema.json->mouse-action-btn9->tooltip
-msgid ""
-"Action taken when using the forward mouse button on window list entries"
+msgid "Action taken when using the forward mouse button on window list entries"
 msgstr ""
 
 #. 4.0->settings-schema.json->wheel-adjusts-preview-size->options
@@ -802,17 +813,21 @@ msgstr ""
 #. 4.0->settings-schema.json->hotkey-new->tooltip
 msgid ""
 "Start a new window if no window is attached to a hotkey and the hotkey "
-"description is an exact match for the application name of a pinned button or"
-" a desktop file name"
+"description is an exact match for the application name of a pinned button or "
+"a desktop file name"
 msgstr ""
 
 #. 4.0->settings-schema.json->hotkey-help->description
 msgid ""
 "Hotkeys can be assigned to a window in two ways:\n"
-"1. Manual:  Use the \"Assign window to a hotkey\" item in a button context menu.\n"
-"2. Automatic:  Enter a \"Description\" matching an application name or desktop file. For example: \"Google Chrome\" or \"firefox.desktop\"\n"
+"1. Manual:  Use the \"Assign window to a hotkey\" item in a button context "
+"menu.\n"
+"2. Automatic:  Enter a \"Description\" matching an application name or "
+"desktop file. For example: \"Google Chrome\" or \"firefox.desktop\"\n"
 "\n"
-"Note: 1) If a hotkey is not working, it's possible that a key combination is already assigned elsewhere. 2) If you remove or rearrange any hotkeys, manual window assignments may need to be reassigned"
+"Note: 1) If a hotkey is not working, it's possible that a key combination is "
+"already assigned elsewhere. 2) If you remove or rearrange any hotkeys, "
+"manual window assignments may need to be reassigned"
 msgstr ""
 
 #. 4.0->settings-schema.json->adv-mouse-list->columns->title
@@ -829,8 +844,7 @@ msgstr ""
 
 #. 4.0->settings-schema.json->adv-mouse-list->tooltip
 msgid ""
-"Define a set of mouse button actions when the Ctrl or Shift keys are "
-"pressed."
+"Define a set of mouse button actions when the Ctrl or Shift keys are pressed."
 msgstr ""
 
 #. 4.0->settings-schema.json->adv-mouse-help->description
@@ -839,4 +853,173 @@ msgid ""
 "what I suspect is a Cinnamon bug. The values displayed in the edit dialog "
 "box are the correct values and the ones that will take effect. I will be "
 "looking into the cause of this issue at some point."
+msgstr ""
+
+#. 4.0->settings-schema.json->backup-file-name->description
+msgid "Settings backup name"
+msgstr ""
+
+#. 4.0->settings-schema.json->backup-file-name->tooltip
+msgid ""
+"If a name is entered here the configuration of this applet instance will be "
+"backed up under that name. Backups will be listed in the Setup Wizard "
+"restore page when adding a new instance of CassiaWindowList to a panel."
+msgstr ""
+
+#: SetupWizard.ui:7
+msgid "CassiaWindowList Basic Setup Wizard"
+msgstr ""
+
+#: SetupWizard.ui:78
+msgid "Welcome to CassiaWindowList"
+msgstr ""
+
+#: SetupWizard.ui:95
+msgid "How would you like this applet instance to behave?"
+msgstr ""
+
+#: SetupWizard.ui:105
+msgid ""
+"Window List (Task bar)\n"
+"Panel buttons for all running windows."
+msgstr ""
+
+#: SetupWizard.ui:125
+msgid ""
+"Panel Launcher (Quick launcher)\n"
+"Panel button only appear when you add items\n"
+"to the panel, no labels are shown, only icons."
+msgstr ""
+
+#: SetupWizard.ui:146
+msgid ""
+"Restore configuration from an automatic\n"
+"backup"
+msgstr ""
+
+#: SetupWizard.ui:178
+msgid "How do you want your Window List to operate?"
+msgstr ""
+
+#: SetupWizard.ui:192
+msgid ""
+"Basic  -  Quick window access\n"
+"Every window gets it's own window list button.\n"
+"Button labels are window titles."
+msgstr ""
+
+#: SetupWizard.ui:213
+msgid ""
+"Grouping  -  Very compact\n"
+"One window list button per application.\n"
+"Thumbnail menus to select specific window.\n"
+"Button labels are window titles."
+msgstr ""
+
+#: SetupWizard.ui:236
+msgid ""
+"Pooling  -  Quick access & compact\n"
+"Every window gets it's own window list button.\n"
+"Application buttons are pooled togeather.\n"
+"One button label per application pool.\n"
+"Button labels are application names."
+msgstr ""
+
+#: SetupWizard.ui:273
+msgid "Just a few more options to consider"
+msgstr ""
+
+#: SetupWizard.ui:287
+msgid "No Labels (icons only)"
+msgstr ""
+
+#: SetupWizard.ui:305
+msgid "No minimized window indicator character"
+msgstr ""
+
+#: SetupWizard.ui:323
+msgid "No Thumbnail window menu on mouse hover"
+msgstr ""
+
+#: SetupWizard.ui:354
+msgid "Notes about the Panel Launcher behaviour"
+msgstr ""
+
+#: SetupWizard.ui:370
+msgid ""
+"Unlike most Panel Launcher applets, this launcher\n"
+"keeps tack of running windows and will activate\n"
+"existing windows rather then launching new ones.\n"
+"\n"
+"You can launch additional windows by clicking the\n"
+"'Back' mouse button or Ctrl+Left mouse button \n"
+"(by default).\n"
+"\n"
+"It also uses Thumbnail menus to show a list of all\n"
+"open windows. In general it works like \"pinned\"\n"
+"buttons on a window list rather then a basic\n"
+"launcher"
+msgstr ""
+
+#: SetupWizard.ui:408
+msgid "All done!"
+msgstr ""
+
+#: SetupWizard.ui:424
+msgid ""
+"There are many more options and features to explorer\n"
+"in the applet configurator and the window list button\n"
+"context menu, for example:\n"
+"\n"
+" • Hot-keys to launch / activate a specific window.\n"
+" • Customizable mouse button actions.\n"
+" • Customizable Ctrl/Shift + mouse button actions.\n"
+" • Application specific grouping and label settings.\n"
+" • Thumbnail window zooming using the scroll-wheel.\n"
+" • Automatic application grouping when space is limited.\n"
+" • And much more."
+msgstr ""
+
+#: SetupWizard.ui:445
+msgid "Exit and launch the applet configurator now"
+msgstr ""
+
+#: SetupWizard.ui:474
+msgid "Select a backup configuration to restore?"
+msgstr ""
+
+#: SetupWizard.ui:517
+msgid "Configuration Backup?"
+msgstr ""
+
+#: SetupWizard.ui:533
+msgid ""
+"If you would like to maintain an automatic backup\n"
+"of this applet configuration then select or enter a\n"
+"backup file description below. All current and future\n"
+"configuration changes will be saved to this backup:"
+msgstr ""
+
+#: SetupWizard.ui:553
+msgid "MainWindowList"
+msgstr ""
+
+#: SetupWizard.ui:554
+msgid "MainPanelLauncher"
+msgstr ""
+
+#: SetupWizard.ui:555
+msgid "Monitor1WindowList"
+msgstr ""
+
+#: SetupWizard.ui:556
+msgid "Monitor2WindowList"
+msgstr ""
+
+#: SetupWizard.ui:557
+msgid "Monitor1PanelLauncher"
+msgstr ""
+
+#: SetupWizard.ui:558
+msgid "Monitor2PanelLauncher"
 msgstr ""

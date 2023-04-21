@@ -3309,7 +3309,7 @@ class Workspace {
   }
 }
 
-// The windowlist manager, one instance for each windowlist (every likely we'll only have one)
+// The windowlist manager, one instance for each windowlist
 class WindowList extends Applet.Applet {
 
   constructor(orientation, panelHeight, instanceId) {
@@ -3573,6 +3573,45 @@ class WindowList extends Applet.Applet {
     this._signalManager.connect(this._settings, "changed::number-of-unshrunk-previews", this._updateThumbnailWindowSize, this);
     this._signalManager.connect(this._settings, "changed::hide-panel-apps", this._updateCurrentWorkspace, this);
     this._signalManager.connect(this._settings, "changed::group-windows", this._onGroupingChanged, this);
+    this._signalManager.connect(this._settings, "settings-changed", this._onSettingsChanged, this);
+
+    if (this._settings.getValue("runWizard")===1) {
+       let command = GLib.get_home_dir() + "/.local/share/cinnamon/applets/" + this._uuid + "/setupWizard " + this._uuid + " " + this.instance_id;
+       log( "Spawning: " + command );
+       Util.spawnCommandLineAsync(command);
+    }
+  }
+
+  _onSettingsChanged() {
+     // Since the "setting-changed" event fires multiple times we use a timer to backup after some time as past
+     if (this._backupDelayId)
+        Mainloop.source_remove(this._backupDelayId);
+     this._backupDelayId = Mainloop.timeout_add(60000, Lang.bind(this, this._backupConfig));
+  }
+
+  _backupConfig() {
+     this._backupDelayId = null;
+     let backupFileName = this._settings.getValue("backup-file-name");
+     if (backupFileName && backupFileName!="") {
+        //log( "Backing up config..." );
+        let configFile = GLib.get_user_config_dir() + "/cinnamon/spices/" + this._uuid + "/" + this.instanceId + ".json";
+        let file = Gio.File.new_for_path(configFile);
+        if (!file.query_exists(null)) {
+           configFile = GLib.get_home_dir() + "/.cinnamon/configs/" + this._uuid + "/" + this.instanceId + ".json";
+           file = Gio.File.new_for_path(configFile);
+        }
+        if (file) {
+           let destPath = GLib.get_user_config_dir() + "/cinnamon/spices/" + this._uuid + "/backup/";
+           destPath = Gio.File.new_for_path(destPath);
+           if (!destPath.query_exists(null)) {
+              destPath.make_directory_with_parents(null);
+           }
+           destPath = GLib.get_user_config_dir() + "/cinnamon/spices/" + this._uuid + "/backup/" + backupFileName + ".json";
+           destPath = Gio.File.new_for_path(destPath);
+           let ret = file.copy(destPath, Gio.FileCopyFlags.OVERWRITE, null, null);
+           //log( `Copy was successful: ${ret}` );
+        }
+     }
   }
 
   _onGroupingChanged() {
