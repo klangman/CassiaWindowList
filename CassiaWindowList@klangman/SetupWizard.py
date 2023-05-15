@@ -240,7 +240,7 @@ class SetupWizard:
       if not dirPath.exists():
          dirPath.mkdir(parents=True)
       if filePath.exists():
-         dialog = Gtk.MessageDialog(transient_for=self.window, flags=0, message_type=Gtk.MessageType.INFO, text="Backup file already exist. Do you want to overwrite it?" )
+         dialog = Gtk.MessageDialog(transient_for=self.window, flags=0, message_type=Gtk.MessageType.INFO, text=_("Backup file already exist. Do you want to overwrite it?") )
          dialog.add_buttons( Gtk.STOCK_NO, Gtk.ResponseType.CANCEL, Gtk.STOCK_YES, Gtk.ResponseType.OK )
          responce = dialog.run()
          dialog.destroy()

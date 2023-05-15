@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2023-04-19 23:07-0400\n"
+"POT-Creation-Date: 2023-04-23 18:14-0400\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -152,12 +152,16 @@ msgstr ""
 msgid "Close"
 msgstr ""
 
-#: SetupWizard.py:159
+#: SetupWizard.py:162
 msgid "Exit"
 msgstr ""
 
-#: SetupWizard.py:181
+#: SetupWizard.py:184
 msgid "Next"
+msgstr ""
+
+#: SetupWizard.py:243
+msgid "Backup file already exist. Do you want to overwrite it?"
 msgstr ""
 
 #. metadata.json->name
@@ -861,7 +865,7 @@ msgstr ""
 
 #. 4.0->settings-schema.json->backup-file-name->tooltip
 msgid ""
-"If a name is entered here the configuration of this applet instance will be "
+"If a name is entered here, the configuration of this applet instance will be "
 "backed up under that name. Backups will be listed in the Setup Wizard "
 "restore page when adding a new instance of CassiaWindowList to a panel."
 msgstr ""

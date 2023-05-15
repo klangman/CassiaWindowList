@@ -1129,11 +1129,20 @@ class WindowListButton {
     for (let i=0 ; i < hotKeys.length ; i++) {
        if (hotKeys[i].enabled===true && hotKeys[i].keyCombo!==null) {
           if (hotKeyWindows[i] === this._currentWindow || (hotKeys[i].cycle===true && (hotKeys[i].description == this._app.get_name() || hotKeys[i].description == this._app.get_id()))) {
+             // i.e.  "<Alt><Super><e>::" -> "Alt+Super+E"
              let keyString = hotKeys[i].keyCombo.toString();
+             keyString = keyString.replace( /</g, "");
+             keyString = keyString.replace( />/g, "+");
              if (keyString.endsWith("::")) {
                 keyString = keyString.slice(0,-2);
+             }else{
+                let first = keyString.slice(0, keyString.lastIndexOf("::"));
+                let end = first.slice(first.lastIndexOf("+"), first.length)
+                text = text + "\n" + first.slice(0,first.lastIndexOf("+")) + end.toUpperCase();
+                keyString = keyString.slice( keyString.indexOf("::")+2, keyString.length );
              }
-             text = text + "\n" + keyString;
+             let end = keyString.slice(keyString.lastIndexOf("+"), keyString.length)
+             text = text + "\n" + keyString.slice(0,keyString.lastIndexOf("+")) + end.toUpperCase();
           }
        }
     }
@@ -1465,7 +1474,7 @@ class WindowListButton {
   _updateFocus() {
     for (let i = 0; i < this._windows.length; i++) {
       let metaWindow = this._windows[i];
-      if (hasFocus(metaWindow, false) && !metaWindow.minimized) {
+      if (hasFocus(metaWindow, /*false*/true) && !metaWindow.minimized) {
         this.actor.add_style_pseudo_class("focus");
         this.actor.remove_style_class_name(STYLE_CLASS_ATTENTION_STATE);
         this._currentWindow = metaWindow;
@@ -2960,6 +2969,17 @@ class Workspace {
     let window = global.display.get_focus_window();
     if (window) {
        let newFocus = this._lookupAppButtonForWindow(window);
+       if (!newFocus) {
+          window.foreach_ancestor(
+             Lang.bind(this, function(ancestor) {
+                newFocus = this._lookupAppButtonForWindow(ancestor);
+                if (newFocus) {
+                   log( "Found focused window is a transient for button window" );
+                   return(false);
+                }
+             } )
+          );
+       }
        if (newFocus) {
           if (this._currentFocus && newFocus != this._currentFocus) {
              this._currentFocus._updateFocus();

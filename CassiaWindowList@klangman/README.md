@@ -1,4 +1,12 @@
 This is a Cinnamon window list applet based on CobiWindowList with a number of additional features
+designed to give you more control over how your window-list operates.
+
+The design goals are to:
+
+1. Allow you to declutter your window list when running many windows without having to do without button labels
+2. Keyboard hot-keys to switch to specific windows so you don't have to reach for the mouse so often
+3. Allow you to make full use of your mouse buttons to interact with the window list
+4. A panel launcher that will activate existing windows rather then unconditionally launching new ones
 
 ## Requirements
 This applet requires at least Cinnamon 4.0
@@ -25,5 +33,8 @@ In addition to the features of the CobiWindowList...
  * Label pooling: Show only one label when adjacent windows are for the same application
  * Automatic grouping/ungrouping: Group/ungroup windows for an application based on available space in the window list
  * Zoomable thumbnail windows: Thumbnail windows can be zoomed in or out using the mouse scroll wheel
- * Configurable mouse actions: Allows custom button actions for the middle, forward and back mouse buttons
- * Unicode indicators: Use Unicode characters to indicate group window count, minimized windows and pinned applications
+ * Configurable mouse button actions for the middle, forward and back mouse buttons
+ * Configurable Ctrl/Shift + mouse button actions for all 5 mouse buttons
+ * One character unicode indicators characters to indicate group window count, minimized status and pinned status
+ * Total control over which window-list buttons have labels
+ * Automatic configuration backup so you can restore your configuration after adding the applet to a panel again
