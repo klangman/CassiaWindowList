@@ -854,16 +854,13 @@ class WindowListButton {
     this._pinned = false;
 
     this.actor = new St.BoxLayout({style_class: "grouped-window-list-item-box",
-                                   track_hover: false,
-                                   can_focus: true,
-                                   reactive: true});
+                                  track_hover: false, can_focus: true, reactive: true});
 
     this._shrukenLabel = false;
     this._minLabelSize = -1;
     this._lableWidth = 0;
     this._label = new St.Label();
-    this._labelBox = new St.Bin({natural_width: 0, min_width: 0,
-                                 x_align: St.Align.START});
+    this._labelBox = new St.Bin({natural_width: 0, min_width: 0, x_align: St.Align.START});
     this._labelBox.add_actor(this._label);
 
     this._tooltip = new Tooltips.PanelItemTooltip(this, this._app.get_name(), this._applet.orientation);
@@ -880,12 +877,8 @@ class WindowListButton {
 
     this._labelNumberBox = new St.BoxLayout();
     this._labelNumberBin = new St.Bin({
-      important: true,
-      style_class: "grouped-window-list-badge",
-      x_align: St.Align.MIDDLE,
-      y_align: St.Align.MIDDLE});
-    this._labelNumber = new St.Label({
-      style_class: "grouped-window-list-number-label"});
+      important: true, style_class: "grouped-window-list-badge",  x_align: St.Align.MIDDLE, y_align: St.Align.MIDDLE});
+    this._labelNumber = new St.Label({style_class: "grouped-window-list-number-label"});
     this._iconBox.add_actor(this._labelNumberBox);
     this._labelNumberBox.add_actor(this._labelNumberBin);
     this._labelNumberBin.add_actor(this._labelNumber);
@@ -1992,6 +1985,15 @@ class WindowListButton {
           item.menu.addMenuItem(ws);
         }
         this._contextMenu.addMenuItem(item);
+
+        this._contextMenu.addAction(_("Pin to all workspaces"), Lang.bind(this,
+           function() {
+              for (let i = 0; i < this._applet._workspaces.length; i++) {
+                 if (i != this._workspace._wsNum || !this._pinned) {
+                    this._applet._workspaces[i].pinAppId(appId);
+                 }
+              }
+           }));
       }
     }
 
@@ -2458,11 +2460,8 @@ class Workspace {
     this._settings = this._applet._settings;
     this._signalManager = new SignalManager.SignalManager(null);
 
-    this.actor = new St.BoxLayout();
+    this.actor = new St.BoxLayout({ style_class: "window-list-box", track_hover: false, hover: false } );
     this.actor._delegate = this;
-    this.actor.set_hover(false);
-    this.actor.set_track_hover(false);
-    this.actor.add_style_class_name("window-list-box");
 
     this.maxSize = this._settings.getValue("label-width"); // The size where buttons start shrinking (estimated until we see shrinking button widths)
     this.autoIndicatorsOff = false;  // Were the indicator characters automatically removed to save space
@@ -2974,9 +2973,9 @@ class Workspace {
              Lang.bind(this, function(ancestor) {
                 newFocus = this._lookupAppButtonForWindow(ancestor);
                 if (newFocus) {
-                   log( "Found focused window is a transient for button window" );
                    return(false);
                 }
+                return(true);
              } )
           );
        }
