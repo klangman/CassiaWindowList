@@ -1,10 +1,10 @@
 {
-    "uuid": "CassiaWindowList@klangman",
-    "name": "Cassia Window List",
-    "description": "A window list based on CobiWindowList with some additional features",
-    "max-instances": -1,
-    "multiversion": true,
-    "role": "panellauncher",
-    "author": "klangman",
-    "last-edited": 1617815043
+  "uuid": "CassiaWindowList@klangman",
+  "name": "Cassia Window List",
+  "description": "A window list based on CobiWindowList with some additional features",
+  "max-instances": -1,
+  "multiversion": true,
+  "role": "panellauncher",
+  "author": "klangman",
+  "last-edited": 1687911849
 }
