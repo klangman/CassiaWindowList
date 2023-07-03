@@ -183,7 +183,11 @@ const MouseAction = {
   MoveMonitor3: 16,   // 3
   MoveMonitor4: 17,   // 4
   MoveCurrMonitor: 18,// Move window to the current monitor (or to next monitor if window is already on current monitor)
-  ShoveTitlebar: 19   // Move the titlebar so that it is visible on the screen
+  ShoveTitlebar: 19,  // Move the titlebar so that it is visible on the screen
+  MovePrevWorkspace: 20, // Move window to the workspace -1 from it's current workspace
+  MoveNextWorkspace: 21, // Move window to the workspace +1 from it's current workspace
+  MovePrevMonitor: 22,   // Move window to the monitor -1 from it's current monitor
+  MoveNextMonitor: 23    // Move window to the monitor +1 from it's current monitor
 }
 
 // Possible settings for the left mouse action for grouped buttons
@@ -1262,9 +1266,6 @@ class WindowListButton {
        // Check if the next button is for the same application
        let children = this._workspace.actor.get_children();
        let idx = children.indexOf(this.actor);
-       if (idx > 0 && children[idx-1]._delegate._app == this._app) {
-          children[idx-1]._delegate._updateLabel(); // Remove the label from the previous button
-       }
        if (idx == children.length-1 || children[idx+1]._delegate._app != this._app) {
           oneCaption = true;
        } else {
@@ -1816,6 +1817,60 @@ class WindowListButton {
         case MouseAction.ShoveTitlebar:
            if (window) {
               window.shove_titlebar_onscreen();
+           }
+           break;
+        case MouseAction.MovePrevWorkspace:
+           {
+           let nWorkspace = this._applet._workspaces.length;
+           if (window && nWorkspace > 1) {
+              let curWorkspace = this._applet.getCurrentWorkSpace()._wsNum;
+              if (curWorkspace==0)
+                 curWorkspace=nWorkspace;
+              window.change_workspace_by_index(curWorkspace-1, false);
+           }
+           }
+           break;
+        case MouseAction.MoveNextWorkspace:
+           {
+           let nWorkspace = this._applet._workspaces.length;
+           if (window && nWorkspace > 1) {
+              let curWorkspace = this._applet.getCurrentWorkSpace()._wsNum;
+              if (curWorkspace==nWorkspace-1)
+                 curWorkspace=-1;
+              window.change_workspace_by_index(curWorkspace+1, false);
+           }
+           }
+           break;
+        case MouseAction.MovePrevMonitor:
+           {
+           let nMonitors = Main.layoutManager.monitors.length;
+           let curMonitor = window.get_monitor();
+           if (window && nMonitors > 1 && this._applet.xrandrMonitors[curMonitor] != null) {
+              for ( curMonitor--; true ; curMonitor--) {
+                 if (curMonitor<0 )
+                    curMonitor=nMonitors-1;
+                 if (this._applet.xrandrMonitors[curMonitor] != null) {
+                    window.move_to_monitor(curMonitor);
+                    return;
+                 }
+              }
+           }
+           }
+           break;
+        case MouseAction.MoveNextMonitor:
+           {
+           let nMonitors = Main.layoutManager.monitors.length;
+           let curMonitor = window.get_monitor();
+           if (window && nMonitors > 1 && this._applet.xrandrMonitors[curMonitor] != null) {
+              for ( curMonitor++; true ; curMonitor++) {
+                 if (curMonitor>nMonitors-1 )
+                    curMonitor=0;
+                 if (this._applet.xrandrMonitors[curMonitor] != null) {
+                    window.move_to_monitor(curMonitor);
+                    return;
+                 }
+              }
+           }
            }
            break;
       }
@@ -3158,6 +3213,9 @@ class Workspace {
            if (btns.length > 1 && (groupingType == GroupType.Pooled || groupingType == GroupType.Auto)) {
               let btns = source._workspace._lookupAllAppButtonsForApp(source._app);
               btns[btns.length-1]._updateLabel(); // The trailing button might need it's label restored
+              if (source === btns[btns.length-1]) {
+                 btns[btns.length-2]._updateLabel(); // If the dropped button is now the last one in the pool, then update the label of the previous button
+              }
               if (btns[btns.length-1]._pinned === false) {
                  for(let i=0 ; i<btns.length ; i++) {
                     if (btns[i]._pinned) {
