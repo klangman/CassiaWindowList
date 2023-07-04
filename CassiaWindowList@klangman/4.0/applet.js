@@ -2103,7 +2103,7 @@ class WindowListButton {
             appHasExistingHotkey = true;
          }
       }
-      if (appHasExistingHotkey===false) {
+      if (appHasExistingHotkey===false && !this._app.is_window_backed()) {
          this._contextMenu.addMenuItem(new PopupMenu.PopupSeparatorMenuItem());
          item = new PopupMenu.PopupIconMenuItem(_("Add new Hotkey for")+" \""+this._app.get_id()+"\"", "input-keyboard", St.IconType.SYMBOLIC);
          item.connect("activate", Lang.bind(this, function() {
@@ -2273,7 +2273,7 @@ class WindowListButton {
             appHasExistingHotkey = true;
          }
       }
-      if (appHasExistingHotkey===false) {
+      if (appHasExistingHotkey===false && !this._app.is_window_backed()) {
          if (item === null) {
             item = new PopupMenu.PopupSubMenuMenuItem(_("Assign window to a hotkey"));
             this._contextMenu.addMenuItem(item);
@@ -2652,7 +2652,7 @@ class Workspace {
     }
   }
 
-  _addAppButton(app) {
+  _addAppButton(app, prepend=true) {
     if (!app) {
       return undefined;
     }
@@ -2668,11 +2668,11 @@ class Workspace {
     this._appButtons.push(appButton);
     this.actor.add_actor(appButton.actor);
     appButton.updateIcon();
-    if ((groupingType == GroupType.Pooled || groupingType == GroupType.Auto) && btns && btns.length > 0) {
+    if ((groupingType == GroupType.Pooled || groupingType == GroupType.Auto || prepend) && btns && btns.length > 0) {
        // Move the button to the top of the list of buttons for the app
        let children = this.actor.get_children();
        let actIdx = children.indexOf(btns[0].actor);
-       let pos = children.length;
+       //let pos = children.length;
        this.actor.set_child_at_index(appButton.actor, actIdx);
     } else if (this._settings.getValue("trailing-pinned-behaviour")===true) {
        // Move the button before any trailing pinned buttons
@@ -2731,7 +2731,7 @@ class Workspace {
     return appButtons.length > 0 ? appButtons[0] : undefined;
   }
 
-  _windowAdded(metaWindow, skipSizeChk=false) {
+  _windowAdded(metaWindow, skipSizeChk=false, prepend=false) {
     if (this._settings.getValue("show-windows-for-current-monitor") &&
         this._applet.panel.monitorIndex != metaWindow.get_monitor()) {
       return;
@@ -2774,7 +2774,7 @@ class Workspace {
     }
     */
     if (!appButton || (groupingType != GroupType.Launcher && appButton._windows.length > 0 && appButton._grouped <= GroupingType.NotGrouped)) {
-      appButton = this._addAppButton(app);
+      appButton = this._addAppButton(app, prepend);
     }
     appButton.addWindow(metaWindow);
     //this._updateAppButtonVisibility();
@@ -2798,8 +2798,20 @@ class Workspace {
 
   _windowRemoved(metaWindow, removeBindings=true) {
      let appButton = this._lookupAppButtonForWindow(metaWindow);
+     let btnToUpdateLabel = null;
      if (appButton) {
+        if (this._settings.getValue("display-caption-for") === DisplayCaption.One) {
+           let children = this.actor.get_children();
+           let idx = children.indexOf(appButton.actor);
+           if (idx > 0 && children[idx-1]._delegate._app === appButton._app) {
+              // The about to be removed button is proceeded by a button for the same app, might need to restore it's label
+              btnToUpdateLabel = children[idx-1]._delegate;
+           }
+        }
         appButton.removeWindow(metaWindow);
+        if (btnToUpdateLabel){
+           btnToUpdateLabel._updateLabel();
+        }
         if (appButton._windows.length === 0 && (appButton._pinned===false || this._settings.getValue("display-pinned")===false)) {
            this._removeAppButton(appButton);
         } else {
@@ -3409,7 +3421,7 @@ class Workspace {
      for (let i=windows.length-2 ; i>=0 ; i--) {
         window = windows[i];
         button.removeWindow(window);
-        this._windowAdded(window);
+        this._windowAdded(window, false, true); // add window, don't skip size chk, prepend to existing app buttons
      }
      button.appLastFocus = false;
      let lastFocusBtn = button._workspace._lookupAppButtonForWindow(appLastFocus);
