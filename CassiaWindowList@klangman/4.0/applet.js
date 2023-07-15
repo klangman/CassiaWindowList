@@ -297,6 +297,35 @@ function resizeActor(actor, time, toWidth, text, button) {
   });
 }
 
+function animatedRemoveAppButton(workspace, time, button) {
+  if (button.closing===true) {
+     return;
+  }
+  let app = button._app;
+  button.closing = true;
+  button._app = null;
+  if (button._shrukenLabel===false){
+    // If we need a different button to have the label then start the animation now
+    // so that it is synchronized with this remove button animation
+    let captionType = button._settings.getValue("display-caption-for");
+    if (captionType == DisplayCaption.One) {
+      let allButtons = workspace._lookupAllAppButtonsForApp(app);
+      if (allButtons.length >= 1) {
+         allButtons[allButtons.length-1]._updateLabel();
+      }
+    }
+  }
+  Tweener.addTween(button._labelBox, {
+    natural_width: 0,
+    time: time * 0.001,
+    transition: "easeInOutQuad",
+    onComplete() {
+       this._removeAppButton(button);
+    },
+    onCompleteScope: workspace
+  });
+}
+
 function getOverheadSize(actor) {
   if (actor == null) {
     return null;
@@ -886,7 +915,6 @@ class WindowListButton {
 
     this._tooltip = new Tooltips.PanelItemTooltip(this, this._app.get_name(), this._applet.orientation);
 
-    this.actor._delegate = this;
     this._iconBox = new St.Group({style: 'border:0px;padding:0px;margin:0px'});
     this.actor.add_actor(this._iconBox);
     this.actor.add_actor(this._labelBox);
@@ -1384,7 +1412,7 @@ class WindowListButton {
        }
     }
 
-    if (width != this._labelWidth){
+    if (width != this._labelWidth) {
        let animTime = this._settings.getValue("label-animation") ? this._settings.getValue("label-animation-time") : 0;
        resizeActor(this._labelBox, animTime, width, text, this);
        this._labelWidth = width;
@@ -1506,7 +1534,7 @@ class WindowListButton {
     } else if (this._windows.length || this._pinned) {
       this.actor.show();
     } else {
-      this.actor.hide();
+      //this.actor.hide();
     }
   }
 
@@ -1571,6 +1599,8 @@ class WindowListButton {
 
   // Check if there are mouse action to be taken on button release
   _onButtonRelease(actor, event) {
+    if (this.closing==true )
+       return;
     let mouseBtn = event.get_button();
     // If the Ctrl or Shift key is held, and there is a defined action for that key+button combination then do the specified action
     if (event.has_control_modifier() || event.has_shift_modifier()) {
@@ -2671,9 +2701,15 @@ class Workspace {
     if ((groupingType == GroupType.Pooled || groupingType == GroupType.Auto || prepend) && btns && btns.length > 0) {
        // Move the button to the top of the list of buttons for the app
        let children = this.actor.get_children();
-       let actIdx = children.indexOf(btns[0].actor);
-       //let pos = children.length;
-       this.actor.set_child_at_index(appButton.actor, actIdx);
+       let actIdx;
+       if (prepend) {
+          actIdx = children.indexOf(btns[0].actor);
+         this.actor.set_child_at_index(appButton.actor, actIdx);
+       } else {
+          actIdx = children.indexOf(btns[btns.length-1].actor)+1;
+          this.actor.set_child_at_index(appButton.actor, actIdx);
+          btns[btns.length-1]._updateLabel();
+       }
     } else if (this._settings.getValue("trailing-pinned-behaviour")===true) {
        // Move the button before any trailing pinned buttons
        let children = this.actor.get_children();
@@ -2694,14 +2730,13 @@ class Workspace {
   }
 
   _removeAppButton(appButton) {
-    let hasLabel = (appButton._shrukenLabel===false);
     let app = appButton._app;
     let index = this._appButtons.indexOf(appButton);
     if (index >= 0) {
        this._appButtons.splice(index, 1);
        appButton.destroy();
     }
-    if (hasLabel){
+    if (app && appButton._shrukenLabel===false){
        // Do we have a new button in a pool that needs a label
        let captionType = this._settings.getValue("display-caption-for");
        if (captionType == DisplayCaption.One) {
@@ -2723,7 +2758,7 @@ class Workspace {
   _lookupAllAppButtonsForApp(app, startIndex) {
     let children = this.actor.get_children().slice(startIndex);
     let btns = children.map(x => x._delegate);
-    return btns.filter(x => { return x instanceof WindowListButton && x._app.get_id() == app.get_id() });
+    return btns.filter(x => { return x instanceof WindowListButton && x._app && x._app.get_id() == app.get_id() });
   }
 
   _lookupAppButtonForApp(app, startIndex) {
@@ -2758,21 +2793,6 @@ class Workspace {
     }
     let appButton = this._lookupAppButtonForApp(app);
     let groupingType = this._settings.getValue("group-windows")
-    /*
-    if (groupingType == 0) {
-      let appButtons = this._lookupAllAppButtonsForApp(app);
-      for (let i = 0; i < appButtons.length; i++) {
-        let btn = appButtons[i];
-        if (btn._pinned) {
-          appButton = btn;
-          break;
-        }
-      }
-    }
-    if (!appButton) {
-       appButton = this._lookupAppButtonForApp(app)
-    }
-    */
     if (!appButton || (groupingType != GroupType.Launcher && appButton._windows.length > 0 && appButton._grouped <= GroupingType.NotGrouped)) {
       appButton = this._addAppButton(app, prepend);
     }
@@ -2813,7 +2833,8 @@ class Workspace {
            btnToUpdateLabel._updateLabel();
         }
         if (appButton._windows.length === 0 && (appButton._pinned===false || this._settings.getValue("display-pinned")===false)) {
-           this._removeAppButton(appButton);
+           let animTime = this._settings.getValue("label-animation") ? this._settings.getValue("label-animation-time") : 0;
+           animatedRemoveAppButton(this, animTime, appButton);
         } else {
            // If pinned, look for other windows and move one to this pinned button
            if (appButton._pinned) {
@@ -2823,7 +2844,8 @@ class Workspace {
                  let window = btns[i]._windows[0];
                  btns[i].removeWindow(window);
                  appButton.addWindow(window);
-                 this._removeAppButton(btns[i]);
+                 let animTime = this._settings.getValue("label-animation") ? this._settings.getValue("label-animation-time") : 0;
+                 animatedRemoveAppButton(this, animTime, btns[i]);
               } else if (appButton._windows.length === 0) {
                  this.menuManager.removeMenu(appButton.menu);
               }
@@ -2909,12 +2931,24 @@ class Workspace {
         appButton._minLabelSize = -1; // Must re-calculate
         appButton._updateLabel()
       }
+    } else {
+       // remove pinned buttons because pinning has been disabled
+       let btns = this._appButtons.slice();
+       for (let i = btns.length - 1; i >= 0; i--) {
+         let appButton = btns[i];
+         if (appButton._pinned && appButton._windows.length == 0) {
+           let animTime = this._settings.getValue("label-animation") ? this._settings.getValue("label-animation-time") : 0;
+           animatedRemoveAppButton(this, animTime, appButton);
+         }
+       }
     }
 
+    // Remove buttons that are no longer pinned
     for (let i = this._appButtons.length - 1; i >= 0; i--) {
       let appButton = this._appButtons[i];
-      if ((appButton.getPinnedIndex() < 0) && appButton._windows.length == 0) {
-        this._removeAppButton(appButton);
+      if ((appButton._app && appButton.getPinnedIndex() < 0) && appButton._windows.length == 0) {
+        let animTime = this._settings.getValue("label-animation") ? this._settings.getValue("label-animation-time") : 0;
+        animatedRemoveAppButton(this, animTime, appButton);
       }
     }
   }
@@ -2927,7 +2961,8 @@ class Workspace {
       for (let i = this._appButtons.length - 1; i >= 0; i--) {
         let appButton = this._appButtons[i];
         if (appButton._windows.length == 0) {
-          this._removeAppButton(appButton);
+          let animTime = this._settings.getValue("label-animation") ? this._settings.getValue("label-animation-time") : 0;
+          animatedRemoveAppButton(this, animTime, appButton);
         }
       }
     }
@@ -3003,7 +3038,8 @@ class Workspace {
     appButton._minLabelSize = -1 // Must re-calculate
     appButton.updateView();
     if (appButton._windows.length == 0) {
-      this._removeAppButton(appButton);
+      let animTime = this._settings.getValue("label-animation") ? this._settings.getValue("label-animation-time") : 0;
+      animatedRemoveAppButton(this, animTime, appButton);
     }
     this._updatePinSettings();
   }
@@ -3600,7 +3636,8 @@ class WindowList extends Applet.Applet {
         let ws = this._workspaces[wsIdx];
         for (let btnIdx=0 ; btnIdx < ws._appButtons.length ; btnIdx++) {
            let btn = ws._appButtons[btnIdx];
-           btn._updateTooltip();
+           if (btn.closing!=true)
+              btn._updateTooltip();
         }
      }
   }
@@ -3639,7 +3676,7 @@ class WindowList extends Applet.Applet {
         workspace = this._workspaces[wsIdx];
         for ( let btnIdx=0 ; btnIdx < workspace._appButtons.length ; btnIdx++) {
            let btn = workspace._appButtons[btnIdx];
-           if ((btn._app.get_name() == appName || btn._app.get_id() == appName) && btn._windows.length > 0) {
+           if (btn._windows.length > 0 && (btn._app.get_name() == appName || btn._app.get_id() == appName)) {
               workspace._keyBindingsWindows[keyBindingIdx] = btn._windows[0];
            }
         }
