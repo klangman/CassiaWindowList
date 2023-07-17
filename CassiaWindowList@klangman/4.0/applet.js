@@ -194,7 +194,8 @@ const MouseAction = {
 const LeftClickGrouped = {
    Toggle: 0,         // Restore most resent window or minimize if already in focus
    Cycle: 1,          // Restore most recent window or cycle windows if any window is already in focus
-   Thumbnail: 2       // Show the Thumbnail menu of windows
+   Thumbnail: 2,      // Show the Thumbnail menu of windows
+   ToggleAndHold: 3   // Restore or Minimize on click, "hold" style thumbnail meanu on hold
 }
 
 // Possible values for the Pinned label setting
@@ -1007,6 +1008,12 @@ class WindowListButton {
   }
 
   _onDragBegin() {
+    if (this.holdDelay) {
+       let doIt = GLib.MainContext.default().find_source_by_id(this.holdDelay);
+       if (doIt) {
+          Mainloop.source_remove(this.holdDelay);
+       }
+    }
     this.actor.set_hover(false);
     this._tooltip.hide();
     this._tooltip.preventShow = true;
@@ -1147,6 +1154,8 @@ class WindowListButton {
   }
 
   _updateTooltip() {
+    if (this.closing)
+       return;
     let enableTooltips = this._settings.getValue("show-tooltips");
     let hoverEnabled = this._settings.getValue("menu-show-on-hover");
     if (!enableTooltips || !this._tooltip || (hoverEnabled && this._windows.length > 0)) {
@@ -1574,9 +1583,19 @@ class WindowListButton {
            this.openThumbnailMenu();
            this._workspace.holdPopup = mouseBtn;
            return true;
+        } else if(action) {
+           return true; // Some action will be taken on release, don't attempt to so anything else here
         }
      }
-     if (mouseBtn == 2) {
+     if (mouseBtn == 1 && this._windows.length > 1 && this._settings.getValue("grouped-mouse-action-btn1") == LeftClickGrouped.ToggleAndHold) {
+        this.holdDelay = Mainloop.timeout_add(350, Lang.bind(this, function() {
+              this.openThumbnailMenu()
+              this._workspace.holdPopup = mouseBtn;
+              this.holdDelay = undefined;
+              this._draggable.fakeRelease();
+           }
+        ));
+     } else if (mouseBtn == 2) {
         let action = this._settings.getValue("mouse-action-btn2");
         if (action == MouseAction.PreviewHold) {
            this.openThumbnailMenu();
@@ -1621,7 +1640,16 @@ class WindowListButton {
     if (mouseBtn == 1) {
       if (this._currentWindow) {
         let leftGroupedAction = this._settings.getValue("grouped-mouse-action-btn1");
-        if (this._windows.length == 1 || leftGroupedAction == LeftClickGrouped.Toggle) {
+        if (this._windows.length == 1 || leftGroupedAction == LeftClickGrouped.Toggle || leftGroupedAction == LeftClickGrouped.ToggleAndHold) {
+          if (leftGroupedAction == LeftClickGrouped.ToggleAndHold) {
+             if (this.holdDelay) {
+                let doIt = GLib.MainContext.default().find_source_by_id(this.holdDelay);
+                if (doIt) {
+                   Mainloop.source_remove(this.holdDelay);
+                }
+             }
+             this.closeThumbnailMenu();
+          }
           if (hasFocus(this._currentWindow, false) && !this._currentWindow.minimized) {
             this._currentWindow.minimize();
           } else {
@@ -3072,7 +3100,7 @@ class Workspace {
      let appButtons = this._appButtons.slice();
      let apps = [];
      for (let i = 0; i < appButtons.length; i++) {
-        if (apps.indexOf(appButtons[i]._app) == -1) {
+        if (appButtons[i]._app && apps.indexOf(appButtons[i]._app) == -1) {
            let allButtons = this._lookupAllAppButtonsForApp(appButtons[i]._app);
            if (allButtons.length > 1){
               apps.push(appButtons[i]._app);
@@ -3087,9 +3115,11 @@ class Workspace {
   _groupAllApps(grpType) {
      let appButtons = this._appButtons.slice();
      for (let i = 0; i < appButtons.length; i++) {
-        let allButtons = this._lookupAllAppButtonsForApp(appButtons[i]._app);
-        if (allButtons.length > 1){
-           this._groupOneApp(allButtons, grpType);
+        if (appButtons[i]._app) {
+           let allButtons = this._lookupAllAppButtonsForApp(appButtons[i]._app);
+           if (allButtons.length > 1){
+              this._groupOneApp(allButtons, grpType);
+           }
         }
      }
   }
@@ -3443,6 +3473,7 @@ class Workspace {
     // Setup the windows array so that the window list is the same order as it was before the grouping occurred!
     let x = btns[btns.length-1]._windows.shift();
     btns[btns.length-1]._windows.push(x);
+    this._updateFocus();
   }
 
   // Ungroup the windows in the passed in buttons, set the button so it's not grouping, add windows back
@@ -3463,6 +3494,7 @@ class Workspace {
      let lastFocusBtn = button._workspace._lookupAppButtonForWindow(appLastFocus);
      lastFocusBtn.appLastFocus = true;
      button._updateLabel();
+     this._updateFocus();
   }
 
   // Determine if the buttons are being shrunk below the preferred size
