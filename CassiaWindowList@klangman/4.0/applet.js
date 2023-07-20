@@ -2669,11 +2669,11 @@ class Workspace {
     if (orientation == St.Side.TOP || orientation == St.Side.BOTTOM) {
       this.actor.set_vertical(false);
       this.actor.remove_style_class_name("vertical");
-      this.actor.set_style("margin-bottom: 0px; padding-bottom: 0px; margin-top: 0px; padding-top: 0px;");
+      this.actor.set_style("margin-bottom: 0px; margin-top: 0px; padding: 0px;");
     } else {
       this.actor.set_vertical(true);
       this.actor.add_style_class_name("vertical");
-      this.actor.set_style("margin-right: 0px; padding-right: 0px; padding-left: 0px; margin-left: 0px;");
+      this.actor.set_style("margin-right: 0px; margin-left: 0px; padding: 0px;");
     }
     for (let i = 0; i < this._appButtons.length; i++) {
       this._appButtons[i]._updateOrientation();
@@ -2729,12 +2729,11 @@ class Workspace {
     if ((groupingType == GroupType.Pooled || groupingType == GroupType.Auto || prepend) && btns && btns.length > 0) {
        // Move the button to the top of the list of buttons for the app
        let children = this.actor.get_children();
-       let actIdx;
        if (prepend) {
-          actIdx = children.indexOf(btns[0].actor);
+          let actIdx = children.indexOf(btns[0].actor);
          this.actor.set_child_at_index(appButton.actor, actIdx);
        } else {
-          actIdx = children.indexOf(btns[btns.length-1].actor)+1;
+          let actIdx = children.indexOf(btns[btns.length-1].actor)+1;
           this.actor.set_child_at_index(appButton.actor, actIdx);
           btns[btns.length-1]._updateLabel();
        }
@@ -3366,10 +3365,12 @@ class Workspace {
   getAppWithMostButtons() {
     let mostBtns = undefined;
     for (let idx=this._appButtons.length-1 ; idx >= 0 ; idx--) {
-      let btns = this._lookupAllAppButtonsForApp(this._appButtons[idx]._app);
-      if (btns.length > 1 && btns[0]._grouped != GroupingType.ForcedOff && (mostBtns == undefined || btns.length > mostBtns.length)) {
-        mostBtns = btns;
-      }
+       if (this._appButtons[idx]._app) {
+          let btns = this._lookupAllAppButtonsForApp(this._appButtons[idx]._app);
+          if (btns.length > 1 && btns[0]._grouped != GroupingType.ForcedOff && (mostBtns == undefined || btns.length > mostBtns.length)) {
+            mostBtns = btns;
+          }
+       }
     }
     return mostBtns;
   }
