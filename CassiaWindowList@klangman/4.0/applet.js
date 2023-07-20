@@ -2615,7 +2615,7 @@ class Workspace {
     this._settings = this._applet._settings;
     this._signalManager = new SignalManager.SignalManager(null);
 
-    this.actor = new St.BoxLayout({ style_class: "window-list-box", track_hover: false, hover: false });
+    this.actor = new St.BoxLayout({ style_class: "grouped-window-list-box" /*"window-list-box"*/, track_hover: false, hover: false });
     this.actor.set_style('border:0px;padding:0px;margin:0px');
     this.actor._delegate = this;
 
@@ -2669,11 +2669,11 @@ class Workspace {
     if (orientation == St.Side.TOP || orientation == St.Side.BOTTOM) {
       this.actor.set_vertical(false);
       this.actor.remove_style_class_name("vertical");
-      this.actor.set_style("margin-bottom: 0px; margin-top: 0px; padding: 0px;");
+      this.actor.set_style("margin-bottom: 0px; margin-top: 0px; padding-top: 0px; padding-bottom: 0px;");
     } else {
       this.actor.set_vertical(true);
       this.actor.add_style_class_name("vertical");
-      this.actor.set_style("margin-right: 0px; margin-left: 0px; padding: 0px;");
+      this.actor.set_style("margin-right: 0px; margin-left: 0px; padding-left: 0px; padding-right: 0px;");
     }
     for (let i = 0; i < this._appButtons.length; i++) {
       this._appButtons[i]._updateOrientation();
