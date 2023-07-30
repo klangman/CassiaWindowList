@@ -2444,6 +2444,11 @@ class WindowListButton {
 
       this._contextMenu.addMenuItem(new PopupMenu.PopupSeparatorMenuItem());
       // window specific
+      if (!metaWindow.titlebar_is_onscreen()) {
+        item = new PopupMenu.PopupMenuItem(_("Move titlebar on to screen"));
+        item.connect("activate", Lang.bind(this, function() { metaWindow.shove_titlebar_onscreen(); }));
+        this._contextMenu.addMenuItem(item);
+      }
       if (!hasFocus(metaWindow)) {
         item = new PopupMenu.PopupIconMenuItem(_("Restore"), "view-sort-descending", St.IconType.SYMBOLIC);
         item.connect("activate", Lang.bind(this, function() { Main.activateWindow(metaWindow); }));
