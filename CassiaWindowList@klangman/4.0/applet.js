@@ -389,6 +389,45 @@ function getKeyAndButtonMouseAction(mouseActionList, modifier, context, mouseBtn
    return -1;
 }
 
+function moveTitleBarToScreen(window) {
+   let rec = window.get_frame_rect();
+   let topOffset = 0;
+   let leftOffset = 0;
+   let monitor = window.get_monitor();
+   let panels = Main.panelManager.getPanelsInMonitor(monitor);
+   for (let i = 0; i < panels.length; i++) {
+      if (panels[i].panelPosition == Panel.PanelLoc.top) {
+         topOffset += panels[i].actor.height;
+      } else if (panels[i].panelPosition == Panel.PanelLoc.left) {
+         leftOffset += panels[i].actor.width;
+      }
+   }
+   if (rec.x < leftOffset || rec.y < topOffset) {
+      let x = rec.x;
+      let y = rec.y;
+      if (x < leftOffset) x = leftOffset;
+      if (y < topOffset) y = topOffset;
+      window.move_frame(true, x, y);
+   }
+}
+
+function isTitleBarOnScreen(window) {
+   let rec = window.get_frame_rect();
+   let topOffset = 0;
+   let leftOffset = 0;
+   let monitor = window.get_monitor();
+   let panels = Main.panelManager.getPanelsInMonitor(monitor);
+   for (let i = 0; i < panels.length; i++) {
+      if (panels[i].panelPosition == Panel.PanelLoc.top) {
+         topOffset += panels[i].actor.height;
+      } else if (panels[i].panelPosition == Panel.PanelLoc.left) {
+         leftOffset += panels[i].actor.width;
+      }
+   }
+   if (rec.x < leftOffset || rec.y < topOffset) return false;
+   return true;
+}
+
 // Represents an item in the Thumbnail popup menu
 class ThumbnailMenuItem extends PopupMenu.PopupBaseMenuItem {
 
@@ -1103,6 +1142,7 @@ class WindowListButton {
         this.menu.removeWindow(metaWindow);
       }
     }
+    this._updateUrgentState()
     if (this._pinned) {
       if (!this._currentWindow) {
         this.actor.remove_style_pseudo_class("focus");
@@ -1514,6 +1554,12 @@ class WindowListButton {
     if (newUrgent) {
       this._flashButton();
     }
+    // Remove any needsAttention windows that don't exist
+    for (let i=this._needsAttention.length-1 ; i >= 0 ; i-- ) {
+      if (this._window.indexOf(this._needsAttention[i]) < 0) {
+         this._needsAttention.splice(i,1);
+      }
+    }
     if (this._needsAttention.length == 0) {
       this._unflashButton();
     }
@@ -1877,8 +1923,8 @@ class WindowListButton {
            }
            break;
         case MouseAction.ShoveTitlebar:
-           if (window) {
-              window.shove_titlebar_onscreen();
+           if (window && !isTitleBarOnScreen(window)) {
+              moveTitleBarToScreen(window);
            }
            break;
         case MouseAction.MovePrevWorkspace:
@@ -2444,9 +2490,9 @@ class WindowListButton {
 
       this._contextMenu.addMenuItem(new PopupMenu.PopupSeparatorMenuItem());
       // window specific
-      if (!metaWindow.titlebar_is_onscreen()) {
+      if (!isTitleBarOnScreen(metaWindow)) {
         item = new PopupMenu.PopupMenuItem(_("Move titlebar on to screen"));
-        item.connect("activate", Lang.bind(this, function() { metaWindow.shove_titlebar_onscreen(); }));
+        item.connect("activate", Lang.bind(this, function() { moveTitleBarToScreen(metaWindow); }));
         this._contextMenu.addMenuItem(item);
       }
       if (!hasFocus(metaWindow)) {
