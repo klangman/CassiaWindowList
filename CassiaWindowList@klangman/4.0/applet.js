@@ -428,6 +428,27 @@ function isTitleBarOnScreen(window) {
    return true;
 }
 
+// Returns a 2 element array
+//          1) Modifier keys for the sequence i.e. <Super>1 --> <Super>
+//          2) The other full key combination i.e. <Super>W --> <Super>W
+//          Returns [null,null] if there is no key "1" in any of the key combinations
+function getSmartNumericHotkey(keyCombo) {
+   let one = keyCombo.indexOf(">1");
+   if (one >= 0) {
+      let colons = keyCombo.indexOf("::");
+      if (one < colons ) {
+         if (colons == keyCombo.length-2) {
+            return [keyCombo.slice(0,colons-1), null];
+         } else {
+            return [keyCombo.slice(0,colons-1), keyCombo.slice(colons+2)];
+         }
+      } else {
+         return [keyCombo.slice(colons+2,-1), keyCombo.slice(0,colons)];
+      }
+   }
+   return [null,null];
+}
+
 // Represents an item in the Thumbnail popup menu
 class ThumbnailMenuItem extends PopupMenu.PopupBaseMenuItem {
 
@@ -1215,7 +1236,21 @@ class WindowListButton {
     let hotKeyWindows = this._workspace._keyBindingsWindows;
     for (let i=0 ; i < hotKeys.length ; i++) {
        if (hotKeys[i].enabled===true && hotKeys[i].keyCombo!==null) {
-          if (hotKeyWindows[i] === this._currentWindow || (hotKeys[i].cycle===true && (hotKeys[i].description == this._app.get_name() || hotKeys[i].description == this._app.get_id()))) {
+          let [seqCombo,secondCombo] = getSmartNumericHotkey(hotKeys[i].keyCombo);
+          if ( seqCombo && this._settings.getValue("hotkey-sequence") && (hotKeys[i].description == this._app.get_name() || hotKeys[i].description == this._app.get_id())) {
+             let btns = this._workspace._lookupAllAppButtonsForApp(this._app);
+             if (btns.indexOf(this) < 10) {
+                seqCombo = seqCombo.replace( /</g, "");
+                seqCombo = seqCombo.replace( />/g, "+");
+                text = text + "\n" + seqCombo + (btns.indexOf(this)+1);
+             }
+             if (secondCombo) {
+                secondCombo = secondCombo.replace( /</g, "");
+                secondCombo = secondCombo.replace( />/g, "+");
+                let end = secondCombo.slice(secondCombo.lastIndexOf("+"))
+                text = text + "\n" + secondCombo.slice(0,secondCombo.lastIndexOf("+")) + end.toUpperCase();
+             }
+          } else if (hotKeyWindows[i] === this._currentWindow || (hotKeys[i].cycle===true && (hotKeys[i].description == this._app.get_name() || hotKeys[i].description == this._app.get_id()))) {
              // i.e.  "<Alt><Super><e>::" -> "Alt+Super+E"
              let keyString = hotKeys[i].keyCombo.toString();
              keyString = keyString.replace( /</g, "");
@@ -1224,11 +1259,11 @@ class WindowListButton {
                 keyString = keyString.slice(0,-2);
              }else{
                 let first = keyString.slice(0, keyString.lastIndexOf("::"));
-                let end = first.slice(first.lastIndexOf("+"), first.length)
+                let end = first.slice(first.lastIndexOf("+"))
                 text = text + "\n" + first.slice(0,first.lastIndexOf("+")) + end.toUpperCase();
-                keyString = keyString.slice( keyString.indexOf("::")+2, keyString.length );
+                keyString = keyString.slice( keyString.indexOf("::")+2);
              }
-             let end = keyString.slice(keyString.lastIndexOf("+"), keyString.length)
+             let end = keyString.slice(keyString.lastIndexOf("+"))
              text = text + "\n" + keyString.slice(0,keyString.lastIndexOf("+")) + end.toUpperCase();
           }
        }
@@ -3360,6 +3395,22 @@ class Workspace {
               }
            }
         }
+        // If "smart numeric hotkeys" are enabled then we might need to update all the tooltips for this application
+        if (this._settings.getValue("hotkey-sequence")) {
+           let hotKeys = this._applet._keyBindings;
+           for (let i=0 ; i < hotKeys.length ; i++) {
+              if (hotKeys[i].enabled===true && hotKeys[i].keyCombo!==null && (hotKeys[i].description == source._app.get_name() || hotKeys[i].description == source._app.get_id())) {
+                 let [seqCombo, secondCombo] = getSmartNumericHotkey(hotKeys[i].keyCombo);
+                 if (seqCombo) {
+                    let btns = source._workspace._lookupAllAppButtonsForApp(source._app);
+                    for( let idx=0 ; idx < btns.length ; idx++) {
+                       btns[idx]._updateTooltip()
+                    }
+                    break;
+                 }
+              }
+           }
+        }
         if (this._settings.getValue("display-caption-for") === DisplayCaption.One) {
            source._updateLabel(); // The moved button might need it's label restored
            if (groupingType != GroupType.Pooled && groupingType != GroupType.Auto) {
@@ -3613,115 +3664,178 @@ class WindowList extends Applet.Applet {
     this.on_orientation_changed(orientation);
   }
 
+  // Hotkey handler function!!!
+  _performHotkey(idx, seqNum=0) {
+     //log( `Hotkey pressed for ${this._keyBindings[idx].description} @ index ${idx} and with a seqNum of ${seqNum}` );
+     let minimize = this._settings.getValue("hotkey-minimize");
+     let workspace = this.getCurrentWorkSpace();
+     workspace.closeThumbnailMenu();
+     if (workspace._keyBindingsWindows.length > idx && workspace._keyBindingsWindows[idx] != undefined && seqNum==0) {
+        if (this._keyBindings[idx].cycle === true){
+           let window = workspace._keyBindingsWindows[idx];
+           let appButton = workspace._lookupAppButtonForWindow(window);
+           if (appButton && appButton._windows.length > 1) {
+              // All app windows are grouped under one appButton
+              if (hasFocus(appButton._currentWindow)===true) {
+                 if (appButton._nextWindow===null || appButton._nextWindow===appButton._currentWindow) {
+                    appButton._updateCurrentWindow(); // This will set appButton.sortedWindows
+                    appButton._nextWindow = appButton.sortedWindows[1];
+                 }
+                 let idx = appButton.sortedWindows.indexOf(appButton._nextWindow);
+                 Main.activateWindow(appButton._nextWindow);
+                 if (idx === appButton.sortedWindows.length-1) {
+                    appButton._nextWindow = appButton.sortedWindows[0];
+                 } else {
+                    appButton._nextWindow = appButton.sortedWindows[idx+1];
+                 }
+              } else {
+                 appButton._updateCurrentWindow(); // This will set appButton.sortedWindows
+                 appButton._nextWindow = appButton.sortedWindows[1];
+                 Main.activateWindow(appButton._currentWindow);
+              }
+              return;
+           } else if(appButton) {
+              // App windows are not grouped under one button
+              let focusWindow = global.display.get_focus_window();
+              if (workspace.cycleBtns !== undefined && appButton._app === workspace.cycleBtns[workspace.cycleIdx]._app &&
+                  workspace.cycleBtns[workspace.cycleIdx]._windows[0] === focusWindow)
+              {
+                 workspace.cycleIdx++;
+                 if (workspace.cycleIdx >= workspace.cycleBtns.length)
+                    workspace.cycleIdx = 0;
+                 Main.activateWindow(workspace.cycleBtns[workspace.cycleIdx]._windows[0]);
+                 return;
+              } else {
+                 let btns = workspace._lookupAllAppButtonsForApp(appButton._app);
+                 if (btns.length > 1) {
+                    // Sort the app buttons array by most recently focused
+                    btns = btns.sort(function(a, b) {
+                       return b._windows[0].user_time - a._windows[0].user_time;
+                    });
+                    workspace.cycleBtns = btns;
+                    if (btns[0]._windows[0] === focusWindow) {
+                       workspace.cycleIdx = 1
+                    } else {
+                       workspace.cycleIdx = 0;
+                    }
+                    Main.activateWindow(btns[workspace.cycleIdx]._windows[0]);
+                    return;
+                 }
+              }
+           }
+        }
+        // cycling is disabled or app does not have the focus, so restore or minimize the selected window
+        if (minimize && hasFocus(workspace._keyBindingsWindows[idx])){
+           workspace._keyBindingsWindows[idx].minimize();
+        } else {
+           Main.activateWindow(workspace._keyBindingsWindows[idx]);
+        }
+     } else if (this._keyBindings[idx].description) {
+        // Try to find a app if the description is a .desktop file name
+        let app = workspace._lookupApp(this._keyBindings[idx].description);
+        // If that didn't work, then look for a pinned button matching the description
+        if (!app) {
+           for (let i=0 ; i < workspace._appButtons.length ; i++) {
+              if (workspace._appButtons[i]._pinned && workspace._appButtons[i]._app.get_name() == this._keyBindings[idx].description) {
+                 app = workspace._appButtons[i]._app;
+                 return;
+              }
+           }
+        }
+        // If we found an app then see if we can active a window or start a new window
+        if (app) {
+           if (this._settings.getValue("hotkey-sequence") && seqNum > 0) {
+              let btns = workspace._lookupAllAppButtonsForApp(app);
+              if (btns && btns.length > seqNum-1) {
+                 if (minimize && hasFocus(btns[seqNum-1]._windows[0])){
+                    btns[seqNum-1]._windows[0].minimize();
+                 } else {
+                    Main.activateWindow(btns[seqNum-1]._windows[0]);
+                 }
+              } else if (btns && btns[0]._windows.length > seqNum-1) {
+                 if (minimize && hasFocus(btns[0]._windows[seqNum-1])){
+                    btns[0]._windows[seqNum-1].minimize();
+                 } else {
+                    Main.activateWindow(btns[0]._windows[seqNum-1]);
+                 }
+              }
+           } else if (this._settings.getValue("hotkey-new")) {
+              app.open_new_window(-1);
+           }
+        }
+     }
+  }
+
   _updateKeybinding() {
      let oldBindings = this._keyBindings;
+     let oldKeySequence = this._keySequenece;
      let keyBindings = this._settings.getValue("hotkey-bindings");
+     let keySequence = this._settings.getValue("hotkey-sequence");  // Is smart numeric hotkeys enabled?
      let i=0;
+     let seqCombo;
+     let secondCombo;
      for ( ; i < keyBindings.length ; i++) {
-        // Is the new keyBinding enabled and different to the old binding
-        if (keyBindings[i].enabled && (oldBindings.length <= i || oldBindings[i].enabled === false || keyBindings[i].keyCombo != oldBindings[i].keyCombo)) {
-           let idx = i;
-           // Register the hotkey
-           Main.keybindingManager.addHotKey("hotkey-" + i + this.instanceId, keyBindings[i].keyCombo, Lang.bind(this, function() {
-                 // Hotkey handler function!!!
-                 //
-                 //log( "Hotkey pressed for "+this._keyBindings[idx].description );
-                 let minimize = this._settings.getValue("hotkey-minimize");
-                 let workspace = this.getCurrentWorkSpace();
-                 workspace.closeThumbnailMenu();
-                 if (workspace._keyBindingsWindows.length > idx && workspace._keyBindingsWindows[idx] != undefined) {
-                    if (this._keyBindings[idx].cycle === true){
-                       let window = workspace._keyBindingsWindows[idx];
-                       let appButton = workspace._lookupAppButtonForWindow(window);
-                       if (appButton && appButton._windows.length > 1) {
-                          // All app windows are grouped under one appButton
-                          if (hasFocus(appButton._currentWindow)===true) {
-                             if (appButton._nextWindow===null || appButton._nextWindow===appButton._currentWindow) {
-                                appButton._updateCurrentWindow(); // This will set appButton.sortedWindows
-                                appButton._nextWindow = appButton.sortedWindows[1];
-                             }
-                             let idx = appButton.sortedWindows.indexOf(appButton._nextWindow);
-                             Main.activateWindow(appButton._nextWindow);
-                             if (idx === appButton.sortedWindows.length-1) {
-                                appButton._nextWindow = appButton.sortedWindows[0];
-                             } else {
-                                appButton._nextWindow = appButton.sortedWindows[idx+1];
-                             }
-                          } else {
-                             appButton._updateCurrentWindow(); // This will set appButton.sortedWindows
-                             appButton._nextWindow = appButton.sortedWindows[1];
-                             Main.activateWindow(appButton._currentWindow);
-                          }
-                          return;
-                       } else if(appButton) {
-                          // App windows are not grouped under one button
-                          let focusWindow = global.display.get_focus_window();
-                          if (workspace.cycleBtns !== undefined && appButton._app === workspace.cycleBtns[workspace.cycleIdx]._app &&
-                              workspace.cycleBtns[workspace.cycleIdx]._windows[0] === focusWindow)
-                          {
-                             workspace.cycleIdx++;
-                             if (workspace.cycleIdx >= workspace.cycleBtns.length)
-                                workspace.cycleIdx = 0;
-                             Main.activateWindow(workspace.cycleBtns[workspace.cycleIdx]._windows[0]);
-                             return;
-                          } else {
-                             let btns = workspace._lookupAllAppButtonsForApp(appButton._app);
-                             if (btns.length > 1) {
-                                // Sort the app buttons array by most recently focused
-                                btns = btns.sort(function(a, b) {
-                                   return b._windows[0].user_time - a._windows[0].user_time;
-                                });
-                                workspace.cycleBtns = btns;
-                                if (btns[0]._windows[0] === focusWindow) {
-                                   workspace.cycleIdx = 1
-                                } else {
-                                   workspace.cycleIdx = 0;
-                                }
-                                Main.activateWindow(btns[workspace.cycleIdx]._windows[0]);
-                                return;
-                             }
-                          }
-                       }
-                    }
-                    // cycling is disabled or app does not have the focus, so restore or minimize the selected window
-                    if (minimize && hasFocus(workspace._keyBindingsWindows[idx])){
-                       workspace._keyBindingsWindows[idx].minimize();
-                    } else {
-                       Main.activateWindow(workspace._keyBindingsWindows[idx]);
-                    }
-                 } else if(this._keyBindings[idx].description && this._settings.getValue("hotkey-new")) {
-                    // The window is not bound. Start a new process if there is a pinned button matching the Description
-                    for (let i=0 ; i < workspace._appButtons.length ; i++) {
-                       if (workspace._appButtons[i]._pinned && workspace._appButtons[i]._app.get_name() == this._keyBindings[idx].description) {
-                          workspace._appButtons[i]._startApp();
-                          return;
-                       }
-                    }
-                    // Try to find a app if the description is a .desktop file name
-                    let app = workspace._lookupApp(this._keyBindings[idx].description);
-                    if (app) {
-                       app.open_new_window(-1);
-                    }
+        // Does the old binding need to be removed?
+        if (oldBindings.length > i) {
+           [seqCombo,secondCombo] = getSmartNumericHotkey(oldBindings[i].keyCombo);
+           if (oldBindings[i].enabled && (!keyBindings[i].enabled || keyBindings[i].keyCombo != oldBindings[i].keyCombo || (seqCombo && oldKeySequence != keySequence))) {
+              if (seqCombo && oldKeySequence) {
+                 //log( `removing smart numeric hotkeys for ${oldBindings[i].description}` );
+                 for( let num=1 ; num < 10 ; num++ ) {
+                    Main.keybindingManager.removeHotKey("hotkey-" + i + "-" + num + this.instanceId);
                  }
-              }));
-
-        } else if(keyBindings[i].enabled === false && oldBindings.length > i) {
-           // deregister the previously registered hotkey
-           Main.keybindingManager.removeHotKey("hotkey-" + i + this.instanceId);
+                 if (secondCombo) {
+                    Main.keybindingManager.removeHotKey("hotkey-" + i + this.instanceId);
+                 }
+              } else {
+                 Main.keybindingManager.removeHotKey("hotkey-" + i + this.instanceId);
+              }
+           }
+        }
+        [seqCombo,secondCombo] = getSmartNumericHotkey(keyBindings[i].keyCombo);
+        // Does the new keyBinding need to be added?
+        if (keyBindings[i].enabled && (oldBindings.length <= i || !oldBindings[i].enabled || keyBindings[i].keyCombo != oldBindings[i].keyCombo || (seqCombo && oldKeySequence != keySequence))) {
+           let idx = i;
+           // Register smart numeric hotkeys if applicable
+           if (seqCombo && keySequence) {
+              //log( `Registering smart numeric hotkeys for ${keyBindings[i].description}` );
+              for( let num=1 ; num < 10 ; num++ ) {
+                 Main.keybindingManager.addHotKey("hotkey-" + i + "-" + num + this.instanceId, seqCombo+num, Lang.bind(this, function() {this._performHotkey(idx, num)} ));
+              }
+              if (secondCombo) {
+                 Main.keybindingManager.addHotKey("hotkey-" + i + this.instanceId, secondCombo, Lang.bind(this, function() {this._performHotkey(idx)} ));
+              }
+           } else {
+              // Register the hotkey
+              Main.keybindingManager.addHotKey("hotkey-" + i + this.instanceId, keyBindings[i].keyCombo, Lang.bind(this, function() {this._performHotkey(idx)} ));
+           }
         }
         // If the key is enabled, set the keyBindingWindows for each workspace to the windows that match the description
-        if (keyBindings[i].enabled === true) {
+        if (keyBindings[i].enabled === true && !seqCombo) {
            this.assignHotKeysToExistingWindows(keyBindings[i].description, i);
         }
      }
      if (i < oldBindings.length) {
         // deregister the all the hotkeys that have been removed
         while (i < oldBindings.length) {
-           Main.keybindingManager.removeHotKey("hotkey-" + i + this.instanceId);
+           if (oldKeySequence) {
+              let [seqCombo, secondCombo] = getSmartNumericHotkey(oldBindings[i].keyCombo);
+              if (seqCombo) {
+                 for( let num=1 ; num < 10 ; num++ ) {
+                    Main.keybindingManager.removeHotKey("hotkey-" + i + "-" + num + this.instanceId);
+                 }
+                 if (secondCombo) {
+                    Main.keybindingManager.removeHotKey("hotkey-" + i + this.instanceId);
+                 }
+              }
+           } else {
+              Main.keybindingManager.removeHotKey("hotkey-" + i + this.instanceId);
+           }
            i++;
         }
      }
      this._keyBindings = keyBindings;
+     this._keySequenece = keySequence;
      for (let wsIdx=0 ; wsIdx<this._workspaces.length ; wsIdx++) {
         let ws = this._workspaces[wsIdx];
         for (let btnIdx=0 ; btnIdx < ws._appButtons.length ; btnIdx++) {
@@ -3851,6 +3965,7 @@ class WindowList extends Applet.Applet {
     this._signalManager.connect(global.display, "notify::focus-window", this._onFocusChanged, this);
     this._signalManager.connect(Main.layoutManager, "monitors-changed", this._updateMonitor, this);
     this._signalManager.connect(this._settings, "changed::hotkey-bindings", this._updateKeybinding, this);
+    this._signalManager.connect(this._settings, "changed::hotkey-sequence", this._updateKeybinding, this);
     this._signalManager.connect(this._settings, "changed::display-indicators", this._updateIndicators, this);
     this._signalManager.connect(this._settings, "changed::number-of-unshrunk-previews", this._updateThumbnailWindowSize, this);
     this._signalManager.connect(this._settings, "changed::hide-panel-apps", this._updateCurrentWorkspace, this);

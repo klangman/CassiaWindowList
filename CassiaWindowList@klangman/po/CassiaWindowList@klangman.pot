@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2023-08-10 00:01-0400\n"
+"POT-Creation-Date: 2023-08-13 16:25-0400\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -17,24 +17,24 @@ msgstr ""
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
 
-#: 4.0/applet.js:2103
+#: 4.0/applet.js:2138
 msgid "Applet Preferences"
 msgstr ""
 
-#: 4.0/applet.js:2107
+#: 4.0/applet.js:2142
 msgid "About..."
 msgstr ""
 
-#: 4.0/applet.js:2111
+#: 4.0/applet.js:2146
 msgid "Configure..."
 msgstr ""
 
-#: 4.0/applet.js:2115
+#: 4.0/applet.js:2150
 #, javascript-format
 msgid "Remove '%s'"
 msgstr ""
 
-#: 4.0/applet.js:2117
+#: 4.0/applet.js:2152
 msgid "Do you really want to remove this instance of CassiaWindowList?"
 msgstr ""
 
@@ -44,91 +44,91 @@ msgstr ""
 #. 4.0->settings-schema.json->mouse-action-btn2->options
 #. 4.0->settings-schema.json->mouse-action-btn8->options
 #. 4.0->settings-schema.json->mouse-action-btn9->options
-#: 4.0/applet.js:2126
+#: 4.0/applet.js:2161
 msgid "Open new window"
 msgstr ""
 
-#: 4.0/applet.js:2132
+#: 4.0/applet.js:2167
 msgid "Pin to this workspace"
 msgstr ""
 
-#: 4.0/applet.js:2170
+#: 4.0/applet.js:2205
 msgid "Pin to other workspaces"
 msgstr ""
 
-#: 4.0/applet.js:2191
+#: 4.0/applet.js:2226
 msgid "Pin to all workspaces"
 msgstr ""
 
-#: 4.0/applet.js:2216 4.0/applet.js:2389
+#: 4.0/applet.js:2251 4.0/applet.js:2424
 msgid "Add new Hotkey for"
 msgstr ""
 
-#: 4.0/applet.js:2230
+#: 4.0/applet.js:2265
 msgid "Recent files"
 msgstr ""
 
-#: 4.0/applet.js:2254
+#: 4.0/applet.js:2289
 msgid "Places"
 msgstr ""
 
-#: 4.0/applet.js:2296
+#: 4.0/applet.js:2331
 msgid "Only on this workspace"
 msgstr ""
 
-#: 4.0/applet.js:2298
+#: 4.0/applet.js:2333
 msgid "Visible on all workspaces"
 msgstr ""
 
-#: 4.0/applet.js:2299
+#: 4.0/applet.js:2334
 msgid "Move to another workspace"
 msgstr ""
 
-#: 4.0/applet.js:2318
+#: 4.0/applet.js:2353
 msgid "Move to another monitor"
 msgstr ""
 
-#: 4.0/applet.js:2326
+#: 4.0/applet.js:2361
 msgid "Monitor"
 msgstr ""
 
-#: 4.0/applet.js:2354
+#: 4.0/applet.js:2389
 msgid "unassigned"
 msgstr ""
 
-#: 4.0/applet.js:2365 4.0/applet.js:2386
+#: 4.0/applet.js:2400 4.0/applet.js:2421
 msgid "Assign window to a hotkey"
 msgstr ""
 
-#: 4.0/applet.js:2409
+#: 4.0/applet.js:2444
 msgid "Change application label contents"
 msgstr ""
 
-#: 4.0/applet.js:2412
+#: 4.0/applet.js:2447
 msgid "Remove custom setting"
 msgstr ""
 
-#: 4.0/applet.js:2419
+#: 4.0/applet.js:2454
 msgid "Use window title"
 msgstr ""
 
-#: 4.0/applet.js:2426
+#: 4.0/applet.js:2461
 msgid "Use application name"
 msgstr ""
 
-#: 4.0/applet.js:2433
+#: 4.0/applet.js:2468
 msgid "No label"
 msgstr ""
 
-#: 4.0/applet.js:2444
+#: 4.0/applet.js:2479
 msgid "Ungroup application windows"
 msgstr ""
 
-#: 4.0/applet.js:2455
+#: 4.0/applet.js:2490
 msgid "Group application windows"
 msgstr ""
 
-#: 4.0/applet.js:2465
+#: 4.0/applet.js:2500
 msgid "Automatic grouping/ungrouping"
 msgstr ""
 
@@ -138,31 +138,31 @@ msgstr ""
 #. 4.0->settings-schema.json->mouse-action-btn2->options
 #. 4.0->settings-schema.json->mouse-action-btn8->options
 #. 4.0->settings-schema.json->mouse-action-btn9->options
-#: 4.0/applet.js:2494
+#: 4.0/applet.js:2529
 msgid "Move titlebar on to screen"
 msgstr ""
 
-#: 4.0/applet.js:2499
+#: 4.0/applet.js:2534
 msgid "Restore"
 msgstr ""
 
-#: 4.0/applet.js:2503
+#: 4.0/applet.js:2538
 msgid "Minimize"
 msgstr ""
 
-#: 4.0/applet.js:2509
+#: 4.0/applet.js:2544
 msgid "Unmaximize"
 msgstr ""
 
-#: 4.0/applet.js:2516
+#: 4.0/applet.js:2551
 msgid "Close others"
 msgstr ""
 
-#: 4.0/applet.js:2527
+#: 4.0/applet.js:2562
 msgid "Close all"
 msgstr ""
 
-#: 4.0/applet.js:2536
+#: 4.0/applet.js:2571
 msgid "Close"
 msgstr ""
 
@@ -888,6 +888,18 @@ msgid ""
 "a desktop file name"
 msgstr ""
 
+#. 4.0->settings-schema.json->hotkey-sequence->description
+msgid "Smart numeric hotkeys (using \"1\" automatically extends to 1-9)"
+msgstr ""
+
+#. 4.0->settings-schema.json->hotkey-sequence->tooltip
+msgid ""
+"If a hotkey Description maps to an application and the hotkey includes the "
+"\"1\" key, then hotkeys (1-9) will be mapped to the first 9 windows of the "
+"application. i.e. Alt+1 for \"firefox.desktop\" will cause Alt+1 through "
+"Alt+9 to activate the first 9 firefox windows as ordered in the window list."
+msgstr ""
+
 #. 4.0->settings-schema.json->hotkey-help->description
 msgid ""
 "Hotkeys can be assigned to a window in two ways:\n"
@@ -896,9 +908,9 @@ msgid ""
 "2. Automatic:  Enter a \"Description\" matching an application name or "
 "desktop file. For example: \"Google Chrome\" or \"firefox.desktop\"\n"
 "\n"
-"Note: 1) If a hotkey is not working, it's possible that a key combination is "
-"already assigned elsewhere. 2) If you remove or rearrange any hotkeys, "
-"manual window assignments may need to be reassigned"
+"Note: 1) Hotkey not working? it's possible the key combination is already "
+"assigned elsewhere. 2) If you remove or rearrange hotkeys, manual hotkey "
+"assignments may need to be reassigned"
 msgstr ""
 
 #. 4.0->settings-schema.json->adv-mouse-list->columns->title
