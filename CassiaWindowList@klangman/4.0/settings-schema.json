@@ -534,7 +534,7 @@
 
   "hotkey-help" : {
     "type" : "label",
-    "description" : "Hotkeys can be assigned to a window in two ways:\n1. Manual:  Use the \"Assign window to a hotkey\" item in a button context menu.\n2. Automatic:  Enter a \"Description\" matching an application name or desktop file. For example: \"Google Chrome\" or \"firefox.desktop\"\n\nNote: 1) Hotkey not working? it's possible the key combination is already assigned elsewhere. 2) If you remove or rearrange hotkeys, manual hotkey assignments may need to be reassigned"
+    "description" : "Hotkeys can be assigned to a window in two ways:\n1) Manual: Use \"Assign window to a hotkey\" in the button context menu.\n2) Automatic:  Enter a \"Description\" matching an application name or desktop file. i.e: \"Google Chrome\" or \"firefox.desktop\"\nNote: 1) Hotkey not working? it's possible the key combination is already assigned elsewhere. 2) If you remove or rearrange hotkeys, manual hotkey assignments might need to be reassigned. 3) Hotkeys associated with desktop files can not be manually assigned."
   },
 
   "adv-mouse-list": {
