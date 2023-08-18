@@ -529,7 +529,7 @@
     "type": "switch",
     "default": true,
     "description": "Smart numeric hotkeys (using \"1\" automatically extends to 1-9)",
-    "tooltip": "If a hotkey Description maps to an application and the hotkey includes the \"1\" key, then hotkeys (1-9) will be mapped to the first 9 windows of the application. i.e. Alt+1 for \"firefox.desktop\" will cause Alt+1 through Alt+9 to activate the first 9 firefox windows as ordered in the window list."
+    "tooltip": "If enabled, hotkeys ending with the \"1\" key (i.e. Alt+1) will automatically create hotkeys 1 through 9 (i.e. Alt+1 through Alt+9). The first 9 windows of the assigned application, as ordered on the window-list, will be activated by the 9 hotkeys."
   },
 
   "hotkey-help" : {

@@ -1250,9 +1250,11 @@ class WindowListButton {
     let hotKeys = this._applet._keyBindings;
     let hotKeyWindows = this._workspace._keyBindingsWindows;
     let keySequence = this._settings.getValue("hotkey-sequence");
+    let keyNew = this._settings.getValue("hotkey-new");
     for (let i=0 ; i < hotKeys.length ; i++) {
        let [seqCombo,secondCombo] = getSmartNumericHotkey(hotKeys[i].keyCombo);
        if (hotKeys[i].enabled===true && hotKeys[i].keyCombo!==null && (hotKeyWindows[i] === this._currentWindow ||
+          (this._pinned && keyNew && !hotKeyWindows[i] && (this._app.get_name() == hotKeys[i].description || this._app.get_id() == hotKeys[i].description)) ||
           ((hotKeys[i].cycle===true || (seqCombo && keySequence)) && hotKeyWindows[i] && this._app === this._workspace.getAppForWindow(hotKeyWindows[i]))))
        {
           if ( seqCombo ) {
