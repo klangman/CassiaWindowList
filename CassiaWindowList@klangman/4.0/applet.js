@@ -47,6 +47,7 @@ const Settings = imports.ui.settings;
 const SignalManager = imports.misc.signalManager;
 const CinnamonDesktop = imports.gi.CinnamonDesktop;
 const ModalDialog = imports.ui.modalDialog;
+const Config = imports.misc.config;
 
 const UUID = "CassiaWindowList@klangman";
 
@@ -119,6 +120,7 @@ const ICON_NAMES = {
    writer: 'x-office-document'
 }
 
+const majorVersion = parseInt(Config.PACKAGE_VERSION.substring(0,1));
 
 // The possible user setting for the caption contents
 const CaptionType = {
@@ -405,6 +407,9 @@ function getKeyAndButtonMouseAction(mouseActionList, modifier, context, mouseBtn
 }
 
 function moveTitleBarToScreen(window) {
+   if (majorVersion < 5) {
+      return; // Cinnamon 4 does not support get_frame_rect()
+   }
    let rec = window.get_frame_rect();
    let topOffset = 0;
    let leftOffset = 0;
@@ -427,6 +432,9 @@ function moveTitleBarToScreen(window) {
 }
 
 function isTitleBarOnScreen(window) {
+   if (majorVersion < 5) {
+      return true; // Cinnamon 4 does not support get_frame_rect()
+   }
    let rec = window.get_frame_rect();
    let topOffset = 0;
    let leftOffset = 0;
@@ -960,6 +968,7 @@ class ThumbnailMenuManager extends PopupMenu.PopupMenuManager {
 class WindowListButton {
 
   constructor(workspace, applet, app) {
+    this.closing = false;
     this._toggle = 0
     this._workspace = workspace;
     this._applet = applet;
@@ -2996,6 +3005,10 @@ class Workspace {
               // Since we removed a window from a hotkey, maybe there is another window that can get this hot key?
               this._applet.assignHotKeysToExistingWindows(this._applet._keyBindings[i].description, i);
               i = this._keyBindingsWindows.lastIndexOf(metaWindow);
+           }
+           // If the button is pinned and now has no windows attached, we might need to refresh the tooltip to make sure a hotkey is correctly added to the tooltip text
+           if (appButton._windows.length === 0 && appButton._pinned) {
+              appButton._updateTooltip();
            }
         }
         // Now that we removed a window, see if there is enough space to expand automatically grouped windows
