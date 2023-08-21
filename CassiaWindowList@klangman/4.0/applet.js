@@ -1294,7 +1294,7 @@ class WindowListButton {
                 let first = keyString.slice(0, keyString.lastIndexOf("::"));
                 let end = first.slice(first.lastIndexOf("+"))
                 text = text + "\n" + first.slice(0,first.lastIndexOf("+")) + end.toUpperCase();
-                keyString = keyString.slice( keyString.indexOf("::")+2);
+                keyString = keyString.slice(keyString.indexOf("::")+2);
              }
              let end = keyString.slice(keyString.lastIndexOf("+"))
              text = text + "\n" + keyString.slice(0,keyString.lastIndexOf("+")) + end.toUpperCase();
@@ -3431,8 +3431,9 @@ class Workspace {
         // If "smart numeric hotkeys" are enabled then we might need to update all the tooltips for this application
         if (this._settings.getValue("hotkey-sequence")) {
            let hotKeys = this._applet._keyBindings;
+           let hotKeyWindows = source._workspace._keyBindingsWindows;
            for (let i=0 ; i < hotKeys.length ; i++) {
-              if (hotKeys[i].enabled===true && hotKeys[i].keyCombo!==null && (hotKeys[i].description == source._app.get_name() || hotKeys[i].description == source._app.get_id())) {
+              if (hotKeys[i].enabled===true && hotKeys[i].keyCombo!==null && hotKeyWindows[i] && source._workspace.getAppForWindow(hotKeyWindows[i]) === source._app) {
                  let [seqCombo, secondCombo] = getSmartNumericHotkey(hotKeys[i].keyCombo);
                  if (seqCombo) {
                     let btns = source._workspace._lookupAllAppButtonsForApp(source._app);
