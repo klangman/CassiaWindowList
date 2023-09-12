@@ -189,7 +189,8 @@ const MouseAction = {
   MovePrevWorkspace: 20, // Move window to the workspace -1 from it's current workspace
   MoveNextWorkspace: 21, // Move window to the workspace +1 from it's current workspace
   MovePrevMonitor: 22,   // Move window to the monitor -1 from it's current monitor
-  MoveNextMonitor: 23    // Move window to the monitor +1 from it's current monitor
+  MoveNextMonitor: 23,   // Move window to the monitor +1 from it's current monitor
+  PinToPanel: 24         // Pin the appButton to the panel
 }
 
 // Possible settings for the left mouse action for grouped buttons
@@ -246,6 +247,12 @@ const Modifier = {
    Ctrl: 1
 }
 
+const DisplayPinned = {
+   Disabled: 0,
+   Enabled: 1,
+   Synchronized: 2
+}
+
 Gettext.bindtextdomain(UUID, GLib.get_home_dir() + "/.local/share/locale");
 
 function _(text) {
@@ -261,10 +268,6 @@ function hasFocus(metaWindow, allowTransient=true) {
     if (window === metaWindow) {
        return true;
     }
-    //if (metaWindow.appears_focused) {
-    //    log( "appears_focused" );
-    //    return true;
-    //}
     if (allowTransient===false) {
        return false;
     }
@@ -396,9 +399,7 @@ function getMonitors() {
 //       mouseBtn = 1-3 (left, middle, right) or 8-9 (back, forward)
 function getKeyAndButtonMouseAction(mouseActionList, modifier, context, mouseBtn) {
    let keyAndButton = ((modifier)?0:5) + ((mouseBtn<4)?mouseBtn-1:mouseBtn-5);
-   //log( `Looking for adv mouse action for ctrlHeld=${modifier}, thumbContext=${context}, btn=${mouseBtn}, k&b=${keyAndButton}` );
    for (let i=0 ; i < mouseActionList.length ; i++) {
-      //log( `enabled=${mouseActionList[i].enabled}, context=${mouseActionList[i].context}, k&b=${mouseActionList[i].keyAndButton}, action=${mouseActionList[i].action}` );
       if (mouseActionList[i].enabled && mouseActionList[i].context == context && mouseActionList[i].keyAndButton == keyAndButton) {
          return mouseActionList[i].action;
       }
@@ -1122,8 +1123,8 @@ class WindowListButton {
   }
 
   getPinnedIndex() {
-    let pinSetting = this._settings.getValue("pinned-apps")[this._workspace._wsNum];
-    return this._pinned ? pinSetting.indexOf(this._app.get_id()) : -1;
+    let pinSetting = this._workspace.getPinnedApps();
+    return pinSetting.indexOf(this._app.get_id());
   }
 
   _onWmClassChanged(metaWindow) {
@@ -2049,6 +2050,13 @@ class WindowListButton {
            }
            }
            break;
+        case MouseAction.PinToPanel:
+           if (!this._pinned) {
+              this._workspace.pinAppButton(this);
+           } else {
+              this._workspace.unpinAppButton(this);
+           }
+           break;
       }
   }
 
@@ -2195,9 +2203,14 @@ class WindowListButton {
     item.connect("activate", Lang.bind(this, this._startApp));
     this._contextMenu.addMenuItem(item);
 
-    if (this._settings.getValue("display-pinned") && !this._app.is_window_backed()) {
+    let displayPinned = this._settings.getValue("display-pinned");
+    if (displayPinned && !this._app.is_window_backed()) {
       let iconName = this._pinned ? "starred" : "non-starred";
-      item = new PopupMenu.PopupSwitchIconMenuItem(_("Pin to this workspace"), this._pinned, iconName, St.IconType.SYMBOLIC);
+      if (displayPinned == DisplayPinned.Synchronized) {
+         item = new PopupMenu.PopupSwitchIconMenuItem(_("Pin to panel"), this._pinned, iconName, St.IconType.SYMBOLIC);
+      } else {
+         item = new PopupMenu.PopupSwitchIconMenuItem(_("Pin to this workspace"), this._pinned, iconName, St.IconType.SYMBOLIC);
+      }
       item.connect("toggled", Lang.bind(this, function(menuItem, state) {
         if (state) {
           this._workspace.pinAppButton(this);
@@ -2212,61 +2225,63 @@ class WindowListButton {
       }));
       this._contextMenu.addMenuItem(item);
 
-      let pinSettings = this._settings.getValue("pinned-apps");
-      let appId = this._app.get_id();
-      if (global.screen.n_workspaces == 2) {
-        let i = 0
-        if (i == this._workspace._wsNum) {
-            i++;
-        }
-        let name = "Pin to " + Main.getWorkspaceName(i);
-        let pinned = pinSettings[i].indexOf(appId) >= 0;
-        let iconName = pinned ? "starred" : "non-starred";
-        let ws = new PopupMenu.PopupSwitchIconMenuItem(name, pinned, iconName, St.IconType.SYMBOLIC);
-        let j = i;
-        ws.connect("toggled", Lang.bind(this, function(menuItem, state) {
-        if (state) {
-          this._applet._workspaces[j].pinAppId(appId);
-          menuItem.setIconSymbolicName("starred");
-        } else {
-          this._applet._workspaces[j].unpinAppId(appId);
-          menuItem.setIconSymbolicName("non-starred");
-        }
-        }));
-        this._contextMenu.addMenuItem(ws);
-      }else if (global.screen.n_workspaces > 2) {
-        item = new PopupMenu.PopupSubMenuMenuItem(_("Pin to other workspaces"));
-        for (let i = 0; i < global.screen.n_workspaces; i++) {
-          if (i != this._workspace._wsNum) {
-             let name = Main.getWorkspaceName(i);
-             let pinned = pinSettings[i].indexOf(appId) >= 0;
-             let iconName = pinned ? "starred" : "non-starred";
-             let ws = new PopupMenu.PopupSwitchIconMenuItem(name, pinned, iconName, St.IconType.SYMBOLIC);
-             let j = i;
-             ws.connect("toggled", Lang.bind(this, function(menuItem, state) {
-               if (state) {
-                 this._applet._workspaces[j].pinAppId(appId);
-                 menuItem.setIconSymbolicName("starred");
-               } else {
-                 this._applet._workspaces[j].unpinAppId(appId);
-                 menuItem.setIconSymbolicName("non-starred");
-               }
-             }));
-             item.menu.addMenuItem(ws);
-          }
-        }
-
-        let pinAll = new PopupMenu.PopupMenuItem(_("Pin to all workspaces"));
-        pinAll.connect("activate", Lang.bind(this,
-           function() {
-              for (let i = 0; i < this._applet._workspaces.length; i++) {
-                 if (i != this._workspace._wsNum || !this._pinned) {
-                    this._applet._workspaces[i].pinAppId(appId);
-                 }
-              }
+      if (displayPinned != DisplayPinned.Synchronized) {
+         let pinSettings = this._settings.getValue("pinned-apps");
+         let appId = this._app.get_id();
+         if (global.screen.n_workspaces == 2) {
+           let i = 0
+           if (i == this._workspace._wsNum) {
+               i++;
+           }
+           let name = "Pin to " + Main.getWorkspaceName(i);
+           let pinned = pinSettings[i].indexOf(appId) >= 0;
+           let iconName = pinned ? "starred" : "non-starred";
+           let ws = new PopupMenu.PopupSwitchIconMenuItem(name, pinned, iconName, St.IconType.SYMBOLIC);
+           let j = i;
+           ws.connect("toggled", Lang.bind(this, function(menuItem, state) {
+           if (state) {
+             this._applet._workspaces[j].pinAppId(appId);
+             menuItem.setIconSymbolicName("starred");
+           } else {
+             this._applet._workspaces[j].unpinAppId(appId);
+             menuItem.setIconSymbolicName("non-starred");
+           }
            }));
-        item.menu.addMenuItem(pinAll);
-        this._contextMenu.addMenuItem(item);
+           this._contextMenu.addMenuItem(ws);
+         }else if (global.screen.n_workspaces > 2) {
+           item = new PopupMenu.PopupSubMenuMenuItem(_("Pin to other workspaces"));
+           for (let i = 0; i < global.screen.n_workspaces; i++) {
+             if (i != this._workspace._wsNum) {
+                let name = Main.getWorkspaceName(i);
+                let pinned = pinSettings[i].indexOf(appId) >= 0;
+                let iconName = pinned ? "starred" : "non-starred";
+                let ws = new PopupMenu.PopupSwitchIconMenuItem(name, pinned, iconName, St.IconType.SYMBOLIC);
+                let j = i;
+                ws.connect("toggled", Lang.bind(this, function(menuItem, state) {
+                  if (state) {
+                    this._applet._workspaces[j].pinAppId(appId);
+                    menuItem.setIconSymbolicName("starred");
+                  } else {
+                    this._applet._workspaces[j].unpinAppId(appId);
+                    menuItem.setIconSymbolicName("non-starred");
+                  }
+                }));
+                item.menu.addMenuItem(ws);
+             }
+           }
+
+           let pinAll = new PopupMenu.PopupMenuItem(_("Pin to all workspaces"));
+           pinAll.connect("activate", Lang.bind(this,
+              function() {
+                 for (let i = 0; i < this._applet._workspaces.length; i++) {
+                    if (i != this._workspace._wsNum || !this._pinned) {
+                       this._applet._workspaces[i].pinAppId(appId);
+                    }
+                 }
+              }));
+           item.menu.addMenuItem(pinAll);
+           this._contextMenu.addMenuItem(item);
+         }
       }
     }
 
@@ -2699,7 +2714,6 @@ class WindowListButton {
   }
 
   addCustomLabel(type, customLabel, customLabelType){
-    //log( "Adding a custom label for " +this._app.get_name()+ " to be " +type );
     customLabel.push(this._app.get_name());
     customLabelType.push(type);
     let newCustomLabel = customLabel.slice();
@@ -2710,7 +2724,6 @@ class WindowListButton {
   }
 
   setCustomLabel(idx, type, customLabel, customLabelType){
-    //log( "setting existing custom label for "+customLabel[idx]+" to type "+type+" at " +idx );
     if (idx >= customLabel.length) {
        this.addCustomLabel(type, customLabel, customLabelType);
     } else {
@@ -2722,7 +2735,6 @@ class WindowListButton {
   }
 
   removeCustomLabel(idx, customLabel, customLabelType){
-    //log( "Removing custom label for "+customLabel[idx]+" at "+idx );
     customLabel.splice(idx, 1);
     customLabelType.splice(idx, 1);
     let newCustomLabel = customLabel.slice();
@@ -2772,6 +2784,7 @@ class Workspace {
 
     this._keyBindingsWindows = [];
 
+    // Expand the pinned-apps array if required
     let pinSetting = this._settings.getValue("pinned-apps");
     if (pinSetting.length < wsNum) {
       let newSetting = pinSetting.slice();
@@ -2793,9 +2806,7 @@ class Workspace {
 
     //this._signalManager.connect(this._windowTracker, "notify::focus-app", this._updateFocus, this);
     this._signalManager.connect(global.settings, "changed::panel-edit-mode", this._onPanelEditModeChanged, this);
-    this._signalManager.connect(this._settings, "changed::pinned-apps", this._updatePinnedApps, this);
     this._signalManager.connect(this._settings, "changed::show-windows-for-current-monitor", this._updateAllWindowsForMonitor, this);
-    //this._signalManager.connect(this._settings, "changed::group-windows", this._onGroupingChanged, this);
   }
 
   onOrientationChanged(orientation) {
@@ -3044,9 +3055,10 @@ class Workspace {
   }
 
   _updatePinnedApps() {
+    let currentWs = global.screen.get_active_workspace_index();
     // find new pinned applications
     if (this._settings.getValue("display-pinned")) {
-      let pinnedApps = this._settings.getValue("pinned-apps")[this._wsNum];
+      let pinnedApps = this.getPinnedApps();
       for (let i = 0; i < pinnedApps.length; i++) {
         let pinnedAppId = pinnedApps[i];
         let app = this._lookupApp(pinnedAppId);
@@ -3062,18 +3074,23 @@ class Workspace {
               break;
         }
         appButton = btns[idx];
-        if (!appButton) {
-          appButton = this._addAppButton(app);
+        if (!appButton || this._wsNum != currentWs) {
+          // Place the new button ahead of any existing pinned buttons with a higher index in the list of pinned apps
+          if (!appButton) {
+             appButton = this._addAppButton(app);
+          }
           let children = this.actor.get_children();
-          let targetIdx = children.length - 1;
-          for (let j = children.length - 2; j >= 0; j--) {
+          let targetIdx = -1;
+          for (let j = children.length - 1; j >= 0; j--) {
             let btn = children[j]._delegate;
-            let btnPinIdx = btn.getPinnedIndex()
-            if (btnPinIdx >= 0 && btnPinIdx > i) {
-              targetIdx = j;
+            if (btn != appButton) {
+               let btnPinIdx = btn.getPinnedIndex()
+               if (btnPinIdx >= 0 && btnPinIdx > i) {
+                  targetIdx = j;
+               }
             }
           }
-          if (targetIdx >= 0) {
+          if (targetIdx >= 0 && children.indexOf(appButton.actor) > targetIdx) {
             this.actor.move_child(appButton.actor, targetIdx);
           }
         }
@@ -3081,8 +3098,18 @@ class Workspace {
         appButton._minLabelSize = -1; // Must re-calculate
         appButton._updateLabel()
       }
+      // Remove the pinned setting from buttons that are no longer in the list of pinned apps
+      let children = this.actor.get_children();
+      for (let i=0 ; i < children.length ; i++) {
+         let btn = children[i]._delegate;
+         if (btn._pinned && (!btn._app || pinnedApps.indexOf(btn._app.get_id()) == -1)) {
+            btn._pinned = false;
+            btn._updateLabel();
+         }
+      }
     } else {
-       // remove pinned buttons because pinning has been disabled
+       // pinning has been disabled...
+       // Remove pinned buttons that have no running windows
        let btns = this._appButtons.slice();
        for (let i = btns.length - 1; i >= 0; i--) {
          let appButton = btns[i];
@@ -3091,9 +3118,18 @@ class Workspace {
            animatedRemoveAppButton(this, animTime, appButton);
          }
        }
+       // Remove the pinned setting from all buttons
+       let children = this.actor.get_children();
+       for (let i=0 ; i < children.length ; i++) {
+         let btn = children[i]._delegate;
+         if (btn._pinned) {
+            btn._pinned = false;
+            btn._updateLabel();
+         }
+       }
     }
 
-    // Remove buttons that are no longer pinned
+    // Remove buttons that have no running windows and are no longer pinned
     for (let i = this._appButtons.length - 1; i >= 0; i--) {
       let appButton = this._appButtons[i];
       if ((appButton._app && appButton.getPinnedIndex() < 0) && appButton._windows.length == 0) {
@@ -3103,31 +3139,22 @@ class Workspace {
     }
   }
 
-  _onDisplayPinnedChanged() {
-    let setting = this._settings.getValue("display-pinned");
-    if (setting) {
-      this._updatePinnedApps();
-    } else {
-      for (let i = this._appButtons.length - 1; i >= 0; i--) {
-        let appButton = this._appButtons[i];
-        if (appButton._windows.length == 0) {
-          let animTime = this._settings.getValue("label-animation") ? this._settings.getValue("label-animation-time") : 0;
-          animatedRemoveAppButton(this, animTime, appButton);
-        }
-      }
-    }
-  }
-
   _updatePinSettings() {
     let appButtons = this.actor.get_children().map(x => x._delegate);
     let newSetting = [];
-    let pinnedBtns = appButtons.filter(x => { return (x._pinned && !x._app.get_id().startsWith("window:")) });
+    let pinnedBtns = appButtons.filter(x => { return (x._pinned && !x._app.is_window_backed()) });
     for (let i = 0; i < pinnedBtns.length; i++) {
       newSetting.push(pinnedBtns[i]._app.get_id());
     }
-    let pinSetting = this._settings.getValue("pinned-apps").slice();
-    pinSetting[this._wsNum] = newSetting;
-    this._settings.setValue("pinned-apps", pinSetting);
+    let displayedPinned = this._settings.getValue("display-pinned");
+    if (displayedPinned === DisplayPinned.Synchronized) {
+       let pinSetting = this._settings.getValue("commoned-pinned-apps").slice();
+       this._settings.setValue("commoned-pinned-apps", newSetting);
+    } else {
+       let pinSetting = this._settings.getValue("pinned-apps").slice();
+       pinSetting[this._wsNum] = newSetting;
+       this._settings.setValue("pinned-apps", pinSetting);
+    }
     // Inform other windowlist that our pinned list changed in case they want to remove windowlist buttons
     this._applet.updateOtherWindowLists()
   }
@@ -3682,6 +3709,15 @@ class Workspace {
     }
     return app;
   }
+
+  getPinnedApps() {
+    let displayedPinned = this._settings.getValue("display-pinned");
+    if (displayedPinned === DisplayPinned.Synchronized) {
+      return this._settings.getValue("commoned-pinned-apps");
+    } else {
+      return this._settings.getValue("pinned-apps")[this._wsNum];
+    }
+  }
 }
 
 // The windowlist manager, one instance for each windowlist
@@ -3701,7 +3737,9 @@ class WindowList extends Applet.Applet {
 
     this._workspaces = [];
     this._keyBindings = [];
-    this._hiddenApps = null; // List of applications that should not be visible buttons
+    this._hiddenApps = null;    // List of applications that should not be visible buttons
+    this._pinnedApps = null;    // cached version of "pinned_apps"
+    this._displayPinned = null; // cached "display-pinned" setting
     this.indicators = 3;
     this.instanceId = instanceId;
     this.on_orientation_changed(orientation);
@@ -3997,6 +4035,12 @@ class WindowList extends Applet.Applet {
     if (changed) {
       this._settings.setValue("pinned-apps", newSetting);
     }
+    this._displayPinned = this._settings.getValue("display-pinned")
+    if (this._displayPinned == DisplayPinned.Synchronized) {
+       this._pinnedApps = this._settings.getValue("commoned-pinned-apps");
+    } else {
+       this._pinnedApps = this._settings.getValue("pinned-apps");
+    }
     this._updateKeybinding();
 
     for (let i = 0; i < nWorkspaces; i++) {
@@ -4020,17 +4064,60 @@ class WindowList extends Applet.Applet {
     this._signalManager.connect(this._settings, "changed::number-of-unshrunk-previews", this._updateThumbnailWindowSize, this);
     this._signalManager.connect(this._settings, "changed::hide-panel-apps", this._updateCurrentWorkspace, this);
     this._signalManager.connect(this._settings, "changed::group-windows", this._onGroupingChanged, this);
+    this._signalManager.connect(this._settings, "changed::display-pinned", this._onDisplayPinnedChanged, this);
+    this._signalManager.connect(this._settings, "changed::synchronize-pinned", this._onSynchronizePinnedChanged, this);
     this._signalManager.connect(this._settings, "settings-changed", this._onSettingsChanged, this);
 
     if (this._settings.getValue("runWizard")===1) {
        let command = GLib.get_home_dir() + "/.local/share/cinnamon/applets/" + this._uuid + "/setupWizard " + this._uuid + " " + this.instance_id;
-       //log( "Spawning: " + command );
        Util.spawnCommandLineAsync(command);
     }
   }
 
+  _onDisplayPinnedChanged(){
+     let newDisplayPinned = this._settings.getValue("display-pinned");
+     let curWS = global.screen.get_active_workspace_index();
+     if (newDisplayPinned == DisplayPinned.Synchronized && this._displayPinned == DisplayPinned.Enabled) {
+        let pinSetting = this._settings.getValue("pinned-apps");
+        this._settings.setValue("commoned-pinned-apps", pinSetting[curWS].slice());
+        return;
+     } else if (newDisplayPinned == DisplayPinned.Enabled && this._displayPinned == DisplayPinned.Synchronized) {
+        let pinSetting = this._settings.getValue("pinned-apps");
+        pinSetting[curWS] = this._settings.getValue("commoned-pinned-apps").slice();
+        this._settings.setValue("pinned-apps", pinSetting.slice());
+        return;
+     }
+     if (newDisplayPinned != this._displayPinned) {
+        this._displayPinned = newDisplayPinned;
+        this._updatePinnedApps();
+     }
+  }
+
+  _onSynchronizePinnedChanged() {
+     if (this._settings.getValue("synchronize-pinned")===true) {
+        this._settings.setValue("display-pinned", DisplayPinned.Synchronized);
+     } else {
+        this._settings.setValue("display-pinned", DisplayPinned.Enabled);
+     }
+     this._onDisplayPinnedChanged()
+  }
+
   _onSettingsChanged() {
-     // Since the "setting-changed" event fires multiple times we use a timer to backup after some time as past
+     // Check if there are new pinned apps, this is done because connecting to "changed::pinned-apps" seems to fire for any config change
+     let newPinnedApps;
+     if (this._settings.getValue("display-pinned") == DisplayPinned.Synchronized) {
+        newPinnedApps =  this._settings.getValue("commoned-pinned-apps");
+     } else {
+        newPinnedApps = this._settings.getValue("pinned-apps");
+     }
+     if (this._pinnedApps.length != newPinnedApps.length || this._pinnedApps.toString() != newPinnedApps.toString()) {
+        for (let wsIdx=0 ; wsIdx<this._workspaces.length ; wsIdx++) {
+           let ws = this._workspaces[wsIdx];
+           ws._updatePinnedApps();
+        }
+        this._pinnedApps = newPinnedApps;
+     }
+     // Since the "setting-changed" event fires multiple times we use a timer to backup after some time has passed
      if (this._backupDelayId)
         Mainloop.source_remove(this._backupDelayId);
      this._backupDelayId = Mainloop.timeout_add(60000, Lang.bind(this, this._backupConfig));
@@ -4040,7 +4127,6 @@ class WindowList extends Applet.Applet {
      this._backupDelayId = null;
      let backupFileName = this._settings.getValue("backup-file-name");
      if (backupFileName && backupFileName!="") {
-        //log( "Backing up config..." );
         let configFile = GLib.get_user_config_dir() + "/cinnamon/spices/" + this._uuid + "/" + this.instanceId + ".json";
         let file = Gio.File.new_for_path(configFile);
         if (!file.query_exists(null)) {
@@ -4056,7 +4142,6 @@ class WindowList extends Applet.Applet {
            destPath = GLib.get_user_config_dir() + "/cinnamon/spices/" + this._uuid + "/backup/" + backupFileName + ".json";
            destPath = Gio.File.new_for_path(destPath);
            let ret = file.copy(destPath, Gio.FileCopyFlags.OVERWRITE, null, null);
-           //log( `Copy was successful: ${ret}` );
         }
      }
   }

@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2023-08-19 11:38-0400\n"
+"POT-Creation-Date: 2023-09-12 09:49-0400\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -17,24 +17,24 @@ msgstr ""
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
 
-#: 4.0/applet.js:2171
+#: 4.0/applet.js:2179
 msgid "Applet Preferences"
 msgstr ""
 
-#: 4.0/applet.js:2175
+#: 4.0/applet.js:2183
 msgid "About..."
 msgstr ""
 
-#: 4.0/applet.js:2179
+#: 4.0/applet.js:2187
 msgid "Configure..."
 msgstr ""
 
-#: 4.0/applet.js:2183
+#: 4.0/applet.js:2191
 #, javascript-format
 msgid "Remove '%s'"
 msgstr ""
 
-#: 4.0/applet.js:2185
+#: 4.0/applet.js:2193
 msgid "Do you really want to remove this instance of CassiaWindowList?"
 msgstr ""
 
@@ -44,91 +44,95 @@ msgstr ""
 #. 4.0->settings-schema.json->mouse-action-btn2->options
 #. 4.0->settings-schema.json->mouse-action-btn8->options
 #. 4.0->settings-schema.json->mouse-action-btn9->options
-#: 4.0/applet.js:2194
+#: 4.0/applet.js:2202
 msgid "Open new window"
 msgstr ""
 
-#: 4.0/applet.js:2200
+#: 4.0/applet.js:2210
+msgid "Pin to panel"
+msgstr ""
+
+#: 4.0/applet.js:2212
 msgid "Pin to this workspace"
 msgstr ""
 
-#: 4.0/applet.js:2238
+#: 4.0/applet.js:2252
 msgid "Pin to other workspaces"
 msgstr ""
 
-#: 4.0/applet.js:2259
+#: 4.0/applet.js:2273
 msgid "Pin to all workspaces"
 msgstr ""
 
-#: 4.0/applet.js:2284 4.0/applet.js:2467
+#: 4.0/applet.js:2299 4.0/applet.js:2482
 msgid "Add new Hotkey for"
 msgstr ""
 
-#: 4.0/applet.js:2298
+#: 4.0/applet.js:2313
 msgid "Recent files"
 msgstr ""
 
-#: 4.0/applet.js:2322
+#: 4.0/applet.js:2337
 msgid "Places"
 msgstr ""
 
-#: 4.0/applet.js:2364
+#: 4.0/applet.js:2379
 msgid "Only on this workspace"
 msgstr ""
 
-#: 4.0/applet.js:2366
+#: 4.0/applet.js:2381
 msgid "Visible on all workspaces"
 msgstr ""
 
-#: 4.0/applet.js:2367
+#: 4.0/applet.js:2382
 msgid "Move to another workspace"
 msgstr ""
 
-#: 4.0/applet.js:2386
+#: 4.0/applet.js:2401
 msgid "Move to another monitor"
 msgstr ""
 
-#: 4.0/applet.js:2394
+#: 4.0/applet.js:2409
 msgid "Monitor"
 msgstr ""
 
-#: 4.0/applet.js:2422
+#: 4.0/applet.js:2437
 msgid "unassigned"
 msgstr ""
 
-#: 4.0/applet.js:2433 4.0/applet.js:2464
+#: 4.0/applet.js:2448 4.0/applet.js:2479
 msgid "Assign window to a hotkey"
 msgstr ""
 
-#: 4.0/applet.js:2487
+#: 4.0/applet.js:2502
 msgid "Change application label contents"
 msgstr ""
 
-#: 4.0/applet.js:2490
+#: 4.0/applet.js:2505
 msgid "Remove custom setting"
 msgstr ""
 
-#: 4.0/applet.js:2497
+#: 4.0/applet.js:2512
 msgid "Use window title"
 msgstr ""
 
-#: 4.0/applet.js:2504
+#: 4.0/applet.js:2519
 msgid "Use application name"
 msgstr ""
 
-#: 4.0/applet.js:2511
+#: 4.0/applet.js:2526
 msgid "No label"
 msgstr ""
 
-#: 4.0/applet.js:2522
+#: 4.0/applet.js:2537
 msgid "Ungroup application windows"
 msgstr ""
 
-#: 4.0/applet.js:2533
+#: 4.0/applet.js:2548
 msgid "Group application windows"
 msgstr ""
 
-#: 4.0/applet.js:2543
+#: 4.0/applet.js:2558
 msgid "Automatic grouping/ungrouping"
 msgstr ""
 
@@ -138,31 +142,31 @@ msgstr ""
 #. 4.0->settings-schema.json->mouse-action-btn2->options
 #. 4.0->settings-schema.json->mouse-action-btn8->options
 #. 4.0->settings-schema.json->mouse-action-btn9->options
-#: 4.0/applet.js:2572
+#: 4.0/applet.js:2587
 msgid "Move titlebar on to screen"
 msgstr ""
 
-#: 4.0/applet.js:2577
+#: 4.0/applet.js:2592
 msgid "Restore"
 msgstr ""
 
-#: 4.0/applet.js:2581
+#: 4.0/applet.js:2596
 msgid "Minimize"
 msgstr ""
 
-#: 4.0/applet.js:2587
+#: 4.0/applet.js:2602
 msgid "Unmaximize"
 msgstr ""
 
-#: 4.0/applet.js:2594
+#: 4.0/applet.js:2609
 msgid "Close others"
 msgstr ""
 
-#: 4.0/applet.js:2605
+#: 4.0/applet.js:2620
 msgid "Close all"
 msgstr ""
 
-#: 4.0/applet.js:2614
+#: 4.0/applet.js:2629
 msgid "Close"
 msgstr ""
 
@@ -442,8 +446,38 @@ msgid ""
 "Launcher: Only pinned button are shown, behaves like a panel launcher."
 msgstr ""
 
+#. 4.0->settings-schema.json->display-pinned->options
+msgid "Disabled"
+msgstr ""
+
+#. 4.0->settings-schema.json->display-pinned->options
+msgid "Unique for each workspace"
+msgstr ""
+
+#. 4.0->settings-schema.json->display-pinned->options
+msgid "Common across workspaces"
+msgstr ""
+
 #. 4.0->settings-schema.json->display-pinned->description
-msgid "Allow pinning of window list buttons"
+msgid "Pinning of window list buttons"
+msgstr ""
+
+#. 4.0->settings-schema.json->display-pinned->tooltip
+msgid ""
+"Controls whether window list buttons can be pinned, and whether each "
+"workspace has a unique set of pinned buttons or one common set shared across "
+"all workspaces. When in \"Common across workspaces\" mode the order of the "
+"pinned buttons is also maintained across workspaces."
+msgstr ""
+
+#. 4.0->settings-schema.json->synchronize-pinned->description
+msgid "Synchronize launcher buttons across all workspaces"
+msgstr ""
+
+#. 4.0->settings-schema.json->synchronize-pinned->tooltip
+msgid ""
+"If enabled, the number and order of launcher buttons on the panel will be "
+"synchronize across all workspaces."
 msgstr ""
 
 #. 4.0->settings-schema.json->show-windows-for-current-monitor->description
@@ -722,6 +756,15 @@ msgstr ""
 #. 4.0->settings-schema.json->mouse-action-btn8->options
 #. 4.0->settings-schema.json->mouse-action-btn9->options
 msgid "Move to current/next monitor"
+msgstr ""
+
+#. 4.0->settings-schema.json->preview-middle-click->options
+#. 4.0->settings-schema.json->preview-back-click->options
+#. 4.0->settings-schema.json->preview-forward-click->options
+#. 4.0->settings-schema.json->mouse-action-btn2->options
+#. 4.0->settings-schema.json->mouse-action-btn8->options
+#. 4.0->settings-schema.json->mouse-action-btn9->options
+msgid "Pin to panel toggle"
 msgstr ""
 
 #. 4.0->settings-schema.json->preview-middle-click->options
