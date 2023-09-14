@@ -473,6 +473,20 @@ function getSmartNumericHotkey(keyCombo) {
    return [null,null];
 }
 
+function getFirstLauncherApp() {
+   let applets = AppletManager.getRunningInstancesForUuid("CassiaWindowList@klangman");
+   for (let i=0 ; i < applets.length ; i++) {
+      if (applets[i] != this && applets[i].isLauncher()) {
+         return applets[i];
+      }
+   }
+   applets = AppletManager.getRunningInstancesForUuid("panel-launchers@cinnamon.org");
+   if (applets.length > 0) {
+         return applets[0];
+   }
+   return null;
+}
+
 // Represents an item in the Thumbnail popup menu
 class ThumbnailMenuItem extends PopupMenu.PopupBaseMenuItem {
 
@@ -2285,6 +2299,16 @@ class WindowListButton {
       }
     }
 
+    if (this._settings.getValue("group-windows")!=GroupType.Launcher && !this._app.is_window_backed()) {
+       let launcherApp = getFirstLauncherApp();
+       if (launcherApp) {
+          item = new PopupMenu.PopupIconMenuItem(_("Pin to launcher"), "send-to", St.IconType.SYMBOLIC);
+          item.connect("activate", Lang.bind(this, function() {
+               launcherApp.acceptNewLauncher(this._app.get_id());
+               }));
+          this._contextMenu.addMenuItem(item);
+       }
+    }
     // If this is a pinned button without open windows, add a item to allow creating a Hotkey right on the root menu
     if (this._pinned && !this._currentWindow && metaWindow === undefined) {
       let hotKeys = this._applet._keyBindings;
@@ -4308,13 +4332,10 @@ class WindowList extends Applet.Applet {
     // First check if another instance is configured as a panel launcher,
     // if one is found, sent this new launcher to that instance
     if (this._settings.getValue("group-windows")!=GroupType.Launcher) {
-       let applets = AppletManager.getRunningInstancesForUuid("CassiaWindowList@klangman");
-       for (let i=0 ; i < applets.length ; i++) {
-          if (applets[i] != this && applets[i].isLauncher()) {
-             //log("Sending new launcher request to the launcher instance!");
-             applets[i].acceptNewLauncher(appId);
-             return;
-          }
+       let launcherApp = getFirstLauncherApp();
+       if (launcherApp) {
+          launcherApp.acceptNewLauncher(appId);
+          return;
        }
     }
     let currentWs = global.screen.get_active_workspace_index();
