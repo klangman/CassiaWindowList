@@ -2219,24 +2219,33 @@ class WindowListButton {
 
     let displayPinned = this._settings.getValue("display-pinned");
     if (displayPinned && !this._app.is_window_backed()) {
-      let iconName = this._pinned ? "starred" : "non-starred";
-      if (displayPinned == DisplayPinned.Synchronized) {
-         item = new PopupMenu.PopupSwitchIconMenuItem(_("Pin to panel"), this._pinned, iconName, St.IconType.SYMBOLIC);
+      if (this._settings.getValue("group-windows")===GroupType.Launcher) {
+          if (displayPinned == DisplayPinned.Synchronized) {
+             item = new PopupMenu.PopupIconMenuItem(_("Remove from panel"), "process-stop", St.IconType.SYMBOLIC);
+          } else {
+             item = new PopupMenu.PopupIconMenuItem(_("Remove from this workspace"), "process-stop", St.IconType.SYMBOLIC);
+          }
+          item.connect("activate", Lang.bind(this, function() { this._workspace.unpinAppButton(this); }));
       } else {
-         item = new PopupMenu.PopupSwitchIconMenuItem(_("Pin to this workspace"), this._pinned, iconName, St.IconType.SYMBOLIC);
+         let iconName = this._pinned ? "starred" : "non-starred";
+         if (displayPinned == DisplayPinned.Synchronized) {
+            item = new PopupMenu.PopupSwitchIconMenuItem(_("Pin to panel"), this._pinned, iconName, St.IconType.SYMBOLIC);
+         } else {
+            item = new PopupMenu.PopupSwitchIconMenuItem(_("Pin to this workspace"), this._pinned, iconName, St.IconType.SYMBOLIC);
+         }
+         item.connect("toggled", Lang.bind(this, function(menuItem, state) {
+           if (state) {
+             this._workspace.pinAppButton(this);
+             menuItem.setIconSymbolicName("starred");
+           } else {
+             this._workspace.unpinAppButton(this);
+             if (this._windows == 0 || this._settings.getValue("group-windows")===GroupType.Launcher)
+                this._contextMenu.close();
+             else
+                menuItem.setIconSymbolicName("non-starred");
+           }
+         }));
       }
-      item.connect("toggled", Lang.bind(this, function(menuItem, state) {
-        if (state) {
-          this._workspace.pinAppButton(this);
-          menuItem.setIconSymbolicName("starred");
-        } else {
-          this._workspace.unpinAppButton(this);
-          if (this._windows == 0 || this._settings.getValue("group-windows")===GroupType.Launcher)
-             this._contextMenu.close();
-          else
-             menuItem.setIconSymbolicName("non-starred");
-        }
-      }));
       this._contextMenu.addMenuItem(item);
 
       if (displayPinned != DisplayPinned.Synchronized) {
