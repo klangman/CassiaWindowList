@@ -193,12 +193,13 @@ const MouseAction = {
   PinToPanel: 24         // Pin the appButton to the panel
 }
 
-// Possible settings for the left mouse action for grouped buttons
+// Possible settings for the left mouse action for grouped buttons (or Laucher with running windows)
 const LeftClickGrouped = {
    Toggle: 0,         // Restore most resent window or minimize if already in focus
    Cycle: 1,          // Restore most recent window or cycle windows if any window is already in focus
    Thumbnail: 2,      // Show the Thumbnail menu of windows
-   ToggleAndHold: 3   // Restore or Minimize on click, "hold" style thumbnail meanu on hold
+   ToggleAndHold: 3,  // Restore or Minimize on click, "hold" style thumbnail menu on hold
+   NewAndHold: 4      // Open a new window on click, "hold" style thumbnail menu on hold **Only possible in Launcher mode!**
 }
 
 // Possible values for the Pinned label setting
@@ -1078,6 +1079,14 @@ class WindowListButton {
     this._updateNumber();
   }
 
+  getBotton1Action() {
+     if (this._settings.getValue("group-windows")===GroupType.Launcher) {
+        return this._settings.getValue("launcher-mouse-action-btn1");
+     } else {
+        return this._settings.getValue("grouped-mouse-action-btn1");
+     }
+  }
+
   get_app_id() {
     return this._app.get_id();
   }
@@ -1265,7 +1274,7 @@ class WindowListButton {
        return;
     }
     let text = null;
-    if (this._windows.length == 0 || this._currentWindow.get_title()==null || (this._windows.length > 1 && this._settings.getValue("grouped-mouse-action-btn1")===LeftClickGrouped.Thumbnail)) {
+    if (this._windows.length == 0 || this._currentWindow.get_title()==null || (this._windows.length > 1 && this.getBotton1Action()===LeftClickGrouped.Thumbnail)) {
        text = this._app.get_name();
     } else {
        text = this._currentWindow.get_title();
@@ -1720,7 +1729,8 @@ class WindowListButton {
            return true; // Some action will be taken on release, don't attempt to so anything else here
         }
      }
-     if (mouseBtn == 1 && this._windows.length > 1 && this._settings.getValue("grouped-mouse-action-btn1") == LeftClickGrouped.ToggleAndHold) {
+     let btn1Action = this.getBotton1Action();
+     if (mouseBtn == 1 && ((this._windows.length > 1 && btn1Action == LeftClickGrouped.ToggleAndHold) || (this._windows.length > 0 && btn1Action == LeftClickGrouped.NewAndHold))) {
         this.holdDelay = Mainloop.timeout_add(350, Lang.bind(this, function() {
               this.openThumbnailMenu()
               this._workspace.holdPopup = mouseBtn;
@@ -1772,9 +1782,9 @@ class WindowListButton {
     // left mouse button
     if (mouseBtn == 1) {
       if (this._currentWindow) {
-        let leftGroupedAction = this._settings.getValue("grouped-mouse-action-btn1");
-        if (this._windows.length == 1 || leftGroupedAction == LeftClickGrouped.Toggle || leftGroupedAction == LeftClickGrouped.ToggleAndHold) {
-          if (leftGroupedAction == LeftClickGrouped.ToggleAndHold) {
+        let leftGroupedAction = this.getBotton1Action();
+        if (this._windows.length == 1 || leftGroupedAction == LeftClickGrouped.Toggle || leftGroupedAction == LeftClickGrouped.ToggleAndHold || leftGroupedAction == LeftClickGrouped.NewAndHold) {
+          if (leftGroupedAction == LeftClickGrouped.ToggleAndHold || leftGroupedAction == LeftClickGrouped.NewAndHold) {
              if (this.holdDelay) {
                 let doIt = GLib.MainContext.default().find_source_by_id(this.holdDelay);
                 if (doIt) {
@@ -1783,7 +1793,10 @@ class WindowListButton {
              }
              this.closeThumbnailMenu();
           }
-          if (hasFocus(this._currentWindow, false) && !this._currentWindow.minimized) {
+          if (leftGroupedAction == LeftClickGrouped.NewAndHold) {
+             log( "starting new app window!" );
+             this._startApp();
+          } else if (hasFocus(this._currentWindow, false) && !this._currentWindow.minimized) {
             this._currentWindow.minimize();
           } else {
             this.closeThumbnailMenu();

@@ -52,7 +52,7 @@
     "general-mouse" : {
       "type" : "section",
       "title" : "Window list mouse settings",
-    "keys" : ["grouped-mouse-action-btn1", "mouse-action-btn2", "mouse-action-btn8", "mouse-action-btn9"]
+    "keys" : ["grouped-mouse-action-btn1", "launcher-mouse-action-btn1", "mouse-action-btn2", "mouse-action-btn8", "mouse-action-btn9"]
     },
     "preview-settings" : {
       "type" : "section",
@@ -395,8 +395,24 @@
       "Show thumbnail menu": 2,
       "Restore or hold for thumbnail menu": 3
     },
+    "dependency" : "group-windows<4",
     "description": "Left button action for grouped buttons",
     "tooltip": "Action taken when using the left mouse button on a window list entry for a group of windows"
+  },
+
+  "launcher-mouse-action-btn1": {
+    "type": "combobox",
+    "default": 2,
+    "options": {
+      "Restore/Minimize most recent window": 0,
+      "Restore then cycle windows": 1,
+      "Show thumbnail menu": 2,
+      "Restore or hold for thumbnail menu": 3,
+      "New window or hold for thumbnail menu": 4
+    },
+    "dependency" : "group-windows=4",
+    "description": "Left button action (with running windows)",
+    "tooltip": "Action taken when using the left mouse button on a launcher button with one or more running windows"
   },
 
   "mouse-action-btn2": {
