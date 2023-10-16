@@ -67,7 +67,7 @@
     "hotkey-settings" : {
       "type" : "section",
       "title" : "Hotkey settings",
-      "keys" : ["hotkey-bindings", "hotkey-minimize", "hotkey-new", "hotkey-sequence", "hotkey-help"]
+      "keys" : ["hotkey-bindings", "hotkey-minimize", "hotkey-new", "hotkey-sequence", "hotkey-grave-help", "hotkey-help"]
     },
     "adv-mouse-settings" : {
       "type" : "section",
@@ -543,6 +543,12 @@
             {
                 "enabled": false,
                 "cycle": true,
+                "keyCombo": "<Super>1::",
+                "description": "All Buttons"
+            },
+            {
+                "enabled": false,
+                "cycle": true,
                 "keyCombo": "<Alt><Super>c::",
                 "description": "org.gnome.Calculator.desktop"
             }
@@ -566,10 +572,16 @@
     "description": "Smart numeric hotkeys (using \"1\" automatically extends to 1-9)",
     "tooltip": "If enabled, hotkeys ending with the \"1\" key (i.e. Alt+1) will automatically create hotkeys 1 through 9 (i.e. Alt+1 through Alt+9). The first 9 windows of the assigned application, as ordered on the window-list, will be activated by the 9 hotkeys."
   },
+  "hotkey-grave-help": {
+    "type": "switch",
+    "default": true,
+    "description": "Use modifier(s) + ` hotkey to show hotkey hint bubbles",
+    "tooltip": "If enabled, The hotkey modifier(s) + ` will be registered for each unique modifier set defined in the hotkey list. Using these hotkeys will temporally show a hotkey hint bubble over the button icons."
+  },
 
   "hotkey-help" : {
     "type" : "label",
-    "description" : "Hotkeys can be assigned to a window in two ways:\n1) Manual: Use \"Assign window to a hotkey\" in the button context menu.\n2) Automatic:  Enter a \"Description\" matching an application name or desktop file. i.e: \"Google Chrome\" or \"firefox.desktop\"\nNote: 1) Hotkey not working? it's possible the key combination is already assigned elsewhere. 2) If you remove or rearrange hotkeys, manual hotkey assignments might need to be reassigned. 3) Hotkeys associated with desktop files can not be manually assigned."
+    "description" : "Hotkeys can be assigned to a window in two ways:\n1) Manual: Use \"Assign window to a hotkey\" in the button context menu.\n2) Automatic:  Enter a \"Description\" matching an application name or desktop file.\nNote: 1) Hotkey not working? it's possible the key combination is already assigned elsewhere. 2) If you remove or rearrange hotkeys, manual hotkey assignments might need to be reassigned. 3) Hotkeys associated with desktop files can not be manually assigned."
   },
 
   "adv-mouse-list": {
