@@ -666,6 +666,11 @@
     ]
   },
 
+  "custom-app-grouping": {
+     "type": "generic",
+     "default": []
+  },
+
   "commoned-pinned-apps": {
     "type": "generic",
     "default": ["nemo.desktop", "firefox.desktop"]

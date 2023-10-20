@@ -129,7 +129,7 @@ const CaptionType = {
   None: 2            // No caption should be displayed
 }
 
-// The possible user setting for how application windows should be grouped
+// The possible user setting for how application windows should be grouped by default
 const GroupType = {
    Grouped: 0,       // All windows for an application should be grouped under a single windowlist button
    Pooled: 1,        // All windows for an application should be pooled side-by-side on the windowlist
@@ -1949,9 +1949,15 @@ class WindowListButton {
            let btns = this._workspace._lookupAllAppButtonsForApp(this._app);
            this.closeThumbnailMenu();
            if (btns.length > 1) {
-              this._workspace._groupOneApp(btns, GroupingType.ForcedOn);
+              let button = this._workspace._groupOneApp(btns, GroupingType.ForcedOn);
+              button._saveCustomAppGrouping();
            } else if (btns.length == 1 && btns[0]._windows.length > 1) {
-              this._workspace._ungroupOneApp(this, GroupingType.ForcedOff);
+              //if (this._workspace._areButtonsShrunk()) {
+                 this._workspace._ungroupOneApp(this, GroupingType.ForcedOff);
+              //} else {
+              //   this._workspace._ungroupOneApp(this, GroupingType.NotGrouped);
+              //}
+              this._saveCustomAppGrouping();
            }
            break;
         case MouseAction.New:
@@ -2614,17 +2620,22 @@ class WindowListButton {
          if (this._windows.length > 1) {
             item = new PopupMenu.PopupMenuItem(_("Ungroup application windows"));
             item.connect("activate", Lang.bind(this, function() {
-                  let type = GroupingType.NotGrouped;
-                  if (this._workspace._areButtonsShrunk())
-                     type = GroupingType.ForcedOff;
-                  this._workspace._ungroupOneApp(this, type); 
+                  //if (this._workspace._areButtonsShrunk()) {
+                     this._workspace._ungroupOneApp(this, GroupingType.ForcedOff);
+                  //} else {
+                  //   this._workspace._ungroupOneApp(this, GroupingType.NotGrouped);
+                  //}
+                  this._saveCustomAppGrouping();
                }));
             this._contextMenu.addMenuItem(item);
          } else {
             let btns = this._workspace._lookupAllAppButtonsForApp(this._app);
             if (btns && btns.length > 1) {
               item = new PopupMenu.PopupMenuItem(_("Group application windows"));
-              item.connect("activate", Lang.bind(this, function() { this._workspace._groupOneApp(btns, GroupingType.ForcedOn); }));
+              item.connect("activate", Lang.bind(this, function() {
+                    let button = this._workspace._groupOneApp(btns, GroupingType.ForcedOn);
+                    button._saveCustomAppGrouping();
+                 }));
               this._contextMenu.addMenuItem(item);
             }
          }
@@ -2655,6 +2666,7 @@ class WindowListButton {
                     btns[i]._grouped = GroupingType.ForcedOff;
               }
            }
+           this._saveCustomAppGrouping()
          }));
          this._contextMenu.addMenuItem(item);
       }
@@ -2828,6 +2840,46 @@ class WindowListButton {
         btns[idx]._updateLabel();
      }
   }
+
+  _saveCustomAppGrouping(){
+     if (this._app.is_window_backed()) {
+        return;
+     }
+     let groupType = this._settings.getValue("group-windows");
+     let customAppGrouping = this._settings.getValue("custom-app-grouping");
+     if (groupType == GroupType.Grouped) {
+        let element = customAppGrouping.find((element) => element == this._app.get_id());
+        if (this._grouped != GroupingType.ForcedOn && !element) {
+           customAppGrouping.push(this._app.get_id());
+           this._settings.setValue("custom-app-grouping", customAppGrouping);
+        } else if (this._grouped == GroupingType.ForcedOn && element) {
+           customAppGrouping.splice(customAppGrouping.indexOf(element), 1);
+           this._settings.setValue("custom-app-grouping", customAppGrouping);
+        }
+     } else if (groupType == GroupType.Pooled || groupType == GroupType.Off) {
+        let element = customAppGrouping.find((element) => element == this._app.get_id());
+        if (this._grouped == GroupingType.ForcedOn && !element) {
+           customAppGrouping.push(this._app.get_id());
+           this._settings.setValue("custom-app-grouping", customAppGrouping);
+        } else if (element) {
+           customAppGrouping.splice(customAppGrouping.indexOf(element), 1);
+           this._settings.setValue("custom-app-grouping", customAppGrouping);
+        }
+     } else if (groupType == GroupType.Auto) {
+        let element = customAppGrouping.find((element) => element[0] == this._app.get_id());
+        if (!element && (this._grouped == GroupingType.ForcedOn || this._grouped == GroupingType.ForcedOff)) {
+           customAppGrouping.push([this._app.get_id(),this._grouped]);
+           this._settings.setValue("custom-app-grouping", customAppGrouping);
+        } else if (element && (this._grouped == GroupingType.NotGrouped || this._grouped == GroupingType.Auto)){
+           customAppGrouping.splice(customAppGrouping.indexOf(element), 1);
+           this._settings.setValue("custom-app-grouping", customAppGrouping);
+        } else if (element && this._grouped!=element[1]) {
+           element[1] = this._grouped;
+           this._settings.setValue("custom-app-grouping", customAppGrouping);
+        }
+     }
+  }
+
 }
 
 // Represents a windowlist on a workspace (one for each workspace)
@@ -2942,8 +2994,28 @@ class Workspace {
     // New appButton should behave like the existing buttons for the app
     if (btns && btns.length > 0) {
        appButton._grouped = btns[0]._grouped;
-    } else if (groupingType === GroupType.Grouped) {
-       appButton._grouped = GroupingType.ForcedOn;
+    } else {
+       let customAppGrouping = this._settings.getValue("custom-app-grouping");
+       if (groupingType === GroupType.Grouped) {
+          let element = customAppGrouping.find((element) => element == app.get_id());
+          if (element){
+             appButton._grouped = GroupingType.ForcedOff;
+          } else {
+             appButton._grouped = GroupingType.ForcedOn;
+          }
+       } else if (groupingType === GroupType.Auto) {
+          let element = customAppGrouping.find((element) => element[0] == app.get_id());
+          if (element) {
+             appButton._grouped = element[1];
+          }
+       } else if (groupingType === GroupType.Pooled || groupingType === GroupType.Off) {
+          let element = customAppGrouping.find((element) => element == app.get_id());
+          if (element) {
+             appButton._grouped = GroupingType.ForcedOn;
+          } else {
+             appButton._grouped = GroupingType.ForcedOff;
+          }
+       }
     }
     this._appButtons.push(appButton);
     this.actor.add_actor(appButton.actor);
@@ -3301,6 +3373,7 @@ class Workspace {
 
   _onGroupingChanged() {
      let setting = this._settings.getValue("group-windows");
+     this._settings.setValue("custom-app-grouping", [] );
      switch(setting) {
         case GroupType.Grouped:
            this._groupAllApps(GroupingType.ForcedOn);
@@ -3730,6 +3803,7 @@ class Workspace {
     btns[btns.length-1]._windows.push(x);
     this._updateFocus();
     //btns[btns.length-1]._updateTooltip();
+    return btns[btns.length-1];
   }
 
   // Ungroup the windows in the passed in buttons, set the button so it's not grouping, add windows back
