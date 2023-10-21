@@ -1081,7 +1081,7 @@ class WindowListButton {
     this._updateNumber();
   }
 
-  getBotton1Action() {
+  getButton1Action() {
      if (this._settings.getValue("group-windows")===GroupType.Launcher) {
         return this._settings.getValue("launcher-mouse-action-btn1");
      } else {
@@ -1278,7 +1278,7 @@ class WindowListButton {
        return;
     }
     let text = null;
-    if (this._windows.length == 0 || this._currentWindow.get_title()==null || (this._windows.length > 1 && this.getBotton1Action()===LeftClickGrouped.Thumbnail)) {
+    if (this._windows.length == 0 || this._currentWindow.get_title()==null || (this._windows.length > 1 && this.getButton1Action()===LeftClickGrouped.Thumbnail)) {
        text = this._app.get_name();
     } else {
        text = this._currentWindow.get_title();
@@ -1753,7 +1753,7 @@ class WindowListButton {
            return true; // Some action will be taken on release, don't attempt to so anything else here
         }
      }
-     let btn1Action = this.getBotton1Action();
+     let btn1Action = this.getButton1Action();
      if (mouseBtn == 1 && ((this._windows.length > 1 && btn1Action == LeftClickGrouped.ToggleAndHold) || (this._windows.length > 0 && btn1Action == LeftClickGrouped.NewAndHold))) {
         this.holdDelay = Mainloop.timeout_add(350, Lang.bind(this, function() {
               this.openThumbnailMenu()
@@ -1806,7 +1806,7 @@ class WindowListButton {
     // left mouse button
     if (mouseBtn == 1) {
       if (this._currentWindow) {
-        let leftGroupedAction = this.getBotton1Action();
+        let leftGroupedAction = this.getButton1Action();
         if (this._windows.length == 1 || leftGroupedAction == LeftClickGrouped.Toggle || leftGroupedAction == LeftClickGrouped.ToggleAndHold || leftGroupedAction == LeftClickGrouped.NewAndHold) {
           if (leftGroupedAction == LeftClickGrouped.ToggleAndHold || leftGroupedAction == LeftClickGrouped.NewAndHold) {
              if (this.holdDelay) {
@@ -1952,11 +1952,7 @@ class WindowListButton {
               let button = this._workspace._groupOneApp(btns, GroupingType.ForcedOn);
               button._saveCustomAppGrouping();
            } else if (btns.length == 1 && btns[0]._windows.length > 1) {
-              //if (this._workspace._areButtonsShrunk()) {
-                 this._workspace._ungroupOneApp(this, GroupingType.ForcedOff);
-              //} else {
-              //   this._workspace._ungroupOneApp(this, GroupingType.NotGrouped);
-              //}
+              this._workspace._ungroupOneApp(this, GroupingType.ForcedOff);
               this._saveCustomAppGrouping();
            }
            break;
@@ -2620,11 +2616,7 @@ class WindowListButton {
          if (this._windows.length > 1) {
             item = new PopupMenu.PopupMenuItem(_("Ungroup application windows"));
             item.connect("activate", Lang.bind(this, function() {
-                  //if (this._workspace._areButtonsShrunk()) {
-                     this._workspace._ungroupOneApp(this, GroupingType.ForcedOff);
-                  //} else {
-                  //   this._workspace._ungroupOneApp(this, GroupingType.NotGrouped);
-                  //}
+                  this._workspace._ungroupOneApp(this, GroupingType.ForcedOff);
                   this._saveCustomAppGrouping();
                }));
             this._contextMenu.addMenuItem(item);
@@ -4207,7 +4199,11 @@ class WindowList extends Applet.Applet {
         }
      }
      if (timerNeeded) {
-        Mainloop.timeout_add(3000, Lang.bind(this, function() {
+        if (this.hotkeyHelpRemoveDelay) {
+           Mainloop.source_remove(this.hotkeyHelpRemoveDelay);
+        }
+        this.hotkeyHelpRemoveDelay = Mainloop.timeout_add(3000, Lang.bind(this, function() {
+              this.hotkeyHelpRemoveDelay = undefined;
               let children = workspace.actor.get_children();
               for( let idx=0 ; idx < children.length ; idx++ ){
                  children[idx]._delegate._updateNumber();
