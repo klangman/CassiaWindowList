@@ -2163,7 +2163,7 @@ class WindowListButton {
     this._app.open_new_window(-1);
     //let animationTime = this._settings.getValue("animation-time") / 1000;
     //this._animateIcon(animationTime);
-    if (this._grouped === GroupingType.ForcedOn || this._grouped === GroupingType.Auto ||
+    if (this._windows.length===0 || this._grouped === GroupingType.ForcedOn || this._grouped === GroupingType.Auto ||
         this._settings.getValue("group-windows")===GroupType.Launcher)
     {
        this._animateIcon(0);
