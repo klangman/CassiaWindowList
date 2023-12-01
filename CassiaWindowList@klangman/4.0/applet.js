@@ -1272,17 +1272,19 @@ class WindowListButton {
     let enableTooltips = this._settings.getValue("show-tooltips");
     let hoverEnabled = this._settings.getValue("menu-show-on-hover");
     if (!enableTooltips || !this._tooltip || (hoverEnabled && this._windows.length > 0)) {
-       if (this._tooltip)
+       if (this._tooltip) {
           this._tooltip.set_text("");
-          this._tooltip.preventShow = false
+          this._tooltip.preventShow = false;
+       }
        return;
     }
-    let text = null;
+    let text;
     if (this._windows.length == 0 || this._currentWindow.get_title()==null || (this._windows.length > 1 && this.getButton1Action()===LeftClickGrouped.Thumbnail)) {
        text = this._app.get_name();
     } else {
        text = this._currentWindow.get_title();
     }
+    text = "<b>"+text+"</b><small>";
     // If this button's window is associated with a hotkey sequence, then append the hotkey sequence to the tooltip
     let hotKeys = this._applet._keyBindings;
     let hotKeyWindows = this._workspace._keyBindingsWindows;
@@ -1340,15 +1342,9 @@ class WindowListButton {
           }
        }
     }
-
-    // Disable the tooltip if there is no text or the thumbnail menu is configured to automatically popup.
-    if (!text) {
-       this._tooltip.set_text("");
-       this._tooltip.preventShow = true;
-    } else {
-       this._tooltip.set_text( text );
-       this._tooltip.preventShow = false;
-    }
+    text += "</small>"
+    this._tooltip.set_markup( text );
+    this._tooltip.preventShow = false;
   }
 
   updateIcon() {
