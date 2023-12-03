@@ -608,7 +608,7 @@ class ThumbnailMenuItem extends PopupMenu.PopupBaseMenuItem {
 
     this._descBox.natural_width = width;
 
-    let clones = WindowUtils.createWindowClone(this._metaWindow, width, height, true, true);
+    let clones = WindowUtils.createWindowClone(this._metaWindow, width, height, false, true);
     for (let i = 0; i < clones.length; i++) {
       let clone = clones[i];
       this._cloneBox.add_actor(clone.actor);
@@ -1278,13 +1278,7 @@ class WindowListButton {
        }
        return;
     }
-    let text;
-    if (this._windows.length == 0 || this._currentWindow.get_title()==null || (this._windows.length > 1 && this.getButton1Action()===LeftClickGrouped.Thumbnail)) {
-       text = this._app.get_name();
-    } else {
-       text = this._currentWindow.get_title();
-    }
-    text = "<b>"+text+"</b><small>";
+    let text = "";
     // If this button's window is associated with a hotkey sequence, then append the hotkey sequence to the tooltip
     let hotKeys = this._applet._keyBindings;
     let hotKeyWindows = this._workspace._keyBindingsWindows;
@@ -1342,7 +1336,17 @@ class WindowListButton {
           }
        }
     }
-    text += "</small>"
+    let title;
+    if (this._windows.length == 0 || this._currentWindow.get_title()==null || (this._windows.length > 1 && this.getButton1Action()===LeftClickGrouped.Thumbnail)) {
+       title = this._app.get_name();
+    } else {
+       title = this._currentWindow.get_title();
+    }
+    if (text.length > 0 ) {
+       text = "<b>"+title+"</b>"+"<small>"+text+"</small>";
+    }else{
+       text = title;
+    }
     this._tooltip.set_markup( text );
     this._tooltip.preventShow = false;
   }
@@ -3473,7 +3477,9 @@ class Workspace {
        }
        if (newFocus) {
           if (this._currentFocus && newFocus != this._currentFocus) {
-             this._currentFocus._updateFocus();
+             //this._currentFocus._updateFocus();
+             this._currentFocus.actor.remove_style_pseudo_class("focus");
+             this._currentFocus._updateLabel();
              let pinnedSetting = this._settings.getValue("display-caption-for-pined");
              let capSetting = this._settings.getValue("display-caption-for");
              if (pinnedSetting == PinnedLabel.Focused && capSetting === DisplayCaption.One) {
