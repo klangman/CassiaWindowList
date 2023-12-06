@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2023-11-27 22:18-0500\n"
+"POT-Creation-Date: 2023-12-05 20:45-0500\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -17,29 +17,29 @@ msgstr ""
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
 
-#: 4.0/applet.js:1331 4.0/applet.js:2515 4.0/applet.js:4009 4.0/applet.js:4077
-#: 4.0/applet.js:4100 4.0/applet.js:4189
+#: 4.0/applet.js:1385 4.0/applet.js:2604 4.0/applet.js:4112 4.0/applet.js:4180
+#: 4.0/applet.js:4203 4.0/applet.js:4292
 msgid "all buttons"
 msgstr ""
 
-#: 4.0/applet.js:2247
+#: 4.0/applet.js:2333
 msgid "Applet Preferences"
 msgstr ""
 
-#: 4.0/applet.js:2251
+#: 4.0/applet.js:2337
 msgid "About..."
 msgstr ""
 
-#: 4.0/applet.js:2255
+#: 4.0/applet.js:2341
 msgid "Configure..."
 msgstr ""
 
-#: 4.0/applet.js:2259
+#: 4.0/applet.js:2345
 #, javascript-format
 msgid "Remove '%s'"
 msgstr ""
 
-#: 4.0/applet.js:2261
+#: 4.0/applet.js:2347
 msgid "Do you really want to remove this instance of CassiaWindowList?"
 msgstr ""
 
@@ -49,107 +49,111 @@ msgstr ""
 #. 4.0->settings-schema.json->mouse-action-btn2->options
 #. 4.0->settings-schema.json->mouse-action-btn8->options
 #. 4.0->settings-schema.json->mouse-action-btn9->options
-#: 4.0/applet.js:2270
+#: 4.0/applet.js:2356
 msgid "Open new window"
 msgstr ""
 
-#: 4.0/applet.js:2278
+#: 4.0/applet.js:2364
 msgid "Remove from panel"
 msgstr ""
 
-#: 4.0/applet.js:2280
+#: 4.0/applet.js:2366
 msgid "Remove from this workspace"
 msgstr ""
 
-#: 4.0/applet.js:2286
+#: 4.0/applet.js:2372
 msgid "Pin to panel"
 msgstr ""
 
-#: 4.0/applet.js:2288
+#: 4.0/applet.js:2374
 msgid "Pin to this workspace"
 msgstr ""
 
-#: 4.0/applet.js:2329
+#: 4.0/applet.js:2415
 msgid "Pin to other workspaces"
 msgstr ""
 
-#: 4.0/applet.js:2350
+#: 4.0/applet.js:2436
 msgid "Pin to all workspaces"
 msgstr ""
 
-#: 4.0/applet.js:2368
+#: 4.0/applet.js:2454
 msgid "Pin to launcher"
 msgstr ""
 
-#: 4.0/applet.js:2386 4.0/applet.js:2569
+#: 4.0/applet.js:2472 4.0/applet.js:2658
 msgid "Add new Hotkey for"
 msgstr ""
 
-#: 4.0/applet.js:2400
+#: 4.0/applet.js:2486
 msgid "Recent files"
 msgstr ""
 
-#: 4.0/applet.js:2424
+#: 4.0/applet.js:2510
 msgid "Places"
 msgstr ""
 
-#: 4.0/applet.js:2466
+#: 4.0/applet.js:2552
 msgid "Only on this workspace"
 msgstr ""
 
-#: 4.0/applet.js:2468
+#: 4.0/applet.js:2554
 msgid "Visible on all workspaces"
 msgstr ""
 
-#: 4.0/applet.js:2469
+#: 4.0/applet.js:2555
 msgid "Move to another workspace"
 msgstr ""
 
-#: 4.0/applet.js:2488
+#: 4.0/applet.js:2564
+msgid " (this workspace)"
+msgstr ""
+
+#: 4.0/applet.js:2577
 msgid "Move to another monitor"
 msgstr ""
 
-#: 4.0/applet.js:2496
+#: 4.0/applet.js:2585
 msgid "Monitor"
 msgstr ""
 
-#: 4.0/applet.js:2524
+#: 4.0/applet.js:2613
 msgid "unassigned"
 msgstr ""
 
-#: 4.0/applet.js:2535 4.0/applet.js:2566
+#: 4.0/applet.js:2624 4.0/applet.js:2655
 msgid "Assign window to a hotkey"
 msgstr ""
 
-#: 4.0/applet.js:2589
+#: 4.0/applet.js:2678
 msgid "Change application label contents"
 msgstr ""
 
-#: 4.0/applet.js:2592
+#: 4.0/applet.js:2681
 msgid "Remove custom setting"
 msgstr ""
 
-#: 4.0/applet.js:2599
+#: 4.0/applet.js:2688
 msgid "Use window title"
 msgstr ""
 
-#: 4.0/applet.js:2606
+#: 4.0/applet.js:2695
 msgid "Use application name"
 msgstr ""
 
-#: 4.0/applet.js:2613
+#: 4.0/applet.js:2702
 msgid "No label"
 msgstr ""
 
-#: 4.0/applet.js:2624
+#: 4.0/applet.js:2713
 msgid "Ungroup application windows"
 msgstr ""
 
-#: 4.0/applet.js:2633
+#: 4.0/applet.js:2722
 msgid "Group application windows"
 msgstr ""
 
-#: 4.0/applet.js:2646
+#: 4.0/applet.js:2735
 msgid "Automatic grouping/ungrouping"
 msgstr ""
 
@@ -159,31 +163,31 @@ msgstr ""
 #. 4.0->settings-schema.json->mouse-action-btn2->options
 #. 4.0->settings-schema.json->mouse-action-btn8->options
 #. 4.0->settings-schema.json->mouse-action-btn9->options
-#: 4.0/applet.js:2676
+#: 4.0/applet.js:2765
 msgid "Move titlebar on to screen"
 msgstr ""
 
-#: 4.0/applet.js:2681
+#: 4.0/applet.js:2770
 msgid "Restore"
 msgstr ""
 
-#: 4.0/applet.js:2685
+#: 4.0/applet.js:2774
 msgid "Minimize"
 msgstr ""
 
-#: 4.0/applet.js:2691
+#: 4.0/applet.js:2780
 msgid "Unmaximize"
 msgstr ""
 
-#: 4.0/applet.js:2698
+#: 4.0/applet.js:2787
 msgid "Close others"
 msgstr ""
 
-#: 4.0/applet.js:2709
+#: 4.0/applet.js:2798
 msgid "Close all"
 msgstr ""
 
-#: 4.0/applet.js:2718
+#: 4.0/applet.js:2807
 msgid "Close"
 msgstr ""
 
@@ -1040,6 +1044,52 @@ msgid ""
 "If a name is entered here, the configuration of this applet instance will be "
 "backed up under that name. Backups will be listed in the Setup Wizard "
 "restore page when adding a new instance of CassiaWindowList to a panel."
+msgstr ""
+
+#. 4.0->settings-schema.json->icon-saturation->units
+msgid "percent"
+msgstr ""
+
+#. 4.0->settings-schema.json->icon-saturation->description
+msgid "Icon color saturation"
+msgstr ""
+
+#. 4.0->settings-schema.json->icon-saturation->tooltip
+msgid ""
+"Sets the color saturation for icons from 0% (grayscale) to 200%, default is "
+"100%\n"
+"This option is experimental, some icons are not currently effected by this "
+"setting"
+msgstr ""
+
+#. 4.0->settings-schema.json->saturation-application->options
+msgid "All Buttons"
+msgstr ""
+
+#. 4.0->settings-schema.json->saturation-application->options
+msgid "Minimized buttons"
+msgstr ""
+
+#. 4.0->settings-schema.json->saturation-application->options
+msgid "Idle pinned buttons"
+msgstr ""
+
+#. 4.0->settings-schema.json->saturation-application->options
+msgid "Buttons for windows on other workspaces"
+msgstr ""
+
+#. 4.0->settings-schema.json->saturation-application->options
+msgid "Buttons for windows on other monitors"
+msgstr ""
+
+#. 4.0->settings-schema.json->saturation-application->description
+msgid "Where to apply the icon color saturation"
+msgstr ""
+
+#. 4.0->settings-schema.json->saturation-application->tooltip
+msgid ""
+"Which buttons will have the custom icon color saturation applied\n"
+"This option is only available when the saturation is not set to 100%"
 msgstr ""
 
 #: SetupWizard.ui:7
