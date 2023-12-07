@@ -263,7 +263,8 @@ const SaturationType = {
    Minimized: 1,
    Idle: 2,
    OtherWorkspaces: 3,
-   OtherMonitors: 4
+   OtherMonitors: 4,
+   Focused: 5
 }
 
 Gettext.bindtextdomain(UUID, GLib.get_home_dir() + "/.local/share/locale");
@@ -1035,6 +1036,7 @@ class WindowListButton {
     this.actor.add_actor(this._labelBox);
 
     this._icon = null;
+    this._modifiedIcon = null;  // This is a version of the icon that has had it saturation modified
     this._iconBin = new St.Bin({name: "appMenuIcon"});
     this._iconBin._delegate = this;
     this._iconBox.add_actor(this._iconBin);
@@ -1244,7 +1246,7 @@ class WindowListButton {
     if (this._workspace.iconSaturation!=100 &&
        (this._pinned && this._windows.length===1 && this._workspace.saturationType == SaturationType.Idle) ||
        (this._workspace.saturationType == SaturationType.OtherMonitors && this.isOnOtherMonitorsAll()) ) {
-       this.updateIcon();
+       this.updateIconSelection();
     }
   }
 
@@ -1273,7 +1275,7 @@ class WindowListButton {
         this._minLabelSize = -1
         this.closeThumbnailMenu();
         if (this._workspace.iconSaturation!=100 && this._workspace.saturationType == SaturationType.Idle) {
-          this.updateIcon();
+          this.updateIconSelection();
         }
       }
     }
@@ -1320,7 +1322,7 @@ class WindowListButton {
   _onWindowWorkspaceChanged(window, wsNum) {
     this._applet.windowWorkspaceChanged(window, wsNum);
     if (this._workspace.iconSaturation!=100 && this._workspace.saturationType == SaturationType.OtherWorkspaces) {
-       this.updateIcon();
+       this.updateIconSelection();
     }
   }
 
@@ -1413,6 +1415,23 @@ class WindowListButton {
     this._tooltip.preventShow = false;
   }
 
+  updateIconSelection() {
+     if (this._workspace.iconSaturation != 100 && this._modifiedIcon) {
+        let satType = this._workspace.saturationType;
+        if (satType == SaturationType.All ||
+           (satType == SaturationType.Minimized && this.isMinimizedAll()) ||
+           (satType == SaturationType.Idle && this._pinned && this._windows.length==0) ||
+           (satType == SaturationType.OtherWorkspaces && this.isOnOtherWorkspaceAll()) ||
+           (satType == SaturationType.OtherMonitors && this.isOnOtherMonitorsAll()) ||
+           (satType == SaturationType.Focused && !this._hasFocus()) )
+        {
+           this._iconBin.set_child(this._modifiedIcon);
+           return;
+        }
+     }
+     this._iconBin.set_child(this._icon);
+  }
+
   updateIcon() {
     let panelHeight = this._applet._panelHeight;
 
@@ -1422,52 +1441,44 @@ class WindowListButton {
 
     if (this._icon)
        this._icon.destroy();
+    if (this._modifiedIcon) {
+       this._modifiedIcon.destroy();
+       this._modifiedIcon = null;
+    }
 
     if (this._app) {
       let appInfo = this._app.get_app_info();
       if (appInfo) {
         let infoIcon = appInfo.get_icon();
-        icon = new St.Icon({ gicon: infoIcon,
-                             icon_size: this.iconSize
-                           });
         let saturation = this._workspace.iconSaturation;
         if (saturation != 100) {
-           let satType = this._workspace.saturationType;
-           if (satType == SaturationType.All ||
-              (satType == SaturationType.Minimized && this.isMinimizedAll()) ||
-              (satType == SaturationType.Idle && this._pinned && this._windows.length==0) ||
-              (satType == SaturationType.OtherWorkspaces && this.isOnOtherWorkspaceAll()) ||
-              (satType == SaturationType.OtherMonitors && this.isOnOtherMonitorsAll()) )
-           {
-              let pixBuf;
-              let themeIcon = ICONTHEME.lookup_icon(infoIcon.to_string(), this.iconSize, 0);
-              if (themeIcon) {
-                 pixBuf = GdkPixbuf.Pixbuf.new_from_file_at_size(themeIcon.get_filename(), this.iconSize, this.iconSize);
-              } else {
-                 pixBuf = GdkPixbuf.Pixbuf.new_from_file_at_size(infoIcon.to_string(), this.iconSize, this.iconSize);
-              }
-              if (pixBuf) {
-                 let image = new Clutter.Image();
-                 pixBuf.saturate_and_pixelate(pixBuf, saturation/100, false);
-                 image.set_data(pixBuf.get_pixels(), pixBuf.get_has_alpha() ? Cogl.PixelFormat.RGBA_8888 : Cogl.PixelFormat.RGBA_888,
-                    this.iconSize, this.iconSize, pixBuf.get_rowstride() );
-                 icon = new Clutter.Actor({width: this.iconSize, height: this.iconSize, content: image});
-              } else {
-                 //log( `Can't find icon for ${infoIcon.to_string()}` );
-              }
+           let pixBuf;
+           let themeIcon = ICONTHEME.lookup_icon(infoIcon.to_string(), this.iconSize, 0);
+           if (themeIcon) {
+              pixBuf = GdkPixbuf.Pixbuf.new_from_file_at_size(themeIcon.get_filename(), this.iconSize, this.iconSize);
+           } else {
+              pixBuf = GdkPixbuf.Pixbuf.new_from_file_at_size(infoIcon.to_string(), this.iconSize, this.iconSize);
+           }
+           if (pixBuf) {
+              let image = new Clutter.Image();
+              pixBuf.saturate_and_pixelate(pixBuf, saturation/100, false);
+              image.set_data(pixBuf.get_pixels(), pixBuf.get_has_alpha() ? Cogl.PixelFormat.RGBA_8888 : Cogl.PixelFormat.RGBA_888,
+                 this.iconSize, this.iconSize, pixBuf.get_rowstride() );
+              this._modifiedIcon = new Clutter.Actor({width: this.iconSize, height: this.iconSize, content: image});
+           } else {
+              //log( `Can't find icon for ${infoIcon.to_string()}` );
            }
         }
+        icon = new St.Icon({ gicon: infoIcon, icon_size: this.iconSize });
       } else {
         icon = this._app.create_icon_texture(this.iconSize);
       }
     } else {
-      icon = new St.Icon({ icon_name: "application-default-icon",
-                           icon_type: St.IconType.FULLCOLOR,
-                           icon_size: this.iconSize });
+      icon = new St.Icon({ icon_name: "application-default-icon", icon_type: St.IconType.FULLCOLOR, icon_size: this.iconSize });
     }
 
     this._icon = icon;
-    this._iconBin.set_child(this._icon);
+    this.updateIconSelection();
 
     if (this._applet.orientation == St.Side.LEFT || this._applet.orientation == St.Side.RIGHT) {
       panelHeight--;
@@ -1782,10 +1793,16 @@ class WindowListButton {
         if (metaWindow.urgent || metaWindow.demands_attention) {
           this._unflashButton();
         }
+        if (this._workspace.iconSaturation!=100 && this._workspace.saturationType == SaturationType.Focused) {
+           this.updateIconSelection();
+        }
         break;
       } else {
         this.actor.remove_style_pseudo_class("focus");
         this._updateLabel();
+        if (this._workspace.iconSaturation!=100 && this._workspace.saturationType == SaturationType.Focused) {
+           this.updateIconSelection();
+        }
       }
     }
   }
@@ -2311,7 +2328,7 @@ class WindowListButton {
       this._updateFocus();
     }
     if (this._workspace.iconSaturation!=100 && this._workspace.saturationType == SaturationType.Minimized) {
-       this.updateIcon();
+       this.updateIconSelection();
     }
   }
 
@@ -3581,6 +3598,9 @@ class Workspace {
              //this._currentFocus._updateFocus();
              this._currentFocus.actor.remove_style_pseudo_class("focus");
              this._currentFocus._updateLabel();
+             if (this.iconSaturation!=100 && this.saturationType == SaturationType.Focused) {
+                this._currentFocus.updateIconSelection();
+             }
              let pinnedSetting = this._settings.getValue("display-caption-for-pined");
              let capSetting = this._settings.getValue("display-caption-for");
              if (pinnedSetting == PinnedLabel.Focused && capSetting === DisplayCaption.One) {
@@ -4735,6 +4755,13 @@ class WindowList extends Applet.Applet {
 
   windowMonitorChanged(screen, window, monitor) {
     if (!this._settings.getValue("show-windows-for-current-monitor")) {
+      let ws = this.getCurrentWorkSpace();
+      if (ws.saturationType == SaturationType.OtherMonitors && ws.iconSaturation!=100) {
+        let btn = ws._lookupAppButtonForWindow(window);
+        if (btn) {
+          btn.updateIconSelection();
+        }
+      }
       return;
     }
     if (monitor == this.panel.monitorIndex) {

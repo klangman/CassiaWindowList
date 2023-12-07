@@ -688,7 +688,8 @@
        "Minimized buttons": 1,
        "Idle pinned buttons": 2,
        "Buttons for windows on other workspaces": 3,
-       "Buttons for windows on other monitors": 4
+       "Buttons for windows on other monitors": 4,
+       "All buttons excepted focused window": 5
     },
     "dependency": "icon-saturation!=100",
     "description": "Where to apply the icon color saturation",
