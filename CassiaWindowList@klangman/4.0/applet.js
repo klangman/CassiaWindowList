@@ -1122,7 +1122,7 @@ class WindowListButton {
      let other=0;
      for (let idx=0 ; idx < this._windows.length ; idx++ ) {
         let monitor = this._windows[idx].get_monitor();
-        if (monitor != this._applet.panel.monitorIndex)
+        if (monitor != -1 && monitor != this._applet.panel.monitorIndex)
            other++;
      }
      if (other > 0 && other === this._windows.length )
