@@ -4189,7 +4189,7 @@ class WindowList extends Applet.Applet {
      let secondCombo;
      // Remove all the help hotkeys
      for ( i=0 ; i < this._registeredHelpKeys.length ; i++ ) {
-        Main.keybindingManager.removeHotKey("hotkeyhelp-" + i + "-" + this.instanceId);
+        Main.keybindingManager.removeHotKey("CassiaWLHelp-" + i + "-" + this.instanceId);
      }
      this._registeredHelpKeys = [];
      for ( i=0 ; i < keyBindings.length ; i++) {
@@ -4200,13 +4200,13 @@ class WindowList extends Applet.Applet {
               if (seqCombo && (oldKeySequence || oldBindings[i].description.toLowerCase() == _("all buttons"))) {
                  //log( `removing smart numeric hotkeys for ${oldBindings[i].description}` );
                  for( let num=1 ; num < 10 ; num++ ) {
-                    Main.keybindingManager.removeHotKey("hotkey-" + i + "-" + num + this.instanceId);
+                    Main.keybindingManager.removeHotKey("CassiaWL-" + i + "-" + num + this.instanceId);
                  }
                  if (secondCombo) {
-                    Main.keybindingManager.removeHotKey("hotkey-" + i + this.instanceId);
+                    Main.keybindingManager.removeHotKey("CassiaWL-" + i + this.instanceId);
                  }
               } else {
-                 Main.keybindingManager.removeHotKey("hotkey-" + i + this.instanceId);
+                 Main.keybindingManager.removeHotKey("CassiaWL-" + i + this.instanceId);
               }
               // Clear out the existing key->window mapping
               for (let wsIdx=0 ; wsIdx<this._workspaces.length ; wsIdx++) {
@@ -4223,14 +4223,14 @@ class WindowList extends Applet.Applet {
            if (seqCombo && (keySequence || keyBindings[i].description.toLowerCase() == _("all buttons"))) {
               //log( `Registering smart numeric hotkeys for ${keyBindings[i].description}  i.e. ${seqCombo+1}` );
               for( let num=1 ; num < 10 ; num++ ) {
-                 Main.keybindingManager.addHotKey("hotkey-" + i + "-" + num + this.instanceId, seqCombo+num, Lang.bind(this, function() {this._performHotkey(idx, num)} ));
+                 Main.keybindingManager.addHotKey("CassiaWL-" + i + "-" + num + this.instanceId, seqCombo+num, Lang.bind(this, function() {this._performHotkey(idx, num)} ));
               }
               if (secondCombo) {
-                 Main.keybindingManager.addHotKey("hotkey-" + i + this.instanceId, secondCombo, Lang.bind(this, function() {this._performHotkey(idx)} ));
+                 Main.keybindingManager.addHotKey("CassiaWL-" + i + this.instanceId, secondCombo, Lang.bind(this, function() {this._performHotkey(idx)} ));
               }
            } else {
               // Register the hotkey
-              Main.keybindingManager.addHotKey("hotkey-" + i + this.instanceId, keyBindings[i].keyCombo, Lang.bind(this, function() {this._performHotkey(idx)} ));
+              Main.keybindingManager.addHotKey("CassiaWL-" + i + this.instanceId, keyBindings[i].keyCombo, Lang.bind(this, function() {this._performHotkey(idx)} ));
            }
         }
         // If the key is enabled, set the keyBindingWindows for each workspace to the windows that match the description
@@ -4248,14 +4248,14 @@ class WindowList extends Applet.Applet {
               let [seqCombo, secondCombo] = getSmartNumericHotkey(oldBindings[i].keyCombo);
               if (seqCombo) {
                  for( let num=1 ; num < 10 ; num++ ) {
-                    Main.keybindingManager.removeHotKey("hotkey-" + i + "-" + num + this.instanceId);
+                    Main.keybindingManager.removeHotKey("CassiaWL-" + i + "-" + num + this.instanceId);
                  }
                  if (secondCombo) {
-                    Main.keybindingManager.removeHotKey("hotkey-" + i + this.instanceId);
+                    Main.keybindingManager.removeHotKey("CassiaWL-" + i + this.instanceId);
                  }
               }
            } else {
-              Main.keybindingManager.removeHotKey("hotkey-" + i + this.instanceId);
+              Main.keybindingManager.removeHotKey("CassiaWL-" + i + this.instanceId);
            }
            i++;
         }
@@ -4280,12 +4280,12 @@ class WindowList extends Applet.Applet {
      if (first.length > 0) {
         if (this._registeredHelpKeys.indexOf(first) === -1 ) {
            let idx = this._registeredHelpKeys.push(first) - 1;
-           Main.keybindingManager.addHotKey("hotkeyhelp-" + idx + "-" + this.instanceId, first+"grave", Lang.bind(this, function() {this._performHotkeyHelp(first)} ));
+           Main.keybindingManager.addHotKey("CassiaWLHelp-" + idx + "-" + this.instanceId, first+"grave", Lang.bind(this, function() {this._performHotkeyHelp(first)} ));
         }
      } else if (second.length > 0) {
         if (this._registeredHelpKeys.indexOf(second) === -1 ) {
            let idx = this._registeredHelpKeys.push(second) - 1;
-           Main.keybindingManager.addHotKey("hotkeyhelp-" + idx + "-" + this.instanceId, second+"grave", Lang.bind(this, function() {this._performHotkeyHelp(second)} ));
+           Main.keybindingManager.addHotKey("CassiaWLHelp-" + idx + "-" + this.instanceId, second+"grave", Lang.bind(this, function() {this._performHotkeyHelp(second)} ));
         }
      }
   }
@@ -4618,19 +4618,19 @@ class WindowList extends Applet.Applet {
           [seqCombo,secondCombo] = getSmartNumericHotkey(this._keyBindings[i].keyCombo);
           if (seqCombo && keySequence) {
              for( let num=1 ; num < 10 ; num++ ) {
-                Main.keybindingManager.removeHotKey("hotkey-" + i + "-" + num + this.instanceId);
+                Main.keybindingManager.removeHotKey("CassiaWL-" + i + "-" + num + this.instanceId);
              }
              if (secondCombo) {
-                Main.keybindingManager.removeHotKey("hotkey-" + i + this.instanceId);
+                Main.keybindingManager.removeHotKey("CassiaWL-" + i + this.instanceId);
              }
           } else {
-             Main.keybindingManager.removeHotKey("hotkey-" + i + this.instanceId);
+             Main.keybindingManager.removeHotKey("CassiaWL-" + i + this.instanceId);
           }
        }
     }
     // Remove all the help hotkeys
-    for ( i=0 ; i < this._registeredHelpKeys.length ; i++ ) {
-       Main.keybindingManager.removeHotKey("hotkeyhelp-" + idx + "-" + this.instanceId);
+    for ( let i=0 ; i < this._registeredHelpKeys.length ; i++ ) {
+       Main.keybindingManager.removeHotKey("CassiaWLHelp-" + i + "-" + this.instanceId);
     }
 
   }

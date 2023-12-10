@@ -1,6 +1,8 @@
 This is a Cinnamon window list and panel launcher applet based on CobiWindowList with a number of additional features
 designed to give you more control over how your window-list/panel-launcher operates.
 
+![screen shot](CassiaWindowList@klangman/screenshot.png)
+
 This applet is now available in the cinnamon-spices-applets repo meaning it can be found in the "Applets" tool under
 the "Download" tab from the cinnamon desktop settings and at the following URL:
 
@@ -64,6 +66,8 @@ In addition to the features of the CobiWindowList...
  * One character unicode indicators characters to indicate group window count, minimized status and pinned status
  * Complete control over which window-list buttons have labels, and what the label contents are
  * Automatic configuration backup so you can restore your configuration after adding the applet to a panel again
+ * Icon saturation setting allows you to change icon saturation from 0% (grayscale) to 200% (vivid)
+ * The custom Icon Saturation can be applied to all icons or a subset of icons based on several criteria
 
  ## Feedback
 You can leave a comment on cinnamon-spices.linuxmint.com using the link above, or you can create an issue here on Github.
