@@ -412,7 +412,7 @@
 
   "launcher-mouse-action-btn1": {
     "type": "combobox",
-    "default": 2,
+    "default": 4,
     "options": {
       "Restore/Minimize most recent window": 0,
       "Restore then cycle windows": 1,

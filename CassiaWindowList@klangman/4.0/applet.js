@@ -1522,7 +1522,7 @@ class WindowListButton {
       text += number;
     }
 
-    if (style == 1 && (this._applet.orientation == St.Side.LEFT || this._applet.orientation == St.Side.RIGHT))
+    if (style == 1 && (groupType == GroupType.Launcher || (this._applet.orientation == St.Side.LEFT || this._applet.orientation == St.Side.RIGHT)))
        style = 0;  // No space for a label based window group counter, so force the icon overlay option if it's not disabled!
 
     if (text == "" || style == 1) {
@@ -1547,6 +1547,16 @@ class WindowListButton {
     // If we are in a left or right panel then we have no space for labels anyhow!
     if (this._applet.orientation == St.Side.LEFT || this._applet.orientation == St.Side.RIGHT) {
        this._updateTooltip();
+       return;
+    }
+    // If we are in launcher mode then set the label width to 0
+    let groupSetting = this._settings.getValue("group-windows");
+    if (groupSetting === GroupType.Launcher ) {
+       if (this._labelWidth != 0) {
+          let animTime = this._settings.getValue("label-animation") ? this._settings.getValue("label-animation-time") : 0;
+          resizeActor(this._labelBox, animTime, 0, "", this);
+          this._labelWidth = 0;
+       }
        return;
     }
 
@@ -1636,8 +1646,8 @@ class WindowListButton {
     }
 
     // Do we need a window number char
-    if (style === 1 && ((numSetting === DisplayNumber.All && number >= 1) || ((numSetting === DisplayNumber.Smart && number >= 2) && 
-       (this._settings.getValue("group-windows") === 0 || this._grouped > GroupingType.NotGrouped)))) 
+    if (style === 1 && ((numSetting === DisplayNumber.All && number >= 1) || ((numSetting === DisplayNumber.Smart && number >= 2) &&
+       (groupSetting === 0 || this._grouped > GroupingType.NotGrouped))))
     {
       if (number > 20) {
         text = "\u{24A8} " + text; // The Unicode character "(m)"
@@ -3524,6 +3534,7 @@ class Workspace {
            this._ungroupAllApps(GroupingType.ForcedOff);
            break;
         case GroupType.Launcher:
+           this._groupAllApps(GroupingType.ForcedOn);
            break;
      }
      this._updateAppButtonVisibility()
@@ -3539,7 +3550,7 @@ class Workspace {
            if (allButtons.length > 1){
               apps.push(appButtons[i]._app);
               let windows = [];
-              allButtons.forEach((element) => {windows.push(element._windows[0]); this._windowRemoved(element._windows[0]);} );
+              allButtons.forEach((element) => {if(element._windows.length>0) {windows.push(element._windows[0]); this._windowRemoved(element._windows[0]);}} );
               windows.forEach((element) => {this._windowAdded(element);} );
            }
         }
