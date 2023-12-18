@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2023-12-05 20:45-0500\n"
+"POT-Creation-Date: 2023-12-17 23:35-0500\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -17,29 +17,28 @@ msgstr ""
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
 
-#: 4.0/applet.js:1385 4.0/applet.js:2604 4.0/applet.js:4112 4.0/applet.js:4180
-#: 4.0/applet.js:4203 4.0/applet.js:4292
+#: 4.0/applet.js:512
 msgid "all buttons"
 msgstr ""
 
-#: 4.0/applet.js:2333
+#: 4.0/applet.js:2371
 msgid "Applet Preferences"
 msgstr ""
 
-#: 4.0/applet.js:2337
+#: 4.0/applet.js:2375
 msgid "About..."
 msgstr ""
 
-#: 4.0/applet.js:2341
+#: 4.0/applet.js:2379
 msgid "Configure..."
 msgstr ""
 
-#: 4.0/applet.js:2345
+#: 4.0/applet.js:2383
 #, javascript-format
 msgid "Remove '%s'"
 msgstr ""
 
-#: 4.0/applet.js:2347
+#: 4.0/applet.js:2385
 msgid "Do you really want to remove this instance of CassiaWindowList?"
 msgstr ""
 
@@ -49,111 +48,111 @@ msgstr ""
 #. 4.0->settings-schema.json->mouse-action-btn2->options
 #. 4.0->settings-schema.json->mouse-action-btn8->options
 #. 4.0->settings-schema.json->mouse-action-btn9->options
-#: 4.0/applet.js:2356
+#: 4.0/applet.js:2394
 msgid "Open new window"
 msgstr ""
 
-#: 4.0/applet.js:2364
+#: 4.0/applet.js:2402
 msgid "Remove from panel"
 msgstr ""
 
-#: 4.0/applet.js:2366
+#: 4.0/applet.js:2404
 msgid "Remove from this workspace"
 msgstr ""
 
-#: 4.0/applet.js:2372
+#: 4.0/applet.js:2410
 msgid "Pin to panel"
 msgstr ""
 
-#: 4.0/applet.js:2374
+#: 4.0/applet.js:2412
 msgid "Pin to this workspace"
 msgstr ""
 
-#: 4.0/applet.js:2415
+#: 4.0/applet.js:2453
 msgid "Pin to other workspaces"
 msgstr ""
 
-#: 4.0/applet.js:2436
+#: 4.0/applet.js:2474
 msgid "Pin to all workspaces"
 msgstr ""
 
-#: 4.0/applet.js:2454
+#: 4.0/applet.js:2492
 msgid "Pin to launcher"
 msgstr ""
 
-#: 4.0/applet.js:2472 4.0/applet.js:2658
+#: 4.0/applet.js:2510 4.0/applet.js:2696
 msgid "Add new Hotkey for"
 msgstr ""
 
-#: 4.0/applet.js:2486
+#: 4.0/applet.js:2524
 msgid "Recent files"
 msgstr ""
 
-#: 4.0/applet.js:2510
+#: 4.0/applet.js:2548
 msgid "Places"
 msgstr ""
 
-#: 4.0/applet.js:2552
+#: 4.0/applet.js:2590
 msgid "Only on this workspace"
 msgstr ""
 
-#: 4.0/applet.js:2554
+#: 4.0/applet.js:2592
 msgid "Visible on all workspaces"
 msgstr ""
 
-#: 4.0/applet.js:2555
+#: 4.0/applet.js:2593
 msgid "Move to another workspace"
 msgstr ""
 
-#: 4.0/applet.js:2564
+#: 4.0/applet.js:2602
 msgid " (this workspace)"
 msgstr ""
 
-#: 4.0/applet.js:2577
+#: 4.0/applet.js:2615
 msgid "Move to another monitor"
 msgstr ""
 
-#: 4.0/applet.js:2585
+#: 4.0/applet.js:2623
 msgid "Monitor"
 msgstr ""
 
-#: 4.0/applet.js:2613
+#: 4.0/applet.js:2651
 msgid "unassigned"
 msgstr ""
 
-#: 4.0/applet.js:2624 4.0/applet.js:2655
+#: 4.0/applet.js:2662 4.0/applet.js:2693
 msgid "Assign window to a hotkey"
 msgstr ""
 
-#: 4.0/applet.js:2678
+#: 4.0/applet.js:2716
 msgid "Change application label contents"
 msgstr ""
 
-#: 4.0/applet.js:2681
+#: 4.0/applet.js:2719
 msgid "Remove custom setting"
 msgstr ""
 
-#: 4.0/applet.js:2688
+#: 4.0/applet.js:2726
 msgid "Use window title"
 msgstr ""
 
-#: 4.0/applet.js:2695
+#: 4.0/applet.js:2733
 msgid "Use application name"
 msgstr ""
 
-#: 4.0/applet.js:2702
+#: 4.0/applet.js:2740
 msgid "No label"
 msgstr ""
 
-#: 4.0/applet.js:2713
+#: 4.0/applet.js:2751
 msgid "Ungroup application windows"
 msgstr ""
 
-#: 4.0/applet.js:2722
+#: 4.0/applet.js:2760
 msgid "Group application windows"
 msgstr ""
 
-#: 4.0/applet.js:2735
+#: 4.0/applet.js:2773
 msgid "Automatic grouping/ungrouping"
 msgstr ""
 
@@ -163,43 +162,43 @@ msgstr ""
 #. 4.0->settings-schema.json->mouse-action-btn2->options
 #. 4.0->settings-schema.json->mouse-action-btn8->options
 #. 4.0->settings-schema.json->mouse-action-btn9->options
-#: 4.0/applet.js:2765
+#: 4.0/applet.js:2803
 msgid "Move titlebar on to screen"
 msgstr ""
 
-#: 4.0/applet.js:2770
+#: 4.0/applet.js:2808
 msgid "Restore"
 msgstr ""
 
-#: 4.0/applet.js:2774
+#: 4.0/applet.js:2812
 msgid "Minimize"
 msgstr ""
 
-#: 4.0/applet.js:2780
+#: 4.0/applet.js:2818
 msgid "Unmaximize"
 msgstr ""
 
-#: 4.0/applet.js:2787
+#: 4.0/applet.js:2825
 msgid "Close others"
 msgstr ""
 
-#: 4.0/applet.js:2798
+#: 4.0/applet.js:2836
 msgid "Close all"
 msgstr ""
 
-#: 4.0/applet.js:2807
+#: 4.0/applet.js:2845
 msgid "Close"
 msgstr ""
 
-#: SetupWizard.py:162
+#: SetupWizard.py:188
 msgid "Exit"
 msgstr ""
 
-#: SetupWizard.py:184
+#: SetupWizard.py:210
 msgid "Next"
 msgstr ""
 
-#: SetupWizard.py:243
+#: SetupWizard.py:283
 msgid "Backup file already exist. Do you want to overwrite it?"
 msgstr ""
 
@@ -1082,6 +1081,10 @@ msgstr ""
 msgid "Buttons for windows on other monitors"
 msgstr ""
 
+#. 4.0->settings-schema.json->saturation-application->options
+msgid "All buttons excepted focused window"
+msgstr ""
+
 #. 4.0->settings-schema.json->saturation-application->description
 msgid "Where to apply the icon color saturation"
 msgstr ""
@@ -1168,37 +1171,50 @@ msgid "No Thumbnail window menu on mouse hover"
 msgstr ""
 
 #: SetupWizard.ui:354
-msgid "Notes about the Panel Launcher behaviour"
+msgid "Panel Launcher Setup"
 msgstr ""
 
 #: SetupWizard.ui:370
 msgid ""
-"Unlike most Panel Launcher applets, this launcher\n"
-"keeps tack of running windows and will activate\n"
-"existing windows rather then launching new ones.\n"
+"Unlike most Panel Launcher applets, this launcher keeps tack of \n"
+"running windows and uses window Thumbnail menus.\n"
 "\n"
-"You can launch additional windows by clicking the\n"
-"'Back' mouse button or Ctrl+Left mouse button \n"
-"(by default).\n"
+"You can launch additional windows by clicking the 'Back' mouse \n"
+"button or using the Left mouse button while holding the Ctrl key.\n"
 "\n"
-"It also uses Thumbnail menus to show a list of all\n"
-"open windows. In general it works like \"pinned\"\n"
-"buttons on a window list rather then a basic\n"
-"launcher"
+"How would you like the Left mouse button to behave when \n"
+"windows already exist for a launcher button?"
 msgstr ""
 
-#: SetupWizard.ui:408
+#: SetupWizard.ui:388
+msgid "Open new window / Hold for Thumbnail menu"
+msgstr ""
+
+#: SetupWizard.ui:407
+msgid "Restore most recent window / Cycle windows"
+msgstr ""
+
+#: SetupWizard.ui:427
+msgid "Open the Thumbnail menu"
+msgstr ""
+
+#: SetupWizard.ui:461
+msgid "Thumbnail window menu on mouse hover"
+msgstr ""
+
+#: SetupWizard.ui:492
 msgid "All done!"
 msgstr ""
 
-#: SetupWizard.ui:424
+#: SetupWizard.ui:508
 msgid ""
-"There are many more options and features to explorer\n"
-"in the applet configurator and the window list button\n"
-"context menu, for example:\n"
+"There are many more options and features to explorer in the\n"
+"applet configurator and the window list button context menu,\n"
+"for example:\n"
 "\n"
 " • Hot-keys to launch / activate a specific window.\n"
 " • Customizable mouse button actions.\n"
+" • Customizable icon saturation (grayscale / vivid).\n"
 " • Customizable Ctrl/Shift + mouse button actions.\n"
 " • Application specific grouping and label settings.\n"
 " • Thumbnail window zooming using the scroll-wheel.\n"
@@ -1206,19 +1222,19 @@ msgid ""
 " • And much more."
 msgstr ""
 
-#: SetupWizard.ui:445
+#: SetupWizard.ui:530
 msgid "Exit and launch the applet configurator now"
 msgstr ""
 
-#: SetupWizard.ui:474
+#: SetupWizard.ui:559
 msgid "Select a backup configuration to restore?"
 msgstr ""
 
-#: SetupWizard.ui:517
+#: SetupWizard.ui:602
 msgid "Configuration Backup?"
 msgstr ""
 
-#: SetupWizard.ui:533
+#: SetupWizard.ui:618
 msgid ""
 "If you would like to maintain an automatic backup\n"
 "of this applet configuration then select or enter a\n"
@@ -1226,26 +1242,26 @@ msgid ""
 "configuration changes will be saved to this backup:"
 msgstr ""
 
-#: SetupWizard.ui:553
+#: SetupWizard.ui:638
 msgid "MainWindowList"
 msgstr ""
 
-#: SetupWizard.ui:554
+#: SetupWizard.ui:639
 msgid "MainPanelLauncher"
 msgstr ""
 
-#: SetupWizard.ui:555
+#: SetupWizard.ui:640
 msgid "Monitor1WindowList"
 msgstr ""
 
-#: SetupWizard.ui:556
+#: SetupWizard.ui:641
 msgid "Monitor2WindowList"
 msgstr ""
 
-#: SetupWizard.ui:557
+#: SetupWizard.ui:642
 msgid "Monitor1PanelLauncher"
 msgstr ""
 
-#: SetupWizard.ui:558
+#: SetupWizard.ui:643
 msgid "Monitor2PanelLauncher"
 msgstr ""
