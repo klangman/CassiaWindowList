@@ -1413,14 +1413,13 @@ class WindowListButton {
     } else {
        title = this._currentWindow.get_title();
     }
-    if (majorVersion < 5) {
+    if (text.length == 0 || majorVersion < 5) {
        this._tooltip.set_text(title + text);
     } else {
-       if (text.length > 0 ) {
-          text = "<b>"+title+"</b>"+"<small>"+text+"</small>";
-       }else{
-          text = title;
-       }
+       title = title.replace(/\&/g, "&amp;");
+       title = title.replace(/\</g, "&lt;" );
+       title = title.replace(/\>/g, "&gt;" );
+       text = "<b>"+title+"</b>"+"<small>"+text+"</small>";
        this._tooltip.set_markup( text );
     }
     this._tooltip.preventShow = false;
@@ -4330,7 +4329,7 @@ class WindowList extends Applet.Applet {
            let first = keyCombo.slice(0,colons);
            let second = keyCombo.slice(colons+2)
            if (first.startsWith(modifiers) || second.startsWith(modifiers)) {
-              if (isAllButtons(keyBindings[i]) /*&& keyBindings[i].keyCombo.indexOf(modifiers+"1")!=-1*/) {
+              if (isAllButtons(keyBindings[i])) {
                  let children = workspace.actor.get_children();
                  for( let idx=0 ; idx < children.length && idx < 9 ; idx++ ){
                     children[idx]._delegate._updateNumberForHotkeyHelp((idx+1).toString());
