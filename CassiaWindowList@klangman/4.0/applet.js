@@ -1416,9 +1416,7 @@ class WindowListButton {
     if (text.length == 0 || majorVersion < 5) {
        this._tooltip.set_text(title + text);
     } else {
-       title = title.replace(/\&/g, "&amp;");
-       title = title.replace(/\</g, "&lt;" );
-       title = title.replace(/\>/g, "&gt;" );
+       title = GLib.markup_escape_text(title, -1);
        text = "<b>"+title+"</b>"+"<small>"+text+"</small>";
        this._tooltip.set_markup( text );
     }
