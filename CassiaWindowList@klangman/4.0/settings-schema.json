@@ -47,7 +47,7 @@
     "general-settings" : {
       "type" : "section",
       "title" : "General window list settings",
-      "keys" : ["group-windows", "display-pinned", "synchronize-pinned", "trailing-pinned-behaviour", "show-windows-for-current-monitor", "show-windows-for-all-workspaces", "show-tooltips", "hide-panel-apps"]
+      "keys" : ["group-windows", "display-pinned", "synchronize-pinned", "trailing-pinned-behaviour", "animate-icon", "show-windows-for-current-monitor", "show-windows-for-all-workspaces", "show-tooltips"]
     },
     "general-mouse" : {
       "type" : "section",
@@ -77,7 +77,7 @@
     "adv-other-settings" : {
       "type" : "section",
       "title" : "",
-      "keys" : ["backup-file-name", "icon-saturation", "saturation-application"]
+      "keys" : ["backup-file-name", "hide-panel-apps", "icon-saturation", "saturation-application"]
     }
   },
   "caption-type": {
@@ -660,6 +660,13 @@
   "adv-mouse-help" : {
     "type" : "label",
     "description" : "Note: The above list contents will be incorrectly displayed without this fix:\nhttps://github.com/linuxmint/cinnamon/pull/11908\nThe edit dialog box values are the correct values and the ones that will take effect."
+  },
+
+  "animate-icon" : {
+     "type" : "switch",
+     "default" : true,
+     "description" : "Icon animation when launching new windows",
+     "tooltip" : "When enabled, the icon will animate when launching new windows for an application"
   },
 
   "backup-file-name" : {

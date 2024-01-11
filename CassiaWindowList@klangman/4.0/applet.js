@@ -2280,8 +2280,8 @@ class WindowListButton {
     this._app.open_new_window(-1);
     //let animationTime = this._settings.getValue("animation-time") / 1000;
     //this._animateIcon(animationTime);
-    if (this._windows.length===0 || this._grouped === GroupingType.ForcedOn || this._grouped === GroupingType.Auto ||
-        this._settings.getValue("group-windows")===GroupType.Launcher)
+    if (this._settings.getValue("animate-icon") && (this._windows.length===0 || this._grouped === GroupingType.ForcedOn || this._grouped === GroupingType.Auto ||
+        this._settings.getValue("group-windows")===GroupType.Launcher))
     {
        this._animateIcon(0);
     }
@@ -4823,7 +4823,7 @@ class WindowList extends Applet.Applet {
   // Check other instances of the CassiaWindowList applet and populate the list of hidden applications
   // based on which applications other instances have pinned.
   checkForLauncherApplications() {
-     let wsIdx = global.screen.get_active_workspace_index();
+     //let wsIdx = global.screen.get_active_workspace_index();
      let applets = AppletManager.getRunningInstancesForUuid("CassiaWindowList@klangman");
      //log( `Found ${applets.length} cassia window list applets!` );
      for (let i=0 ; i < applets.length ; i++) {
