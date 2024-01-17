@@ -47,7 +47,7 @@
     "general-settings" : {
       "type" : "section",
       "title" : "General window list settings",
-      "keys" : ["group-windows", "display-pinned", "synchronize-pinned", "trailing-pinned-behaviour", "animate-icon", "show-windows-for-current-monitor", "show-windows-for-all-workspaces", "show-tooltips"]
+      "keys" : ["group-windows", "display-pinned", "synchronize-pinned", "trailing-pinned-behaviour", "animate-icon", "show-windows-for-current-monitor", "show-windows-for-all-workspaces", "show-tooltips", "button-spacing"]
     },
     "general-mouse" : {
       "type" : "section",
@@ -244,7 +244,16 @@
     "description": "Hide window buttons of pinned buttons on other CassiaWindowList instances",
     "tooltip": "When enabled, windows for applications with pinned buttons on other instances of the CassiaWindowList applet will not show up in this window list"
   },
-
+  "button-spacing": {
+    "type": "spinbutton",
+    "default": 0,
+    "min": 0,
+    "max": 30,
+    "units": "pixels",
+    "step": 1,
+    "description": "Spacing between buttons",
+    "tooltip": "This defines the spacing between the buttons, the value will be divided in half and added to the left of the icon and to the right of the label on horizontal panels or to the top and button of the icon on vertical panels"
+  },
 
   "menu-show-on-hover": {
     "type": "switch",
