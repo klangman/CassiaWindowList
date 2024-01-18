@@ -1085,7 +1085,7 @@ class WindowListButton {
     this._signalManager.connect(this._settings, "changed::show-tooltips", this._updateTooltip, this);
     this._signalManager.connect(this._settings, "changed::number-style", Lang.bind(this, function() { this._updateNumber(); this._updateLabel(); }), this);
     this._signalManager.connect(this._settings, "changed::label-width", this._updateLabel, this);
-    this._signalManager.connect(this._settings, "changed::button-spacing", this._setSpacing, this);
+    this._signalManager.connect(this._settings, "changed::button-spacing", this._updateSpacing, this);
     this._signalManager.connect(this.actor, "enter-event", this._onEnterEvent, this);
     this._signalManager.connect(this.actor, "leave-event", this._onLeaveEvent, this);
     this._signalManager.connect(this.actor, "notify::hover", this._updateVisualState, this);
@@ -1105,10 +1105,10 @@ class WindowListButton {
 
     this.isDraggableApp = true;
     this._updateNumber();
-    this._setSpacing();
+    this._updateSpacing();
   }
 
-  _setSpacing() {
+  _updateSpacing() {
      let spacing = this._settings.getValue("button-spacing");
      let left = Math.floor(spacing/2);
      let right = left + (spacing%2);
@@ -1755,7 +1755,7 @@ class WindowListButton {
     }
     this.closeThumbnailMenu();
     this._updateLabel()
-    this._setSpacing();
+    this._updateSpacing();
   }
 
   _flashButton() {
