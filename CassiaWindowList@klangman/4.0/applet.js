@@ -352,15 +352,19 @@ function animatedRemoveAppButton(workspace, time, button) {
     }
   }
   */
-  Tweener.addTween(button._labelBox, {
-    natural_width: 0,
-    time: time * 0.001,
-    transition: "easeInOutQuad",
-    onComplete() {
-       this._removeAppButton(button);
-    },
-    onCompleteScope: workspace
-  });
+  if (button._labelWidth != 0 && button._shrukenLabel != true){
+     Tweener.addTween(button._labelBox, {
+       natural_width: 0,
+       time: time * 0.001,
+       transition: "easeInOutQuad",
+       onComplete() {
+          this._removeAppButton(button);
+       },
+       onCompleteScope: workspace
+     });
+  } else {
+     workspace._removeAppButton(button);
+  }
 }
 
 function getOverheadSize(actor) {
