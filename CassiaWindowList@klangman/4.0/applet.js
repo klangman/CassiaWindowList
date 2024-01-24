@@ -1264,6 +1264,7 @@ class WindowListButton {
     this._signalManager.connect(metaWindow, "notify::demands-attention", this._updateUrgentState, this);
     this._signalManager.connect(metaWindow, "notify::gtk-application-id", this._onGtkApplicationChanged, this);
     this._signalManager.connect(metaWindow, "notify::wm-class", this._onWmClassChanged, this);
+    this._signalManager.connect(metaWindow, 'notify::icon', this.updateIcon, this);
     //this._signalManager.connect(metaWindow, "notify::progress", this._onProgressChange, this);
     this._signalManager.connect(metaWindow, "workspace-changed", this._onWindowWorkspaceChanged, this);
 
