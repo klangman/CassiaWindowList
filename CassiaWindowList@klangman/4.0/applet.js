@@ -660,10 +660,24 @@ class ThumbnailMenuItem extends PopupMenu.PopupBaseMenuItem {
       this._signalManager.connect(this._closeBin, "leave-event", this._onCloseIconLeaveEvent, this);
     }
     this._closeIcon.show();
+
+    // Show a hover peek window clone
+    if (this._metaWindow && this._settings.getValue("hover-peek")) {
+       this.metaWindowActor = this._metaWindow.get_compositor_private();
+       this.hoverClone = WindowUtils.getCloneOrContent(this.metaWindowActor);
+       let [x, y] = this.metaWindowActor.get_position();
+       let [width, height] = this.metaWindowActor.get_size();
+       this.hoverClone.set_position(x, y);
+       this.hoverClone.set_size(width, height);
+       global.overlay_group.add_child(this.hoverClone);
+       global.overlay_group.set_child_above_sibling(this.hoverClone, null);
+       //setOpacity(200, this.hoverClone, 100);
+    }
   }
 
   _onLeaveEvent() {
     this._closeIcon.hide();
+    this.destroyHoverClone();
   }
 
   _onCloseIconEnterEvent() {
@@ -762,7 +776,17 @@ class ThumbnailMenuItem extends PopupMenu.PopupBaseMenuItem {
     }
   }
 
+  destroyHoverClone() {
+    // Remove the hover peek window clone
+    if (this.hoverClone) {
+       global.overlay_group.remove_child(this.hoverClone);
+       this.hoverClone.destroy();
+       this.hoverClone = null;
+    }
+  }
+
   destroy() {
+    this.destroyHoverClone();
     this._signalManager.disconnectAllSignals();
     super.destroy();
   }

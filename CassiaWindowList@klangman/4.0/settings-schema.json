@@ -18,7 +18,7 @@
     "preview-page" : {
       "type" : "page",
       "title" : "Thumbnails",
-      "sections" : ["preview-settings", "preview-mouse-section"] 
+      "sections" : ["preview-settings", "preview-mouse-section"]
     },
 
     "hotkey-page" : {
@@ -57,7 +57,7 @@
     "preview-settings" : {
       "type" : "section",
       "title" : "Thumbnails menu settings",
-      "keys" : ["show-previews", "number-of-unshrunk-previews", "menu-all-windows-of-pool", "menu-all-windows-of-auto"]
+      "keys" : ["show-previews", "number-of-unshrunk-previews", "menu-all-windows-of-pool", "menu-all-windows-of-auto", "hover-peek"]
     },
     "preview-mouse-section" : {
       "type" : "section",
@@ -405,6 +405,14 @@
     },
     "description": "Thumbnail window forward button action"
   },
+
+  "hover-peek": {
+    "type": "switch",
+    "default": false,
+    "description": "Show a full size window preview when hovering over a Thumbnail",
+    "tooltip": "If enabled, a full size preview window will appear when the mouse pointer is hovering over a Thumbnail menu item"
+  },
+
   "grouped-mouse-action-btn1": {
     "type": "combobox",
     "default": 2,
