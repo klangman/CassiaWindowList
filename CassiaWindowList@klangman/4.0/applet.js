@@ -710,6 +710,7 @@ class ThumbnailMenuItem extends PopupMenu.PopupBaseMenuItem {
       this._appButton._performMouseAction(action, this._metaWindow);
       return true;
     } else if (mouseBtn == 3) { // Right button
+      this.destroyHoverClone();
       this._appButton._populateContextMenu(this._metaWindow);
       this._appButton._contextMenu.open();
       this._appButton._updateFocus();
@@ -728,6 +729,7 @@ class ThumbnailMenuItem extends PopupMenu.PopupBaseMenuItem {
   }
 
   _onClose() {
+    this.destroyHoverClone();
     this._inClosing = true;
     this._metaWindow.delete(global.get_current_time());
     this._inClosing = false;
