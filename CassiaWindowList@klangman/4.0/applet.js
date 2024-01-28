@@ -518,6 +518,37 @@ function isAllButtons(hotkey) {
    return false;
 }
 
+function createHoverPeekClone(metaWindow) {
+   if (metaWindow) {
+      // Show a hover peek window clone, easing in over a short period
+      let metaWindowActor = metaWindow.get_compositor_private();
+      let hoverClone = WindowUtils.getCloneOrContent(metaWindowActor);
+      hoverClone.opacity = 0;
+      let [x, y] = metaWindowActor.get_position();
+      let [width, height] = metaWindowActor.get_size();
+      hoverClone.set_position(x, y);
+      hoverClone.set_size(width, height);
+      global.overlay_group.add_child(hoverClone);
+      global.overlay_group.set_child_above_sibling(hoverClone, null);
+      Tweener.addTween(hoverClone, {time: 175*0.001, transition: 'easeInQuad', opacity: 255});
+      return hoverClone;
+   }
+   return null;
+}
+
+function destroyHoverPeekClone(hoverClone, delayId) {
+   if (delayId) {
+      let doIt = GLib.MainContext.default().find_source_by_id(delayId);
+      if (doIt) {
+         Mainloop.source_remove(delayId);
+      }
+   }
+   if (hoverClone) {
+      Tweener.addTween(hoverClone, {time: 175*0.001, transition: 'easeOutQuad', opacity: 0, onComplete: () => {global.overlay_group.remove_child(hoverClone); hoverClone.destroy();}});
+   }
+   return null;
+}
+
 // Represents an item in the Thumbnail popup menu
 class ThumbnailMenuItem extends PopupMenu.PopupBaseMenuItem {
 
@@ -655,29 +686,24 @@ class ThumbnailMenuItem extends PopupMenu.PopupBaseMenuItem {
       this._closeIcon = icon;
       this._closeIcon.set_reactive(true);
       this._closeBin.set_child(this._closeIcon);
-      this._signalManager.connect(this._closeIcon, "button-release-event", this._onClose, this);
+      this._signalManager.connect(this._closeIcon, "button-release-event", this._onCloseButtonRelease, this);
       this._signalManager.connect(this._closeBin, "enter-event", this._onCloseIconEnterEvent, this);
       this._signalManager.connect(this._closeBin, "leave-event", this._onCloseIconLeaveEvent, this);
     }
     this._closeIcon.show();
 
-    // Show a hover peek window clone
-    if (this._metaWindow && this._settings.getValue("hover-peek")) {
-       this.metaWindowActor = this._metaWindow.get_compositor_private();
-       this.hoverClone = WindowUtils.getCloneOrContent(this.metaWindowActor);
-       let [x, y] = this.metaWindowActor.get_position();
-       let [width, height] = this.metaWindowActor.get_size();
-       this.hoverClone.set_position(x, y);
-       this.hoverClone.set_size(width, height);
-       global.overlay_group.add_child(this.hoverClone);
-       global.overlay_group.set_child_above_sibling(this.hoverClone, null);
-       //setOpacity(200, this.hoverClone, 100);
+    if (this._settings.getValue("hover-peek-thumbnail")) {
+       // After a short delay to avoid needless hover peeks, ease in the hover peek window
+       this._menu._hovePeekDelayId = Mainloop.timeout_add(70, Lang.bind(this, () => {
+         this._menu._hovePeekDelayId = destroyHoverPeekClone(this.hoverClone, this._menu._hovePeekDelayId); // Close if one happens to exist
+         this.hoverClone = createHoverPeekClone(this._metaWindow);
+         } ));
     }
   }
 
   _onLeaveEvent() {
     this._closeIcon.hide();
-    this.destroyHoverClone();
+    this._menu._hovePeekDelayId = this.hoverClone = destroyHoverPeekClone(this.hoverClone, this._menu._hovePeekDelayId);
   }
 
   _onCloseIconEnterEvent() {
@@ -710,7 +736,7 @@ class ThumbnailMenuItem extends PopupMenu.PopupBaseMenuItem {
       this._appButton._performMouseAction(action, this._metaWindow);
       return true;
     } else if (mouseBtn == 3) { // Right button
-      this.destroyHoverClone();
+      this._menu._hovePeekDelayId = this.hoverClone = destroyHoverPeekClone(this.hoverClone, this._menu._hovePeekDelayId);
       this._appButton._populateContextMenu(this._metaWindow);
       this._appButton._contextMenu.open();
       this._appButton._updateFocus();
@@ -728,8 +754,7 @@ class ThumbnailMenuItem extends PopupMenu.PopupBaseMenuItem {
     return true;
   }
 
-  _onClose() {
-    this.destroyHoverClone();
+  _onCloseButtonRelease() {
     this._inClosing = true;
     this._metaWindow.delete(global.get_current_time());
     this._inClosing = false;
@@ -778,17 +803,8 @@ class ThumbnailMenuItem extends PopupMenu.PopupBaseMenuItem {
     }
   }
 
-  destroyHoverClone() {
-    // Remove the hover peek window clone
-    if (this.hoverClone) {
-       global.overlay_group.remove_child(this.hoverClone);
-       this.hoverClone.destroy();
-       this.hoverClone = null;
-    }
-  }
-
   destroy() {
-    this.destroyHoverClone();
+    this._menu._hovePeekDelayId = this.hoverClone = destroyHoverPeekClone(this.hoverClone, this._menu._hovePeekDelayId);
     this._signalManager.disconnectAllSignals();
     super.destroy();
   }
@@ -2369,9 +2385,18 @@ class WindowListButton {
        this._updateTooltip()
        this._buttonIdx = idx;
     }
+    if (this._settings.getValue("hover-peek-windowlist")) {
+       // After a short delay to avoid needless hover peeks, ease in the hover peek window
+       this._workspace._hoverPeekDelayId = Mainloop.timeout_add(70, () => {
+         this._workspace._hoverPeekDelayId = destroyHoverPeekClone(this.hoverClone, this._workspace._hoverPeekDelayId);  // Close if one happens to exist
+         this.hoverClone = createHoverPeekClone(this._currentWindow);
+         } );
+       //this._workspace.lastEnteredButton = this;
+    }
   }
 
   _onLeaveEvent() {
+    this._workspace._hoverPeekDelayId = this.hoverClone = destroyHoverPeekClone(this.hoverClone, this._workspace._hoverPeekDelayId);
     let curMenu = this._workspace.currentMenu;
     if (curMenu) {
        this.closeThumbnailMenuDelayed();
@@ -3108,9 +3133,24 @@ class Workspace {
     this._signalManager.connect(this._settings, "changed::show-windows-for-current-monitor", this._updateAllWindowsForMonitor, this);
     this._signalManager.connect(this._settings, "changed::icon-saturation", this._updateAllIcons, this);
     this._signalManager.connect(this._settings, "changed::saturation-application", this._updateAllIcons, this);
+    //this._signalManager.connect(this.actor, "enter-event", this._onEnterEvent, this);
+    //this._signalManager.connect(this.actor, "leave-event", this._onLeaveEvent, this);
     this.iconSaturation = this._settings.getValue("icon-saturation");
     this.saturationType = this._settings.getValue("saturation-application");
   }
+
+  /*
+  _onEnterEvent() {
+     log( "WS, enter" );
+  }
+
+  _onLeaveEvent() {
+     log( "WS, leave" );
+     if (this.lastEnteredButton) {
+        Main.activateWindow(this.lastEnteredButton._currentWindow);
+        this.lastEnteredButton = null;
+     }
+  }*/
 
   onOrientationChanged(orientation) {
     if (orientation == St.Side.TOP || orientation == St.Side.BOTTOM) {

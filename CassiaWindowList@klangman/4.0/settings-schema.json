@@ -47,7 +47,7 @@
     "general-settings" : {
       "type" : "section",
       "title" : "General window list settings",
-      "keys" : ["group-windows", "display-pinned", "synchronize-pinned", "trailing-pinned-behaviour", "animate-icon", "show-windows-for-current-monitor", "show-windows-for-all-workspaces", "show-tooltips", "button-spacing"]
+      "keys" : ["group-windows", "display-pinned", "synchronize-pinned", "animate-icon", "show-windows-for-current-monitor", "show-windows-for-all-workspaces", "show-tooltips", "button-spacing", "hover-peek-windowlist"]
     },
     "general-mouse" : {
       "type" : "section",
@@ -57,7 +57,7 @@
     "preview-settings" : {
       "type" : "section",
       "title" : "Thumbnails menu settings",
-      "keys" : ["show-previews", "number-of-unshrunk-previews", "menu-all-windows-of-pool", "menu-all-windows-of-auto", "hover-peek"]
+      "keys" : ["show-previews", "number-of-unshrunk-previews", "menu-all-windows-of-pool", "menu-all-windows-of-auto", "hover-peek-thumbnail"]
     },
     "preview-mouse-section" : {
       "type" : "section",
@@ -77,7 +77,7 @@
     "adv-other-settings" : {
       "type" : "section",
       "title" : "",
-      "keys" : ["backup-file-name", "hide-panel-apps", "icon-saturation", "saturation-application"]
+      "keys" : ["backup-file-name", "hide-panel-apps",  "trailing-pinned-behaviour", "icon-saturation", "saturation-application"]
     }
   },
   "caption-type": {
@@ -254,6 +254,13 @@
     "description": "Spacing between buttons",
     "tooltip": "This defines the spacing between the buttons, the value will be divided in half and added to the left of the icon and to the right of the label on horizontal panels or to the top and button of the icon on vertical panels"
   },
+  "hover-peek-windowlist": {
+    "type": "switch",
+    "default": 0,
+    "dependency" : "group-windows<4",
+    "description": "Show a full size window preview when hovering over a button",
+    "tooltip": "If enabled, a full size preview window will appear when the mouse pointer is hovering over a window-list button."
+  },
 
   "menu-show-on-hover": {
     "type": "switch",
@@ -406,7 +413,7 @@
     "description": "Thumbnail window forward button action"
   },
 
-  "hover-peek": {
+  "hover-peek-thumbnail": {
     "type": "switch",
     "default": false,
     "description": "Show a full size window preview when hovering over a Thumbnail",
