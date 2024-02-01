@@ -1582,9 +1582,13 @@ class WindowListButton {
            if (pixBuf) {
               let image = new Clutter.Image();
               pixBuf.saturate_and_pixelate(pixBuf, saturation/100, false);
-              image.set_data(pixBuf.get_pixels(), pixBuf.get_has_alpha() ? Cogl.PixelFormat.RGBA_8888 : Cogl.PixelFormat.RGBA_888,
-                 this.iconSize, this.iconSize, pixBuf.get_rowstride() );
-              this._modifiedIcon = new Clutter.Actor({width: this.iconSize, height: this.iconSize, content: image});
+              try {
+                 image.set_data(pixBuf.get_pixels(), pixBuf.get_has_alpha() ? Cogl.PixelFormat.RGBA_8888 : Cogl.PixelFormat.RGBA_888,
+                    this.iconSize, this.iconSize, pixBuf.get_rowstride() );
+                 this._modifiedIcon = new Clutter.Actor({width: this.iconSize, height: this.iconSize, content: image});
+              } catch(e) {
+                 // Can't set the image data, so just use the default!
+              }
            } else {
               //log( `Can't find icon for ${infoIcon.to_string()}` );
            }
