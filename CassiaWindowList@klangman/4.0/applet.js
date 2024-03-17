@@ -1,6 +1,6 @@
 /*
  * applet.js
- * Copyright (C) 2022 Kevin Langman <klangman@gmail.com>
+ * Copyright (C) 2022-2024 Kevin Langman <klangman@gmail.com>
  * Copyright (C) 2013 Lars Mueller <cobinja@yahoo.de>
  *
  * CassiaWindowList is a fork of CobiWindowList which is found here:
@@ -194,7 +194,16 @@ const MouseAction = {
   MoveNextWorkspace: 21, // Move window to the workspace +1 from it's current workspace
   MovePrevMonitor: 22,   // Move window to the monitor -1 from it's current monitor
   MoveNextMonitor: 23,   // Move window to the monitor +1 from it's current monitor
-  PinToPanel: 24         // Pin the appButton to the panel
+  PinToPanel: 24,        // Pin the appButton to the panel
+  TileLeft: 25,          // Tile window...
+  TileTopLeft: 26,
+  TileTop: 27,
+  TileTopRight: 28,
+  TileRight: 29,
+  TileBottomRight: 30,
+  TileBottom: 31,
+  TileBottomLeft: 32,
+  Untile: 33             // Untile the window
 }
 
 // Possible settings for the left mouse action for grouped buttons (or Laucher with running windows)
@@ -557,32 +566,75 @@ function destroyHoverPeekClone(hoverClone, delayId, time, instant=false) {
 }
 
 function isPointerOffActor(actor, orientation) {
-     let [px,py,mods] = global.get_pointer();
-     if ((mods & (Clutter.ModifierType.SHIFT_MASK | Clutter.ModifierType.CONTROL_MASK)) != 0) {
-        return false;  // Is the user is holding one of Ctrl/Shift then return false so we don't change the focus, kinda hacky I know.
-     }
-     let [x, y] = actor.get_transformed_position();
-     if (orientation == St.Side.LEFT) {
-        let [w, h] = actor.get_size();
-        if ( px > x + w ) {
-           return true;
-        }
-     } else if (orientation == St.Side.RIGHT) {
-        if ( px < x ) {
-           return true;
-        }
-     } else if (orientation == St.Side.TOP) {
-        let [w, h] = actor.get_size();
-        if ( py > y + h ) {
-           return true;
-        }
-     } else if (orientation == St.Side.BOTTOM) {
-        if ( py < y ) {
-           return true;
-        }
-     }
-     return false;
-  }
+   let [px,py,mods] = global.get_pointer();
+   if ((mods & (Clutter.ModifierType.SHIFT_MASK | Clutter.ModifierType.CONTROL_MASK)) != 0) {
+      return false;  // Is the user is holding one of Ctrl/Shift then return false so we don't change the focus, kinda hacky I know.
+   }
+   let [x, y] = actor.get_transformed_position();
+   if (orientation == St.Side.LEFT) {
+      let [w, h] = actor.get_size();
+      if ( px > x + w ) {
+         return true;
+      }
+   } else if (orientation == St.Side.RIGHT) {
+      if ( px < x ) {
+         return true;
+      }
+   } else if (orientation == St.Side.TOP) {
+      let [w, h] = actor.get_size();
+      if ( py > y + h ) {
+         return true;
+      }
+   } else if (orientation == St.Side.BOTTOM) {
+      if ( py < y ) {
+         return true;
+      }
+   }
+   return false;
+}
+
+// Move the window according to the newTileMode parm
+function reTile(window, newTileMode) {
+   if (typeof Meta.WindowTileType !== 'undefined') {
+      window.tile(newTileMode, true);
+      return;
+   }
+   let mode = window.tile_mode;
+   if( newTileMode != mode) {
+      let newLeft = (newTileMode === Meta.TileMode.LEFT || newTileMode === Meta.TileMode.ULC || newTileMode === Meta.TileMode.LLC);
+      let newRight = !newLeft && (newTileMode === Meta.TileMode.RIGHT || newTileMode === Meta.TileMode.URC || newTileMode === Meta.TileMode.LRC);
+      let newTop = (newTileMode === Meta.TileMode.TOP || newTileMode === Meta.TileMode.ULC || newTileMode === Meta.TileMode.URC);
+      let newBottom = !newTop && (newTileMode === Meta.TileMode.BOTTOM || newTileMode === Meta.TileMode.LLC || newTileMode === Meta.TileMode.LRC);
+      let newH = (newRight*2) +(!newLeft&&!newRight);
+      let newV = (newBottom*2)+(!newTop&&!newBottom);
+
+      let curLeft = (mode === Meta.TileMode.LEFT || mode === Meta.TileMode.ULC || mode === Meta.TileMode.LLC);
+      let curRight = !curLeft && (mode === Meta.TileMode.RIGHT || mode === Meta.TileMode.URC || mode === Meta.TileMode.LRC);
+      let curTop = (mode === Meta.TileMode.TOP || mode === Meta.TileMode.ULC || mode === Meta.TileMode.URC);
+      let curBottom = !curTop && (mode === Meta.TileMode.BOTTOM || mode === Meta.TileMode.LLC || mode === Meta.TileMode.LRC);
+      let curH = (curRight*2) +(!curLeft&&!curRight);
+      let curV = (curBottom*2)+(!curTop&&!curBottom);
+
+      while (curH != newH) {
+         if (curH > newH) {
+            global.display.push_tile(window, Meta.MotionDirection.LEFT);
+            curH--;
+         } else {
+            global.display.push_tile(window, Meta.MotionDirection.RIGHT);
+            curH++;
+         }
+      }
+      while (curV != newV) {
+         if (curV > newV) {
+            global.display.push_tile(window, Meta.MotionDirection.UP);
+            curV--;
+         } else {
+            global.display.push_tile(window, Meta.MotionDirection.DOWN);
+            curV++;
+         }
+      }
+   }
+}
 
 // Represents an item in the Thumbnail popup menu
 class ThumbnailMenuItem extends PopupMenu.PopupBaseMenuItem {
@@ -646,7 +698,7 @@ class ThumbnailMenuItem extends PopupMenu.PopupBaseMenuItem {
     this._descBox.add_actor(this._closeBin);
     this._closeBin.set_child(this._closeIcon);
     this._closeIcon.hide();
-
+    this.hoverClone = null;
     if (this._appButton._windows.length > 1 && this._appButton._currentWindow === metaWindow) {
       this._box.add_style_pseudo_class('outlined');
     } else if (this._appButton.appLastFocus &&
@@ -1161,6 +1213,7 @@ class WindowListButton {
     this._nextWindow = null;                  // When cycling windows, keep track of the next window to cycle to
     this._grouped = GroupingType.NotGrouped;  // If button is a group of windows and why it was grouped
     this._currentWindow = null;
+    this.hoverClone = null;
 
     this._updateOrientation();
 
@@ -2348,6 +2401,33 @@ class WindowListButton {
               this._workspace.unpinAppButton(this);
            }
            break;
+        case MouseAction.TileLeft:
+           reTile(window, Meta.TileMode.LEFT);
+           break;
+        case MouseAction.TileTopLeft:
+           reTile(window, Meta.TileMode.ULC);
+           break;
+        case MouseAction.TileTop:
+           reTile(window, Meta.TileMode.TOP);
+           break;
+        case MouseAction.TileTopRight:
+           reTile(window, Meta.TileMode.URC);
+           break;
+        case MouseAction.TileRight:
+           reTile(window, Meta.TileMode.RIGHT);
+           break;
+        case MouseAction.TileBottomRight:
+           reTile(window, Meta.TileMode.LRC);
+           break;
+        case MouseAction.TileBottom:
+           reTile(window, Meta.TileMode.BOTTOM);
+           break;
+        case MouseAction.TileBottomLeft:
+           reTile(window, Meta.TileMode.LLC);
+           break;
+        case MouseAction.Untile:
+           reTile(window, Meta.TileMode.NONE);
+           break;
       }
   }
 
@@ -2446,11 +2526,10 @@ class WindowListButton {
          this._workspace._hoverPeekDelayId = destroyHoverPeekClone(this.hoverClone, this._workspace._hoverPeekDelayId, this._settings.getValue("fade-animation-time")*0.001);  // Close if one happens to exist
          this.hoverClone = createHoverPeekClone(this._currentWindow, this._settings.getValue("fade-animation-time")*0.001);
          } );
-       //this._workspace.lastEnteredButton = this;
     }
   }
 
-  _onLeaveEvent(actor, event) {
+  _onLeaveEvent() {
     // If we have left the panel, we might need to remove the hover peek clone and we might need to activate the window
     if (this._settings.getValue("no-click-activate") && isPointerOffActor(this.actor, this._applet.orientation)) {
        if (!this._contextMenu.isOpen && !this.menu.isOpen) {
@@ -2510,6 +2589,10 @@ class WindowListButton {
 
     item = new PopupMenu.PopupIconMenuItem(_("Configure..."), "system-run", St.IconType.SYMBOLIC);
     item.connect("activate", Lang.bind(this._applet, this._applet.configureApplet));
+    subMenu.menu.addMenuItem(item);
+
+    item = new PopupMenu.PopupIconMenuItem(_("Website"), "help-about", St.IconType.SYMBOLIC);
+    item.connect("activate", Lang.bind(this._applet, () => {Util.spawnCommandLineAsync("/usr/bin/xdg-open https://cinnamon-spices.linuxmint.com/applets/view/372");}));
     subMenu.menu.addMenuItem(item);
 
     item = new PopupMenu.PopupIconMenuItem(_("Remove '%s'").format(_(this._applet._meta.name)), "edit-delete", St.IconType.SYMBOLIC);
@@ -3169,7 +3252,9 @@ class Workspace {
     this._appButtons = [];
     this._settings = this._applet._settings;
     this._currentFocus = null;  // The WindowListButton that handles the window with the focus
-
+    this.iconSaturation = 100;
+    this.saturationType = SaturationType.ALL
+    this._hoverPeekDelayId = null;
     this._keyBindingsWindows = [];
 
     // Expand the pinned-apps array if required
@@ -3197,24 +3282,9 @@ class Workspace {
     this._signalManager.connect(this._settings, "changed::show-windows-for-current-monitor", this._updateAllWindowsForMonitor, this);
     this._signalManager.connect(this._settings, "changed::icon-saturation", this._updateAllIcons, this);
     this._signalManager.connect(this._settings, "changed::saturation-application", this._updateAllIcons, this);
-    //this._signalManager.connect(this.actor, "enter-event", this._onEnterEvent, this);
-    //this._signalManager.connect(this.actor, "leave-event", this._onLeaveEvent, this);
     this.iconSaturation = this._settings.getValue("icon-saturation");
     this.saturationType = this._settings.getValue("saturation-application");
   }
-
-  /*
-  _onEnterEvent() {
-     log( "WS, enter" );
-  }
-
-  _onLeaveEvent() {
-     log( "WS, leave" );
-     if (this.lastEnteredButton) {
-        Main.activateWindow(this.lastEnteredButton._currentWindow);
-        this.lastEnteredButton = null;
-     }
-  }*/
 
   onOrientationChanged(orientation) {
     if (orientation == St.Side.TOP || orientation == St.Side.BOTTOM) {
@@ -4662,6 +4732,7 @@ class WindowList extends Applet.Applet {
     this._signalManager.connect(global.screen, "window-monitor-changed", this.windowMonitorChanged, this);
     this._signalManager.connect(global.display, "notify::focus-window", this._onFocusChanged, this);
     this._signalManager.connect(Main.layoutManager, "monitors-changed", this._updateMonitor, this);
+    // This is not ideal, "changed::hotkey-bindings" seems to fire on any setting change and for each workspace! :-(
     this._signalManager.connect(this._settings, "changed::hotkey-bindings", this._updateKeybinding, this);
     this._signalManager.connect(this._settings, "changed::hotkey-sequence", this._updateKeybinding, this);
     this._signalManager.connect(this._settings, "changed::hotkey-grave-help", this._updateKeybinding, this);
@@ -4717,8 +4788,9 @@ class WindowList extends Applet.Applet {
      this._onDisplayPinnedChanged()
   }
 
+  // Connecting to "changed::pinned-apps" seems to fire for any config change
+  // So instead we check here to see if there are any changes and update only once
   _onSettingsChanged() {
-     // Check if there are new pinned apps, this is done because connecting to "changed::pinned-apps" seems to fire for any config change
      let newPinnedApps;
      if (this._settings.getValue("display-pinned") == DisplayPinned.Synchronized) {
         newPinnedApps =  this._settings.getValue("commoned-pinned-apps");
