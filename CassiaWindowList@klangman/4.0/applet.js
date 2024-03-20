@@ -276,6 +276,9 @@ const SaturationType = {
    Focused: 5
 }
 
+var hasSetMarkup = undefined;
+var hasGetFrameRect = undefined;
+
 Gettext.bindtextdomain(UUID, GLib.get_home_dir() + "/.local/share/locale");
 
 function _(text) {
@@ -437,8 +440,8 @@ function getKeyAndButtonMouseAction(mouseActionList, modifier, context, mouseBtn
 }
 
 function moveTitleBarToScreen(window) {
-   if (majorVersion < 5) {
-      return; // Cinnamon 4 does not support get_frame_rect()
+   if (!hasGetFrameRect) {
+      return true; // This system does not support get_frame_rect()
    }
    let rec = window.get_frame_rect();
    let topOffset = 0;
@@ -462,8 +465,15 @@ function moveTitleBarToScreen(window) {
 }
 
 function isTitleBarOnScreen(window) {
-   if (majorVersion < 5) {
-      return true; // Cinnamon 4 does not support get_frame_rect()
+   if (hasGetFrameRect===undefined) {
+      if (typeof window.get_frame_rect === "function") {
+         hasGetFrameRect = true;
+      } else {
+         hasGetFrameRect = false;
+      }
+   }
+   if (!hasGetFrameRect) {
+      return true; // This system does not support get_frame_rect()
    }
    let rec = window.get_frame_rect();
    let topOffset = 0;
@@ -1190,6 +1200,13 @@ class WindowListButton {
     this._labelBox.add_actor(this._label);
 
     this._tooltip = new Tooltips.PanelItemTooltip(this, this._app.get_name(), this._applet.orientation);
+    if (hasSetMarkup===undefined){
+       if (typeof this._tooltip.set_markup === "function") {
+          hasSetMarkup = true;
+       } else {
+          hasSetMarkup = false;
+       }
+    }
 
     this._iconBox = new St.Group({style: 'border:0px;padding:0px;margin:0px'});
     this.actor.add_actor(this._iconBox);
@@ -1281,6 +1298,15 @@ class WindowListButton {
      return false;
   }
 
+  isOnOtherWorkspace() {
+     if (this._currentWindow) {
+        let ws = this._currentWindow.get_workspace();
+        if (ws && ws.index() != this._workspace._wsNum)
+           return true;
+     }
+     return false;
+  }
+
   isOnOtherWorkspaceAll() {
      let other=0;
      for (let idx=0 ; idx < this._windows.length ; idx++ ) {
@@ -1293,7 +1319,16 @@ class WindowListButton {
      return false;
   }
 
-  isOnOtherMonitorsAll() {
+  isOnOtherMonitor() {
+     if (this._currentWindow) {
+        let monitor = this._currentWindow.get_monitor();
+        if (monitor != -1 && monitor != this._applet.panel.monitorIndex)
+           return true;
+     }
+     return false;
+  }
+
+  isOnOtherMonitorAll() {
      let other=0;
      for (let idx=0 ; idx < this._windows.length ; idx++ ) {
         let monitor = this._windows[idx].get_monitor();
@@ -1419,11 +1454,7 @@ class WindowListButton {
     if (this.menu && this._windows.length == 1) {
       this._workspace.menuManager.addMenu(this.menu);
     }
-    if (this._workspace.iconSaturation!=100 &&
-       (this._pinned && this._windows.length===1 && this._workspace.saturationType == SaturationType.Idle) ||
-       (this._workspace.saturationType == SaturationType.OtherMonitors && this.isOnOtherMonitorsAll()) ) {
-       this.updateIconSelection();
-    }
+    this.updateIconSelection();
   }
 
   removeWindow(metaWindow) {
@@ -1482,9 +1513,7 @@ class WindowListButton {
     // Without slice, this will reorder to windows in the this._windows array
     let windows = this._windows.slice();
     if (windows.length > 1) {
-      windows = windows.sort(function(a, b) {
-        return b.user_time - a.user_time;
-      });
+      windows = windows.sort(function(a, b) {return b.user_time - a.user_time;});
       this.sortedWindows = windows;
     } else {
        this.sortedWindows = this._windows;
@@ -1578,7 +1607,7 @@ class WindowListButton {
     } else {
        title = this._currentWindow.get_title();
     }
-    if (text.length == 0 || majorVersion < 5) {
+    if (text.length == 0 || !hasSetMarkup) {
        this._tooltip.set_text(title + text);
     } else {
        title = GLib.markup_escape_text(title, -1);
@@ -1594,8 +1623,8 @@ class WindowListButton {
         if (satType == SaturationType.All ||
            (satType == SaturationType.Minimized && this.isMinimizedAll()) ||
            (satType == SaturationType.Idle && this._pinned && this._windows.length==0) ||
-           (satType == SaturationType.OtherWorkspaces && this.isOnOtherWorkspaceAll()) ||
-           (satType == SaturationType.OtherMonitors && this.isOnOtherMonitorsAll()) ||
+           (satType == SaturationType.OtherWorkspaces && this.isOnOtherWorkspace()) ||
+           (satType == SaturationType.OtherMonitors && this.isOnOtherMonitor()) ||
            (satType == SaturationType.Focused && !this._hasFocus()) )
         {
            this._iconBin.set_child(this._modifiedIcon);
@@ -1981,14 +2010,14 @@ class WindowListButton {
         if (metaWindow.urgent || metaWindow.demands_attention) {
           this._unflashButton();
         }
-        if (this._workspace.iconSaturation!=100 && this._workspace.saturationType == SaturationType.Focused) {
+        if (this._workspace.iconSaturation!=100 && this._workspace.saturationType != SaturationType.All) {
            this.updateIconSelection();
         }
         break;
       } else {
         this.actor.remove_style_pseudo_class("focus");
         this._updateLabel();
-        if (this._workspace.iconSaturation!=100 && this._workspace.saturationType == SaturationType.Focused) {
+        if (this._workspace.iconSaturation!=100 && this._workspace.saturationType != SaturationType.All) {
            this.updateIconSelection();
         }
       }
@@ -3253,7 +3282,7 @@ class Workspace {
     this._settings = this._applet._settings;
     this._currentFocus = null;  // The WindowListButton that handles the window with the focus
     this.iconSaturation = 100;
-    this.saturationType = SaturationType.ALL
+    this.saturationType = SaturationType.All
     this._hoverPeekDelayId = null;
     this._keyBindingsWindows = [];
 
@@ -4179,6 +4208,7 @@ class Workspace {
     let x = btns[btns.length-1]._windows.shift();
     btns[btns.length-1]._windows.push(x);
     this._updateFocus();
+    btns[btns.length-1].updateIconSelection();
     //btns[btns.length-1]._updateTooltip();
     return btns[btns.length-1];
   }
@@ -4201,6 +4231,7 @@ class Workspace {
      let lastFocusBtn = button._workspace._lookupAppButtonForWindow(appLastFocus);
      lastFocusBtn.appLastFocus = true;
      button._updateLabel();
+     button.updateIconSelection();
      this._updateFocus();
   }
 
