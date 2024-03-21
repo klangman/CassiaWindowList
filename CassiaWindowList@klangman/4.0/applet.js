@@ -203,7 +203,8 @@ const MouseAction = {
   TileBottomRight: 30,
   TileBottom: 31,
   TileBottomLeft: 32,
-  Untile: 33             // Untile the window
+  Untile: 33,            // Untile the window
+  MoveThisWorkspace: 34  // Move window to the current workspace
 }
 
 // Possible settings for the left mouse action for grouped buttons (or Laucher with running windows)
@@ -1621,7 +1622,7 @@ class WindowListButton {
      if (this._workspace.iconSaturation != 100 && this._modifiedIcon) {
         let satType = this._workspace.saturationType;
         if (satType == SaturationType.All ||
-           (satType == SaturationType.Minimized && this.isMinimizedAll()) ||
+           (satType == SaturationType.Minimized && this._currentWindow && this._currentWindow.minimized) ||
            (satType == SaturationType.Idle && this._pinned && this._windows.length==0) ||
            (satType == SaturationType.OtherWorkspaces && this.isOnOtherWorkspace()) ||
            (satType == SaturationType.OtherMonitors && this.isOnOtherMonitor()) ||
@@ -2456,6 +2457,13 @@ class WindowListButton {
            break;
         case MouseAction.Untile:
            reTile(window, Meta.TileMode.NONE);
+           break;
+        case MouseAction.MoveThisWorkspace:
+           let nWorkspace = this._applet._workspaces.length;
+           if (window && nWorkspace > 1) {
+              let curWorkspace = this._applet.getCurrentWorkSpace()._wsNum;
+              window.change_workspace_by_index(curWorkspace, false);
+           }
            break;
       }
   }
