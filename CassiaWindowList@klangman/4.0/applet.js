@@ -652,6 +652,24 @@ function reTile(window, newTileMode) {
    }
 }
 
+// Converts the "<modifier><...>key::" to "Modifier+...+Key" format for hotkeys
+// 'Separator' is added between the hotkeys if two are specified
+function getHotkeyPrettyString(keyString, separator) {
+   let text = "";
+   keyString = keyString.replace( /</g, "");
+   keyString = keyString.replace( />/g, "+");
+   if (keyString.endsWith("::")) {
+      keyString = keyString.slice(0,-2);
+   }else{
+      let first = keyString.slice(0, keyString.lastIndexOf("::"));
+      let end = first.slice(first.lastIndexOf("+"))
+      text = first.slice(0,first.lastIndexOf("+")) + end.toUpperCase() + separator;
+      keyString = keyString.slice(keyString.indexOf("::")+2);
+   }
+   let end = keyString.slice(keyString.lastIndexOf("+"))
+   text = text + keyString.slice(0,keyString.lastIndexOf("+")) + end.toUpperCase();
+   return text;
+}
 // Represents an item in the Thumbnail popup menu
 class ThumbnailMenuItem extends PopupMenu.PopupBaseMenuItem {
 
@@ -1585,20 +1603,8 @@ class WindowListButton {
                    text = text + "\n" + secondCombo.slice(0,secondCombo.lastIndexOf("+")) + end.toUpperCase();
                 }
              } else {
-                // i.e.  "<Alt><Super><e>::" -> "Alt+Super+E"
-                let keyString = hotKeys[i].keyCombo.toString();
-                keyString = keyString.replace( /</g, "");
-                keyString = keyString.replace( />/g, "+");
-                if (keyString.endsWith("::")) {
-                   keyString = keyString.slice(0,-2);
-                }else{
-                   let first = keyString.slice(0, keyString.lastIndexOf("::"));
-                   let end = first.slice(first.lastIndexOf("+"))
-                   text = text + "\n" + first.slice(0,first.lastIndexOf("+")) + end.toUpperCase();
-                   keyString = keyString.slice(keyString.indexOf("::")+2);
-                }
-                let end = keyString.slice(keyString.lastIndexOf("+"))
-                text = text + "\n" + keyString.slice(0,keyString.lastIndexOf("+")) + end.toUpperCase();
+                // i.e.  "<Alt><Super>e::" -> "Alt+Super+E"
+                text = text + "\n" + getHotkeyPrettyString(hotKeys[i].keyCombo, "\n");
              }
           } else if (isAllButtons(hotKeys[i])) {
              let childern = this._workspace.actor.get_children();
@@ -2915,10 +2921,7 @@ class WindowListButton {
             let idx = i;
             let keyString;
             if (hotKeys[i].keyCombo!==null) {
-               keyString = hotKeys[i].keyCombo.toString();
-               if (keyString.endsWith("::")) {
-                  keyString = keyString.slice(0,-2);
-               }
+               keyString = getHotkeyPrettyString(hotKeys[i].keyCombo, " | ");
             } else {
                keyString = _("unassigned");
             }
