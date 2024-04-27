@@ -991,11 +991,10 @@ class ThumbnailMenu extends PopupMenu.PopupMenu {
 
   _findMenuItemForWindow(metaWindow) {
     let items = this._getMenuItems();
-    items = items.filter(function(item) {
-      return item._metaWindow == metaWindow;
-    });
-    if (items.length > 0) {
-      return items[0];
+    for( let i=0 ; i < items.length ; i++ ) {
+       if (items[i]._metaWindow === metaWindow) {
+          return items[i];
+       }
     }
     return null;
   }
@@ -1499,9 +1498,9 @@ class WindowListButton {
     if (arIndex >= 0) {
       this._windows.splice(arIndex, 1);
       this._updateCurrentWindow();
-      if (this.menu && this.menu.isOpen) {
-        this.menu.removeWindow(metaWindow);
-      }
+    }
+    if (this.menu && this.menu.isOpen) {
+      this.menu.removeWindow(metaWindow);
     }
     this._updateUrgentState()
     if (this._pinned) {
@@ -2546,22 +2545,17 @@ class WindowListButton {
     } else {
       this.actor.set_hover(true);
     }
+    // If a thumbnail menu is open, then make sure it contains this buttons current window. Not open, then open one after a delay if needed
     let curMenu = this._workspace.currentMenu;
-    /*
-    if (curMenu && curMenu != this.menu && curMenu.isOpen) {
-       let groupSetting = this._settings.getValue("group-windows");
-       if (groupSetting===GroupType.Pooled || groupedSetting===GroupType.Auto && curMenu._appButton._app === this._app) {
-          // Just keep the same menu since it's for the same pool and the current thumbnail menu is still appropriate
+    if (curMenu && curMenu.isOpen) {
+       if (curMenu._findMenuItemForWindow(this._currentWindow)==null) {
+          let holdPopup = this._workspace.holdPopup;
+          this.closeThumbnailMenu();
+          this.openThumbnailMenu();
+          this._workspace.holdPopup = holdPopup;
+       } else {
           this.removeThumbnailMenuDelay();
-          return;
        }
-    }
-    */
-    if (curMenu && curMenu != this.menu && curMenu.isOpen) {
-       let holdPopup = this._workspace.holdPopup;
-       this.closeThumbnailMenu();
-       this.openThumbnailMenu();
-       this._workspace.holdPopup = holdPopup;
     } else if (this._windows.length > 0 && this._settings.getValue("menu-show-on-hover")) {
       this.openThumbnailMenuDelayed();
     }
