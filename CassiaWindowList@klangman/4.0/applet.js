@@ -670,6 +670,7 @@ function getHotkeyPrettyString(keyString, separator) {
    text = text + keyString.slice(0,keyString.lastIndexOf("+")) + end.toUpperCase();
    return text;
 }
+
 // Represents an item in the Thumbnail popup menu
 class ThumbnailMenuItem extends PopupMenu.PopupBaseMenuItem {
 
@@ -2548,12 +2549,14 @@ class WindowListButton {
     // If a thumbnail menu is open, then make sure it contains this buttons current window. Not open, then open one after a delay if needed
     let curMenu = this._workspace.currentMenu;
     if (curMenu && curMenu.isOpen) {
-       if (curMenu._findMenuItemForWindow(this._currentWindow)==null) {
+       let menuItem = curMenu._findMenuItemForWindow(this._currentWindow);
+       if (menuItem==null) {
           let holdPopup = this._workspace.holdPopup;
           this.closeThumbnailMenu();
           this.openThumbnailMenu();
           this._workspace.holdPopup = holdPopup;
        } else {
+          menuItem.actor.add_style_pseudo_class("active");
           this.removeThumbnailMenuDelay();
        }
     } else if (this._windows.length > 0 && this._settings.getValue("menu-show-on-hover")) {
@@ -2599,6 +2602,10 @@ class WindowListButton {
 
     let curMenu = this._workspace.currentMenu;
     if (curMenu) {
+       let menuItem = curMenu._findMenuItemForWindow(this._currentWindow);
+       if (menuItem) {
+          menuItem.actor.remove_style_pseudo_class("active");
+       }
        this.closeThumbnailMenuDelayed();
     } else {
        this.removeThumbnailMenuDelay();
@@ -3125,6 +3132,13 @@ class WindowListButton {
         this.menu.openMenu();
         this._workspace.currentMenu = this.menu;
         this.actor.set_hover(true);
+        let curMenu = this._workspace.currentMenu;
+        if (curMenu && curMenu.numMenuItems > 1) {
+           let menuItem = this._workspace.currentMenu._findMenuItemForWindow(this._currentWindow);
+           if (menuItem && this._grouped <= GroupingType.NotGrouped) {
+              menuItem.actor.add_style_pseudo_class("active");
+           }
+        }
      }
   }
 
