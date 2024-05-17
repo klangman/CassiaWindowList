@@ -1888,18 +1888,22 @@ class WindowListButton {
 
     // Do we need a number label char
     if (numberType !== NumberType.Nothing && style === 1) {
+       let labelNum = 0;
        if (numberType === NumberType.GroupWindows && ((numSetting === DisplayNumber.All && number >= 1) || ((numSetting === DisplayNumber.Smart && number >= 2) &&
           (groupSetting === 0 || this._grouped > GroupingType.NotGrouped))))
        {
-         if (number > 20) {
+          labelNum = number;
+       } else if (numberType === NumberType.WorkspaceNum && this._currentWindow && this.isOnOtherWorkspace()) {
+         labelNum =  this._currentWindow.get_workspace().index()+1;
+       } else if (numberType === NumberType.MonitorNum && this._currentWindow && this.isOnOtherMonitor()) {
+         labelNum = this._currentWindow.get_monitor()+1;
+       }
+       if (labelNum > 0) {
+         if (labelNum > 20) {
            text = "\u{24A8} " + text; // The Unicode character "(m)"
          } else {
-           text = String.fromCharCode(9331+number) + " " + text; // Bracketed number
+           text = String.fromCharCode(9331+labelNum) + " " + text; // Bracketed number
          }
-       } else if (numberType === NumberType.WorkspaceNum && this._currentWindow && this.isOnOtherWorkspace()) {
-         text = this._currentWindow.get_workspace().index();
-       } else if (numberType === NumberType.MonitorNum && this._currentWindow && this.isOnOtherMonitor()) {
-         text = this._currentWindow.get_monitor()+1;
        }
     }
     // Do we need a minimized char
