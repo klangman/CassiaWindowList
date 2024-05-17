@@ -41,8 +41,8 @@
     },
     "caption-number-settings" : {
       "type" : "section",
-      "title" : "Application groups number label settings",
-      "keys" : ["display-number", "number-style"]
+      "title" : "Number label settings",
+      "keys" : ["number-type", "display-number", "number-style"]
     },
     "general-settings" : {
       "type" : "section",
@@ -185,6 +185,17 @@
     "dependency": "label-animation",
     "description": "Label animation duration"
   },
+  "number-type": {
+    "type": "combobox",
+    "default": 1,
+    "options": {
+      "Nothing": 0,
+      "Application group window count": 1,
+      "Workspace number": 2,
+      "Monitor number": 3
+    },
+    "description": "Number label contents"
+  },
   "display-number": {
     "type": "combobox",
     "default": 2,
@@ -193,6 +204,7 @@
       "Always": 1,
       "2 or more windows": 2
     },
+    "dependency": "number-type=0",
     "description": "Display number"
   },
   "number-style": {

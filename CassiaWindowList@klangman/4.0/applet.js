@@ -157,6 +157,13 @@ const DisplayNumber = {
   Smart: 2          // ... only displayed when 2 of more windows exist
 }
 
+const NumberType = {
+  Nothing:      0,  // Don't show any Number labels
+  GroupWindows: 1,  // Application Group Window Count
+  WorkspaceNum: 2,  // Workspace Number
+  MonitorNum:   3   // Monitor Number
+}
+
 // Possible values for the WindowListButton._grouped variable which determines how each individual windowlist button is currently grouped
 const GroupingType = {
   ForcedOff:   0,   // Button is ungrouped and CAN NOT be grouped automatically
@@ -1280,6 +1287,7 @@ class WindowListButton {
     this._signalManager.connect(this._settings, "changed::grouped-mouse-action-btn1", this._updateTooltip, this);
     this._signalManager.connect(this._settings, "changed::show-tooltips", this._updateTooltip, this);
     this._signalManager.connect(this._settings, "changed::number-style", Lang.bind(this, function() { this._updateNumber(); this._updateLabel(); }), this);
+    this._signalManager.connect(this._settings, "changed::number-type", Lang.bind(this, function() { this._updateNumber(); this._updateLabel(); }), this);
     this._signalManager.connect(this._settings, "changed::label-width", this._updateLabel, this);
     this._signalManager.connect(this._settings, "changed::button-spacing", this._updateSpacing, this);
     this._signalManager.connect(this.actor, "enter-event", this._onEnterEvent, this);
@@ -1730,6 +1738,7 @@ class WindowListButton {
   }
 
   _updateNumber() {
+    let numberType = this._settings.getValue("number-type");
     let setting = this._settings.getValue("display-number");
     let style = this._settings.getValue("number-style");
     let groupType = this._settings.getValue("group-windows");
@@ -1739,14 +1748,22 @@ class WindowListButton {
     if (this._grouped === GroupingType.Auto && number < 2) {
        this._grouped = GroupingType.NotGrouped;
     }
-    if ( (setting == DisplayNumber.All && number >= 1)    ||
-         ((setting == DisplayNumber.Smart && number >= 2) &&
-         (groupType == GroupType.Grouped || groupType == GroupType.Launcher || this._grouped > GroupingType.NotGrouped))) {
-      text += number;
-    }
 
     if (style == 1 && (groupType == GroupType.Launcher || (this._applet.orientation == St.Side.LEFT || this._applet.orientation == St.Side.RIGHT)))
        style = 0;  // No space for a label based window group counter, so force the icon overlay option if it's not disabled!
+
+    if (style === 0 && numberType !== NumberType.Nothing) {
+       if (numberType === NumberType.GroupWindows && ( (setting == DisplayNumber.All && number >= 1) ||
+          ((setting == DisplayNumber.Smart && number >= 2) &&
+          (groupType == GroupType.Grouped || groupType == GroupType.Launcher || this._grouped > GroupingType.NotGrouped))))
+       {
+          text += number;
+       } else if (numberType === NumberType.WorkspaceNum && this._currentWindow && this.isOnOtherWorkspace()) {
+          text += this._currentWindow.get_workspace().index()+1;
+       } else if (numberType === NumberType.MonitorNum && this._currentWindow && this.isOnOtherMonitor()) {
+          text += this._currentWindow.get_monitor()+1;
+       }
+    }
 
     if (text == "" || style == 1) {
       this._labelNumberBox.hide();
@@ -1788,6 +1805,7 @@ class WindowListButton {
     let pinnedSetting = this._settings.getValue("display-caption-for-pined");
     let minimizedSetting = this._settings.getValue("hide-caption-for-minimized");
     let style = this._settings.getValue("number-style");
+    let numberType = this._settings.getValue("number-type");
     let preferredWidth = this._settings.getValue("label-width");
     let number = this._windows.length;
     let text = "";
@@ -1868,15 +1886,21 @@ class WindowListButton {
        this._shrukenLabel = true;
     }
 
-    // Do we need a window number char
-    if (style === 1 && ((numSetting === DisplayNumber.All && number >= 1) || ((numSetting === DisplayNumber.Smart && number >= 2) &&
-       (groupSetting === 0 || this._grouped > GroupingType.NotGrouped))))
-    {
-      if (number > 20) {
-        text = "\u{24A8} " + text; // The Unicode character "(m)"
-      } else {
-        text = String.fromCharCode(9331+number) + " " + text; // Bracketed number
-      }
+    // Do we need a number label char
+    if (numberType !== NumberType.Nothing && style === 1) {
+       if (numberType === NumberType.GroupWindows && ((numSetting === DisplayNumber.All && number >= 1) || ((numSetting === DisplayNumber.Smart && number >= 2) &&
+          (groupSetting === 0 || this._grouped > GroupingType.NotGrouped))))
+       {
+         if (number > 20) {
+           text = "\u{24A8} " + text; // The Unicode character "(m)"
+         } else {
+           text = String.fromCharCode(9331+number) + " " + text; // Bracketed number
+         }
+       } else if (numberType === NumberType.WorkspaceNum && this._currentWindow && this.isOnOtherWorkspace()) {
+         text = this._currentWindow.get_workspace().index();
+       } else if (numberType === NumberType.MonitorNum && this._currentWindow && this.isOnOtherMonitor()) {
+         text = this._currentWindow.get_monitor()+1;
+       }
     }
     // Do we need a minimized char
     if (this._currentWindow && this._currentWindow.minimized && (this._applet.indicators&IndicatorType.Minimized) && this._workspace.autoIndicatorsOff==false) {
@@ -5059,6 +5083,11 @@ class WindowList extends Applet.Applet {
               } else {
                 workspace._windowRemoved(window);
               }
+           } else if (this._settings.getValue("number-type")===NumberType.WorkspaceNum){
+             let btn = workspace._lookupAppButtonForWindow(window);
+             if (btn) {
+               btn._updateNumber(); // In case the number is showing the workspace index
+             }
            }
          }
        }
@@ -5068,11 +5097,12 @@ class WindowList extends Applet.Applet {
   windowMonitorChanged(screen, window, monitor) {
     if (!this._settings.getValue("show-windows-for-current-monitor")) {
       let ws = this.getCurrentWorkSpace();
-      if (ws.saturationType == SaturationType.OtherMonitors && ws.iconSaturation!=100) {
-        let btn = ws._lookupAppButtonForWindow(window);
-        if (btn) {
-          btn.updateIconSelection();
-        }
+      let btn = ws._lookupAppButtonForWindow(window);
+      if (btn) {
+         btn._updateNumber(); // In case the number is showing the monitor index
+         if (ws.saturationType == SaturationType.OtherMonitors && ws.iconSaturation!=100) {
+            btn.updateIconSelection();
+         }
       }
       return;
     }
