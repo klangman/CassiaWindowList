@@ -200,12 +200,12 @@
     "type": "combobox",
     "default": 2,
     "options": {
-      "Never": 0,
       "Always": 1,
-      "2 or more windows": 2
+      "Smart": 2
     },
-    "dependency": "number-type=0",
-    "description": "Display number"
+    "dependency" : "number-type>0",
+    "description": "Display number",
+    "tooltip": "Controls when the number label is used. Smart means the the label will only appear when it is appropriate depending on the number label contents setting above. i.e. When there is two or more windows in a group, or when the windows workspace or monitor does not match the current one."
   },
   "number-style": {
     "type": "combobox",
@@ -214,9 +214,9 @@
       "Icon overlay": 0,
       "Label prepend": 1
     },
-    "dependency" : "group-windows<4",
+    "dependency" : "number-type>0",
     "description": "Number style",
-    "tooltip": "Controls how the number of windows in a grouped button is presented. When on a vertical panel, the \"label prepend\" option is not possible so \"icon overlay\" will be used instead"
+    "tooltip": "Controls how the number label is presented. When on a vertical panel or when in launcher mode, the \"label prepend\" option is not possible so \"icon overlay\" will be used instead"
   },
 
 

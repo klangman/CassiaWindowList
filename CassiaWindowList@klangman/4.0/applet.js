@@ -150,9 +150,9 @@ const DisplayCaption = {
   One: 3            // Only one window (the last one in the window list) will have a caption (only really makes sense when also using GroupType.Pooled/Auto)
 }
 
-// The possible user Settings for how window list window counts should be displayed
+// The possible user Settings for how the number label should be displayed
 const DisplayNumber = {
-  No: 0,            // The number of windows attached to a window list button is never displayed
+  No: 0,            // The number label for a  window list button is never displayed
   All: 1,           // ... always displayed
   Smart: 2          // ... only displayed when 2 of more windows exist
 }
@@ -1758,9 +1758,9 @@ class WindowListButton {
           (groupType == GroupType.Grouped || groupType == GroupType.Launcher || this._grouped > GroupingType.NotGrouped))))
        {
           text += number;
-       } else if (numberType === NumberType.WorkspaceNum && this._currentWindow && this.isOnOtherWorkspace()) {
+       } else if (numberType === NumberType.WorkspaceNum && this._currentWindow && (setting === DisplayNumber.All || this.isOnOtherWorkspace())) {
           text += this._currentWindow.get_workspace().index()+1;
-       } else if (numberType === NumberType.MonitorNum && this._currentWindow && this.isOnOtherMonitor()) {
+       } else if (numberType === NumberType.MonitorNum && this._currentWindow && (setting === DisplayNumber.All || this.isOnOtherMonitor())) {
           text += this._currentWindow.get_monitor()+1;
        }
     }
@@ -1893,9 +1893,9 @@ class WindowListButton {
           (groupSetting === 0 || this._grouped > GroupingType.NotGrouped))))
        {
           labelNum = number;
-       } else if (numberType === NumberType.WorkspaceNum && this._currentWindow && this.isOnOtherWorkspace()) {
+       } else if (numberType === NumberType.WorkspaceNum && this._currentWindow && (numSetting === DisplayNumber.All || this.isOnOtherWorkspace())) {
          labelNum =  this._currentWindow.get_workspace().index()+1;
-       } else if (numberType === NumberType.MonitorNum && this._currentWindow && this.isOnOtherMonitor()) {
+       } else if (numberType === NumberType.MonitorNum && this._currentWindow && (numSetting === DisplayNumber.All || this.isOnOtherMonitor())) {
          labelNum = this._currentWindow.get_monitor()+1;
        }
        if (labelNum > 0) {
