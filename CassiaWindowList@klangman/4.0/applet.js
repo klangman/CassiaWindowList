@@ -1282,6 +1282,7 @@ class WindowListButton {
     this._signalManager.connect(this._settings, "changed::display-caption-for-pined", this._updateLabel, this);
     this._signalManager.connect(this._settings, "changed::hide-caption-for-minimized", this._updateLabel, this);
     this._signalManager.connect(this._settings, "changed::display-caption-for", this._updateLabel, this);
+    this._signalManager.connect(this._settings, "changed::show-ellipsis-for-groups", this._updateLabel, this);
     this._signalManager.connect(this._settings, "changed::display-number", this._updateNumber, this);
     this._signalManager.connect(this._settings, "changed::menu-show-on-hover", this._updateTooltip, this);
     this._signalManager.connect(this._settings, "changed::grouped-mouse-action-btn1", this._updateTooltip, this);
@@ -1807,6 +1808,7 @@ class WindowListButton {
     let style = this._settings.getValue("number-style");
     let numberType = this._settings.getValue("number-type");
     let preferredWidth = this._settings.getValue("label-width");
+    let ellipsis = this._settings.getValue("show-ellipsis-for-groups");
     let number = this._windows.length;
     let text = "";
     let width = preferredWidth;
@@ -1913,6 +1915,11 @@ class WindowListButton {
     // Do we need a pinned char
     if (this._pinned && (this._applet.indicators&IndicatorType.Pinned) && this._workspace.autoIndicatorsOff==false) {
         text = "\u{1F4CC}" + text; // Unicode for the "push pin" character
+    }
+    // Do we need a group ellipsis char
+    if (ellipsis === true && number >= 2)
+    {
+       text = "\u{22EE}" + text;  // The Unicode character "Vertical Ellipsis"
     }
 
     // If we don't have a minimum label size, calculate it now!

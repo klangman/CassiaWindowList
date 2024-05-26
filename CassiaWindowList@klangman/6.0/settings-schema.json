@@ -37,7 +37,7 @@
       "type" : "section",
       "title" : "Window list button label settings",
       "dependency" : "group-windows<4",
-      "keys" : ["caption-type", "display-caption-for", "display-caption-for-pined", "hide-caption-for-minimized", "display-indicators", "label-width", "label-animation", "label-animation-time"]
+      "keys" : ["caption-type", "display-caption-for", "display-caption-for-pined", "hide-caption-for-minimized", "display-indicators", "show-ellipsis-for-groups", "label-width", "label-animation", "label-animation-time"]
     },
     "caption-number-settings" : {
       "type" : "section",
@@ -132,6 +132,13 @@
     },
     "description": "Display status indicators",
     "tooltip": "Choose if the minimized and the pinned indicator characters will be prepended to button label text. Buttons without a text label will not reserve as much space.\nAutomatic: The minimized and pinned indicators will only show when space is not constrained."
+  },
+  "show-ellipsis-for-groups": {
+    "type": "switch",
+    "default": 0,
+    "dependency" : "group-windows<4",
+    "description": "Show a vertical ellipsis (...) for grouped buttons",
+    "tooltip": "Prepend a vertical ellipsis unicode charter to the labels for grouped window-list buttons with more then one window. When on a vertical panel this option is not possible and the setting will be ignored."
   },
   "trailing-pinned-behaviour": {
     "type": "switch",
