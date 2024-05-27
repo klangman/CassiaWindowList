@@ -211,7 +211,11 @@ const MouseAction = {
   TileBottom: 31,
   TileBottomLeft: 32,
   Untile: 33,            // Untile the window
-  MoveThisWorkspace: 34  // Move window to the current workspace
+  MoveThisWorkspace: 34, // Move window to the current workspace
+  GroupedWindow1: 35,    // Activate the 1st...4th window in a grouped button
+  GroupedWindow2: 36,
+  GroupedWindow3: 37,
+  GroupedWindow4: 38
 }
 
 // Possible settings for the left mouse action for grouped buttons (or Laucher with running windows)
@@ -2514,6 +2518,26 @@ class WindowListButton {
            if (window && nWorkspace > 1) {
               let curWorkspace = this._applet.getCurrentWorkSpace()._wsNum;
               window.change_workspace_by_index(curWorkspace, false);
+           }
+           break;
+        case MouseAction.GroupedWindow1:
+           if (this._windows.length > 0){
+              Main.activateWindow(this._windows[0]);
+           }
+           break;
+        case MouseAction.GroupedWindow2:
+           if (this._windows.length > 1){
+              Main.activateWindow(this._windows[1]);
+           }
+           break;
+        case MouseAction.GroupedWindow3:
+           if (this._windows.length > 2){
+              Main.activateWindow(this._windows[2]);
+           }
+           break;
+        case MouseAction.GroupedWindow4:
+           if (this._windows.length > 3){
+              Main.activateWindow(this._windows[3]);
            }
            break;
       }
