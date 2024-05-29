@@ -739,6 +739,21 @@ class ThumbnailMenuItem extends PopupMenu.PopupBaseMenuItem {
     this._spacer = new St.Widget();
     this._descBox.add(this._spacer, {expand: true});
 
+    // Add Monitor and Workspace label
+    let showMon = Main.layoutManager.monitors.length > 1 && !this._settings.getValue("show-windows-for-current-monitor");
+    let showWS = global.screen.get_n_workspaces() > 1 && this._settings.getValue("show-windows-for-all-workspaces");
+    if (showMon || showWS) {
+       this._infoLabel = new St.Label();
+       if (showMon && showWS) {
+          this._infoLabel.set_text(` (${metaWindow.get_workspace().index()+1}/${metaWindow.get_monitor()+1}) `);
+       } else if (showMon) {
+          this._infoLabel.set_text(` (${metaWindow.get_monitor()+1}) `);
+       } else if (showWS) {
+          this._infoLabel.set_text(` (${metaWindow.get_workspace().index()+1}) `);
+       }
+       this._descBox.add_actor(this._infoLabel);
+    }
+
     this._closeBin = new St.Bin({min_width: 0, min_height: 0, natural_width: this.descSize, natural_height: this.descSize, reactive: true});
     this._closeIcon = new St.Bin({style_class: "window-close", natural_width: this._iconSize, height: this._iconSize});
     this._descBox.add_actor(this._closeBin);
