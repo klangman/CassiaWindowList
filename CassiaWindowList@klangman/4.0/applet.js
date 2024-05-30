@@ -1446,7 +1446,18 @@ class WindowListButton {
     this.closeThumbnailMenu();
   }
 
-  _onDragEnd() {
+  _onDragEnd(event, time, accepted) {
+    // If the drop was not accepted by the drop target and the monitor where the drop occurred is not that same as the currentWindow's monitor,
+    // then move the currentWindow to the monitor where the drop occurred and activate it. The user wants to use DND to move a window to a new monitor.
+    if (!accepted && this._currentWindow) {
+       let pointerMonitor = global.display.get_current_monitor();
+       log( `Dropped on monitor #${pointerMonitor}, accepted=${accepted}` );
+       if (this._currentWindow.get_monitor() != pointerMonitor) {
+          this._currentWindow.move_to_monitor(pointerMonitor);
+          Main.activateWindow(this._currentWindow);
+       }
+    }
+
     this._workspace._clearDragPlaceholder();
     this._updateVisibility();
     this._updateTooltip();
@@ -4126,25 +4137,6 @@ class Workspace {
               }
            }
         }
-        /*
-        // If "smart numeric hotkeys" are enabled then we might need to update all the tooltips for this application
-        if (this._settings.getValue("hotkey-sequence")) {
-           let hotKeys = this._applet._keyBindings;
-           let hotKeyWindows = source._workspace._keyBindingsWindows;
-           for (let i=0 ; i < hotKeys.length ; i++) {
-              if (hotKeys[i].enabled===true && hotKeys[i].keyCombo!==null && hotKeyWindows[i] && source._workspace.getAppForWindow(hotKeyWindows[i]) === source._app) {
-                 let [seqCombo, secondCombo] = getSmartNumericHotkey(hotKeys[i].keyCombo);
-                 if (seqCombo) {
-                    let btns = source._workspace._lookupAllAppButtonsForApp(source._app);
-                    for( let idx=0 ; idx < btns.length ; idx++) {
-                       btns[idx]._updateTooltip()
-                    }
-                    break;
-                 }
-              }
-           }
-        }
-        */
         if (this._settings.getValue("display-caption-for") === DisplayCaption.One) {
            source._updateLabel(); // The moved button might need it's label restored
            if (groupingType != GroupType.Pooled && groupingType != GroupType.Auto) {
