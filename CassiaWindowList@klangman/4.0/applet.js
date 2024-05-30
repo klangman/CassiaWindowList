@@ -1447,13 +1447,21 @@ class WindowListButton {
   }
 
   _onDragEnd(event, time, accepted) {
-    // If the drop was not accepted by the drop target and the monitor where the drop occurred is not that same as the currentWindow's monitor,
-    // then move the currentWindow to the monitor where the drop occurred and activate it. The user wants to use DND to move a window to a new monitor.
+    // If the drop was not accepted by the drop target and the monitor|workspace where the drop occurred is not that same as the currentWindow's monitor|workspace,
+    // then move the currentWindow to the monitor|workspace where the drop occurred and activate it. The user wants to use DND to move a window to a new monitor|workspace.
     if (!accepted && this._currentWindow) {
+       let windowMoved = false;
        let pointerMonitor = global.display.get_current_monitor();
-       log( `Dropped on monitor #${pointerMonitor}, accepted=${accepted}` );
        if (this._currentWindow.get_monitor() != pointerMonitor) {
           this._currentWindow.move_to_monitor(pointerMonitor);
+          windowMoved = true;
+       }
+       let currentWs = global.screen.get_active_workspace_index();
+       if (currentWs != this._currentWindow.get_workspace().index()) {
+          this._currentWindow.change_workspace_by_index(currentWs, false);
+          windowMoved = true;
+       }
+       if (windowMoved) {
           Main.activateWindow(this._currentWindow);
        }
     }
