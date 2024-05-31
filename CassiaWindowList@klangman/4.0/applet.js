@@ -3005,6 +3005,23 @@ class WindowListButton {
         }
       }
 
+      // Add a "Move window here" menu item if the window is not on this monitor or it's not on this workspace
+      let currentWs = global.screen.get_active_workspace_index();
+      let pointerMonitor = global.display.get_current_monitor();
+      if (pointerMonitor!== metaWindow.get_monitor() || currentWs !== metaWindow.get_workspace().index()) {
+         item = new PopupMenu.PopupMenuItem(_("Move window here"));
+         item.connect("activate", Lang.bind(this, function() {
+            if (pointerMonitor !== metaWindow.get_monitor()) {
+               metaWindow.move_to_monitor(pointerMonitor);
+            }
+            if (currentWs !== metaWindow.get_workspace().index()) {
+               metaWindow.change_workspace_by_index(currentWs, false);
+            }
+            Main.activateWindow(this._currentWindow);
+         }));
+         this._contextMenu.addMenuItem(item);
+      }
+
       // Menu options to attach a hotkey to a window
       this._contextMenu.addMenuItem(new PopupMenu.PopupSeparatorMenuItem());
       let appHasExistingHotkey = false;
