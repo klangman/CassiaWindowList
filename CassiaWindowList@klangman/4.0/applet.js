@@ -215,7 +215,8 @@ const MouseAction = {
   GroupedWindow1: 35,    // Activate the 1st...4th window in a grouped button
   GroupedWindow2: 36,
   GroupedWindow3: 37,
-  GroupedWindow4: 38
+  GroupedWindow4: 38,
+  MoveHere: 39           // Change the windows monitor and workspace to be the current monitor and workspace
 }
 
 // Possible settings for the left mouse action for grouped buttons (or Laucher with running windows)
@@ -680,6 +681,23 @@ function getHotkeyPrettyString(keyString, separator) {
    let end = keyString.slice(keyString.lastIndexOf("+"))
    text = text + keyString.slice(0,keyString.lastIndexOf("+")) + end.toUpperCase();
    return text;
+}
+
+function moveWindowHere(window) {
+   let windowMoved = false;
+   let pointerMonitor = global.display.get_current_monitor();
+   if (window.get_monitor() != pointerMonitor) {
+      window.move_to_monitor(pointerMonitor);
+      windowMoved = true;
+   }
+   let currentWs = global.screen.get_active_workspace_index();
+   if (currentWs != window.get_workspace().index()) {
+      window.change_workspace_by_index(currentWs, false);
+      windowMoved = true;
+   }
+   if (windowMoved) {
+      Main.activateWindow(window);
+   }
 }
 
 // Represents an item in the Thumbnail popup menu
@@ -1450,20 +1468,7 @@ class WindowListButton {
     // If the drop was not accepted by the drop target and the monitor|workspace where the drop occurred is not that same as the currentWindow's monitor|workspace,
     // then move the currentWindow to the monitor|workspace where the drop occurred and activate it. The user wants to use DND to move a window to a new monitor|workspace.
     if (!accepted && this._currentWindow) {
-       let windowMoved = false;
-       let pointerMonitor = global.display.get_current_monitor();
-       if (this._currentWindow.get_monitor() != pointerMonitor) {
-          this._currentWindow.move_to_monitor(pointerMonitor);
-          windowMoved = true;
-       }
-       let currentWs = global.screen.get_active_workspace_index();
-       if (currentWs != this._currentWindow.get_workspace().index()) {
-          this._currentWindow.change_workspace_by_index(currentWs, false);
-          windowMoved = true;
-       }
-       if (windowMoved) {
-          Main.activateWindow(this._currentWindow);
-       }
+       moveWindowHere(this._currentWindow);
     }
 
     this._workspace._clearDragPlaceholder();
@@ -2112,6 +2117,7 @@ class WindowListButton {
         }
       }
     }
+    this._updateNumber();
   }
 
   _updateVisibility() {
@@ -2572,6 +2578,11 @@ class WindowListButton {
         case MouseAction.GroupedWindow4:
            if (this._windows.length > 3){
               Main.activateWindow(this._windows[3]);
+           }
+           break;
+        case MouseAction.MoveHere:
+           if (window) {
+              moveWindowHere(window);
            }
            break;
       }
@@ -4035,6 +4046,7 @@ class Workspace {
                 btns[i].appLastFocus = false;
              }
              newFocus.appLastFocus = true;
+             this._currentFocus._updateNumber();
           }
           newFocus._updateFocus();
           this._currentFocus = newFocus;
