@@ -291,6 +291,7 @@ const SaturationType = {
 
 var hasSetMarkup = undefined;
 var hasGetFrameRect = undefined;
+var hasGetCurrentMonitor = undefined;
 
 Gettext.bindtextdomain(UUID, GLib.get_home_dir() + "/.local/share/locale");
 
@@ -684,18 +685,15 @@ function getHotkeyPrettyString(keyString, separator) {
 }
 
 function moveWindowHere(window) {
-   let windowMoved = false;
-   let pointerMonitor = global.display.get_current_monitor();
-   if (window.get_monitor() != pointerMonitor) {
-      window.move_to_monitor(pointerMonitor);
-      windowMoved = true;
-   }
-   let currentWs = global.screen.get_active_workspace_index();
-   if (currentWs != window.get_workspace().index()) {
-      window.change_workspace_by_index(currentWs, false);
-      windowMoved = true;
-   }
-   if (windowMoved) {
+   if (hasGetCurrentMonitor) {
+      let pointerMonitor = global.display.get_current_monitor();
+      if (window.get_monitor() != pointerMonitor) {
+         window.move_to_monitor(pointerMonitor);
+      }
+      let currentWs = global.screen.get_active_workspace_index();
+      if (currentWs != window.get_workspace().index()) {
+         window.change_workspace_by_index(currentWs, false);
+      }
       Main.activateWindow(window);
    }
 }
@@ -1279,6 +1277,13 @@ class WindowListButton {
        } else {
           hasSetMarkup = false;
        }
+    }
+    if (hasGetCurrentMonitor===undefined){
+      if (typeof global.display.get_current_monitor === "function") {
+         hasGetCurrentMonitor = true;
+      } else {
+         hasGetCurrentMonitor = false;
+      }
     }
 
     this._iconBox = new St.Group({style: 'border:0px;padding:0px;margin:0px'});
@@ -3017,20 +3022,22 @@ class WindowListButton {
       }
 
       // Add a "Move window here" menu item if the window is not on this monitor or it's not on this workspace
-      let currentWs = global.screen.get_active_workspace_index();
-      let pointerMonitor = global.display.get_current_monitor();
-      if (pointerMonitor!== metaWindow.get_monitor() || currentWs !== metaWindow.get_workspace().index()) {
-         item = new PopupMenu.PopupMenuItem(_("Move window here"));
-         item.connect("activate", Lang.bind(this, function() {
-            if (pointerMonitor !== metaWindow.get_monitor()) {
-               metaWindow.move_to_monitor(pointerMonitor);
-            }
-            if (currentWs !== metaWindow.get_workspace().index()) {
-               metaWindow.change_workspace_by_index(currentWs, false);
-            }
-            Main.activateWindow(this._currentWindow);
-         }));
-         this._contextMenu.addMenuItem(item);
+      if (hasGetCurrentMonitor) {
+         let currentWs = global.screen.get_active_workspace_index();
+         let pointerMonitor = global.display.get_current_monitor();
+         if (pointerMonitor!== metaWindow.get_monitor() || currentWs !== metaWindow.get_workspace().index()) {
+            item = new PopupMenu.PopupMenuItem(_("Move window here"));
+            item.connect("activate", Lang.bind(this, function() {
+               if (pointerMonitor !== metaWindow.get_monitor()) {
+                  metaWindow.move_to_monitor(pointerMonitor);
+               }
+               if (currentWs !== metaWindow.get_workspace().index()) {
+                  metaWindow.change_workspace_by_index(currentWs, false);
+               }
+               Main.activateWindow(this._currentWindow);
+            }));
+            this._contextMenu.addMenuItem(item);
+         }
       }
 
       // Menu options to attach a hotkey to a window
