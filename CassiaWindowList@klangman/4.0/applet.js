@@ -292,6 +292,7 @@ const SaturationType = {
 var hasSetMarkup = undefined;
 var hasGetFrameRect = undefined;
 var hasGetCurrentMonitor = undefined;
+var useOldMoveToWorkspace = undefined;
 
 Gettext.bindtextdomain(UUID, GLib.get_home_dir() + "/.local/share/locale");
 
@@ -684,17 +685,35 @@ function getHotkeyPrettyString(keyString, separator) {
    return text;
 }
 
-function moveWindowHere(window) {
-   if (hasGetCurrentMonitor) {
-      let pointerMonitor = global.display.get_current_monitor();
-      if (window.get_monitor() != pointerMonitor) {
-         window.move_to_monitor(pointerMonitor);
+// Move 'window' to the 'curWs' workspace and the 'curMonitor' monitor, then give 'window' the focus
+// It's assumed that curWs and curMonitor is the current workspace and the monitor the panel is on
+function moveWindowHere(window, curWs, curMonitor) {
+   if (window.get_monitor() != curMonitor) {
+      window.move_to_monitor(curMonitor);
+   }
+   if (curWs != window.get_workspace().index()) {
+      moveToWorkspace(window, curWs);
+   }
+   Main.activateWindow(window);
+}
+
+// Since the number of arguments to change_workspace_by_index() changed, here we try the new number of arguments
+// and if that causes an exception we use the old number of arguments from then on, else we use the new style.
+function moveToWorkspace(window, idx) {
+   if (useOldMoveToWorkspace === undefined) {
+      try {
+         window.change_workspace_by_index(idx, false);
+         useOldMoveToWorkspace = false;
+      } catch (e) {
+         useOldMoveToWorkspace = true;
+         window.change_workspace_by_index(idx, false, 0);
       }
-      let currentWs = global.screen.get_active_workspace_index();
-      if (currentWs != window.get_workspace().index()) {
-         window.change_workspace_by_index(currentWs, false);
+   } else {
+      if (useOldMoveToWorkspace) {
+         window.change_workspace_by_index(idx, false, 0);
+      } else {
+         window.change_workspace_by_index(idx, false);
       }
-      Main.activateWindow(window);
    }
 }
 
@@ -1278,13 +1297,6 @@ class WindowListButton {
           hasSetMarkup = false;
        }
     }
-    if (hasGetCurrentMonitor===undefined){
-      if (typeof global.display.get_current_monitor === "function") {
-         hasGetCurrentMonitor = true;
-      } else {
-         hasGetCurrentMonitor = false;
-      }
-    }
 
     this._iconBox = new St.Group({style: 'border:0px;padding:0px;margin:0px'});
     this.actor.add_actor(this._iconBox);
@@ -1472,8 +1484,8 @@ class WindowListButton {
   _onDragEnd(event, time, accepted) {
     // If the drop was not accepted by the drop target and the monitor|workspace where the drop occurred is not that same as the currentWindow's monitor|workspace,
     // then move the currentWindow to the monitor|workspace where the drop occurred and activate it. The user wants to use DND to move a window to a new monitor|workspace.
-    if (!accepted && this._currentWindow) {
-       moveWindowHere(this._currentWindow);
+    if (hasGetCurrentMonitor && !accepted && this._currentWindow) {
+       moveWindowHere(this._currentWindow, global.screen.get_active_workspace_index(), global.display.get_current_monitor());
     }
 
     this._workspace._clearDragPlaceholder();
@@ -2383,24 +2395,24 @@ class WindowListButton {
         case MouseAction.MoveWorkspace1:
            if (window) {
               if (this.menu != undefined) this.menu.removeWindow(window);
-              window.change_workspace_by_index(0, false);
+              moveToWorkspace(window, 0);
            }
            break;
         case MouseAction.MoveWorkspace2:
            if (window && this._applet._workspaces.length <= 2) {
               if (this.menu != undefined) this.menu.removeWindow(window);
-              window.change_workspace_by_index(1, false);
+              moveToWorkspace(window, 1);
            }
            break;
         case MouseAction.MoveWorkspace3:
            if (window && this._applet._workspaces.length <= 3)
               if (this.menu != undefined) this.menu.removeWindow(window);
-              window.change_workspace_by_index(2, false);
+              moveToWorkspace(window, 2);
            break;
         case MouseAction.MoveWorkspace4:
            if (window && this._applet._workspaces.length <= 4)
               if (this.menu != undefined) this.menu.removeWindow(window);
-              window.change_workspace_by_index(3, false);
+              moveToWorkspace(window, 3);
            break;
         case MouseAction.WS_Visibility:
            if (window.is_on_all_workspaces()) {
@@ -2477,7 +2489,8 @@ class WindowListButton {
               let curWorkspace = this._applet.getCurrentWorkSpace()._wsNum;
               if (curWorkspace==0)
                  curWorkspace=nWorkspace;
-              window.change_workspace_by_index(curWorkspace-1, false);
+              moveToWorkspace(window, curWorkspace-1);
+
            }
            }
            break;
@@ -2488,7 +2501,7 @@ class WindowListButton {
               let curWorkspace = this._applet.getCurrentWorkSpace()._wsNum;
               if (curWorkspace==nWorkspace-1)
                  curWorkspace=-1;
-              window.change_workspace_by_index(curWorkspace+1, false);
+              moveToWorkspace(window, curWorkspace+1);
            }
            }
            break;
@@ -2562,7 +2575,7 @@ class WindowListButton {
            let nWorkspace = this._applet._workspaces.length;
            if (window && nWorkspace > 1) {
               let curWorkspace = this._applet.getCurrentWorkSpace()._wsNum;
-              window.change_workspace_by_index(curWorkspace, false);
+              moveToWorkspace(window, curWorkspace);
            }
            break;
         case MouseAction.GroupedWindow1:
@@ -2587,7 +2600,7 @@ class WindowListButton {
            break;
         case MouseAction.MoveHere:
            if (window) {
-              moveWindowHere(window);
+              moveWindowHere(window, global.screen.get_active_workspace_index(), this._applet.panel.monitorIndex);
            }
            break;
       }
@@ -2991,7 +3004,7 @@ class WindowListButton {
             }
             let ws = new PopupMenu.PopupMenuItem(name);
             ws.connect("activate", Lang.bind(this, function() {
-                metaWindow.change_workspace_by_index(j, false);
+                moveToWorkspace(metaWindow, j);
             }));
             item.menu.addMenuItem(ws);
           }
@@ -3022,22 +3035,12 @@ class WindowListButton {
       }
 
       // Add a "Move window here" menu item if the window is not on this monitor or it's not on this workspace
-      if (hasGetCurrentMonitor) {
-         let currentWs = global.screen.get_active_workspace_index();
-         let pointerMonitor = global.display.get_current_monitor();
-         if (pointerMonitor!== metaWindow.get_monitor() || currentWs !== metaWindow.get_workspace().index()) {
-            item = new PopupMenu.PopupMenuItem(_("Move window here"));
-            item.connect("activate", Lang.bind(this, function() {
-               if (pointerMonitor !== metaWindow.get_monitor()) {
-                  metaWindow.move_to_monitor(pointerMonitor);
-               }
-               if (currentWs !== metaWindow.get_workspace().index()) {
-                  metaWindow.change_workspace_by_index(currentWs, false);
-               }
-               Main.activateWindow(this._currentWindow);
-            }));
-            this._contextMenu.addMenuItem(item);
-         }
+      let currentWs = global.screen.get_active_workspace_index();
+      let monitor = this._applet.panel.monitorIndex;
+      if (monitor!== metaWindow.get_monitor() || currentWs !== metaWindow.get_workspace().index()) {
+         item = new PopupMenu.PopupMenuItem(_("Move window here"));
+         item.connect("activate", Lang.bind(this, function() { moveWindowHere(this._currentWindow, currentWs, monitor); }));
+         this._contextMenu.addMenuItem(item);
       }
 
       // Menu options to attach a hotkey to a window
@@ -5305,5 +5308,12 @@ class WindowList extends Applet.Applet {
 
 // Called by cinnamon when starting this applet
 function main(metadata, orientation, panelHeight, instanceId) {
+  if (hasGetCurrentMonitor===undefined){
+    if (typeof global.display.get_current_monitor === "function") {
+      hasGetCurrentMonitor = true;
+    } else {
+      hasGetCurrentMonitor = false;
+    }
+  }
   return new WindowList(orientation, panelHeight, instanceId);
 }
