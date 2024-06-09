@@ -225,7 +225,8 @@ const LeftClickGrouped = {
    Cycle: 1,          // Restore most recent window or cycle windows if any window is already in focus
    Thumbnail: 2,      // Show the Thumbnail menu of windows
    ToggleAndHold: 3,  // Restore or Minimize on click, "hold" style thumbnail menu on hold
-   NewAndHold: 4      // Open a new window on click, "hold" style thumbnail menu on hold **Only possible in Launcher mode!**
+   NewAndHold: 4,     // Open a new window on click, "hold" style thumbnail menu on hold **Only possible in Launcher mode!**
+   ToggleFirst: 5     // Restore the 1st window in the group
 }
 
 // Possible values for the Pinned label setting
@@ -2266,6 +2267,14 @@ class WindowListButton {
           } else {
             this.openThumbnailMenu();
           }
+        } else if (leftGroupedAction == LeftClickGrouped.ToggleFirst) {
+          log( "ToggleFirst" );
+          if (hasFocus(this._windows[0], false) && !this._windows[0].minimized) {
+            this._windows[0].minimize();
+          } else {
+            this.closeThumbnailMenu();
+            Main.activateWindow(this._windows[0]);
+          }
         } else { // leftGroupedAction == LeftClickGrouped.Cycle
             if (hasFocus(this._currentWindow)) {
                if (this._nextWindow===null || this._nextWindow===this._currentWindow) {
@@ -2490,7 +2499,6 @@ class WindowListButton {
               if (curWorkspace==0)
                  curWorkspace=nWorkspace;
               moveToWorkspace(window, curWorkspace-1);
-
            }
            }
            break;
@@ -2580,22 +2588,38 @@ class WindowListButton {
            break;
         case MouseAction.GroupedWindow1:
            if (this._windows.length > 0){
-              Main.activateWindow(this._windows[0]);
+              if (hasFocus(this._windows[0], false) && !this._windows[0].minimized) {
+                 this._windows[0].minimize();
+              } else {
+                 Main.activateWindow(this._windows[0]);
+              }
            }
            break;
         case MouseAction.GroupedWindow2:
            if (this._windows.length > 1){
-              Main.activateWindow(this._windows[1]);
+              if (hasFocus(this._windows[1], false) && !this._windows[1].minimized) {
+                 this._windows[1].minimize();
+              } else {
+                 Main.activateWindow(this._windows[1]);
+              }
            }
            break;
         case MouseAction.GroupedWindow3:
            if (this._windows.length > 2){
-              Main.activateWindow(this._windows[2]);
+              if (hasFocus(this._windows[2], false) && !this._windows[2].minimized) {
+                 this._windows[2].minimize();
+              } else {
+                 Main.activateWindow(this._windows[2]);
+              }
            }
            break;
         case MouseAction.GroupedWindow4:
            if (this._windows.length > 3){
-              Main.activateWindow(this._windows[3]);
+              if (hasFocus(this._windows[3], false) && !this._windows[3].minimized) {
+                 this._windows[3].minimize();
+              } else {
+                 Main.activateWindow(this._windows[3]);
+              }
            }
            break;
         case MouseAction.MoveHere:
