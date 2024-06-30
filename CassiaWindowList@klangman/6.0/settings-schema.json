@@ -115,9 +115,15 @@
     "tooltip": "Never: No pinned windows will have a label\nAlways: All pinned windows will have labels\nRunning: Only pinned window that are running will have a label\nFocused: Only the pinned window with focus will have a label"
   },
   "hide-caption-for-minimized": {
-    "type": "switch",
+    "type": "combobox",
     "default": 0,
-    "description": "Hide labels for minimized buttons",
+    "options": {
+      "None": 0,
+      "Minimized windows": 1,
+      "Windows on other workspaces": 2,
+      "Windows on other monitors": 3
+    },
+    "description": "Hide labels for",
     "tooltip": "For groups/pools the label will still show unless all application windows are minimized"
   },
   "display-indicators": {

@@ -290,6 +290,13 @@ const SaturationType = {
    Focused: 5
 }
 
+const HideLabels = {
+   None: 0,
+   Minimized: 1,
+   OtherWorkspaces: 2,
+   OtherMonitors: 3
+}
+
 var hasSetMarkup = undefined;
 var hasGetFrameRect = undefined;
 var hasGetCurrentMonitor = undefined;
@@ -815,12 +822,35 @@ class ThumbnailMenuItem extends PopupMenu.PopupBaseMenuItem {
     this._signalManager.connect(this.actor, "enter-event", this._onEnterEvent, this);
     this._signalManager.connect(this.actor, "leave-event", this._onLeaveEvent, this);
     this._signalManager.connect(this, "activate", this._onActivate, this);
+
+    this._draggable = DND.makeDraggable(this.actor);
+    this._draggable.connect("drag-begin", Lang.bind(this, this._onDragBegin));
+    this._draggable.connect("drag-end", Lang.bind(this, this._onDragEnd));
+
   }
 
-  handleDragOver(source, actor, x, y, time) {
-    this.actor.hover = true;
-    Main.activateWindow(this._metaWindow);
-    return DND.DragMotionResult.COPY_DROP;
+  getDragActor() {
+    let clone = new Clutter.Clone({ source: this._cloneBin });
+    clone.width = this._cloneBin.width;
+    clone.height = this._cloneBin.height;
+    let [x,y] = this._cloneBin.get_transformed_position()
+    clone.x = x;
+    clone.y = y;
+    return clone;
+  }
+
+  _onDragBegin() {
+  }
+
+  _onDragEnd(event, time, accepted) {
+    this.actor.show();
+    // If the drop was not accepted by the drop target and the monitor|workspace where the drop occurred is not that same as the currentWindow's monitor|workspace,
+    // then move the currentWindow to the monitor|workspace where the drop occurred and activate it. The user wants to use DND to move a window to a new monitor|workspace.
+    if (hasGetCurrentMonitor && !accepted && this._metaWindow) {
+       moveWindowHere(this._metaWindow, global.screen.get_active_workspace_index(), global.display.get_current_monitor());
+       this._appButton._workspace.closeThumbnailMenu();
+       this._menu._clearDragPlaceholder();
+    }
   }
 
   doSize(availWidth, availHeight) {
@@ -1060,6 +1090,102 @@ class ThumbnailMenu extends PopupMenu.PopupMenu {
        }
     }
     return null;
+  }
+
+  handleDragOver(source, actor, x, y, time) {
+    //if (!(source.isDraggableApp || (source instanceof DND.LauncherDraggable))) {
+    //  return DND.DragMotionResult.CONTINUE;
+    //}
+    let children = this.box.get_children();
+    let pos = children.length;
+
+    if (this._appButton._applet.orientation == St.Side.TOP || this._appButton._applet.orientation == St.Side.BOTTOM) {
+      while (--pos && (x < children[pos].get_allocation_box().x1 || children[pos].is_visible() == false));
+    } else {
+      while (--pos && (y < children[pos].get_allocation_box().y1 || children[pos].is_visible() == false));
+    }
+    let dragPlaceholderPos = this._dragPlaceholderPos
+    // If the pointer is over the placeholder then we don't need to move anything
+    if (pos != dragPlaceholderPos) {
+      if (this._dragPlaceholder == undefined) {
+        this._dragPlaceholder = new DND.GenericDragPlaceholderItem();
+        this._dragPlaceholder.child.set_width(source.actor.width);
+        this._dragPlaceholder.child.set_height(source.actor.height);
+        this.box.insert_child_at_index(this._dragPlaceholder.actor, pos);
+        source.actor.hide();
+        this._dragOriginalPos = pos;
+      } else {
+        this.box.set_child_at_index(this._dragPlaceholder.actor, pos);
+      }
+      this._dragPlaceholderPos = pos;
+    }
+    if (source instanceof ThumbnailMenuItem) {
+       return DND.DragMotionResult.MOVE_DROP;
+    } else {
+       return DND.DragMotionResult.COPY_DROP;
+    }
+  }
+
+  handleDragOut() {
+    let children = this.box.get_children();
+    log( `Dragout, ${children.length} menu size` );
+    if (children.length > 2) { // If all we have is the hidden single item and a placeholder, then don't remove the placeholder!
+       this._clearDragPlaceholder();
+    }
+  }
+
+  acceptDrop(source, actor, x, y, time) {
+    if (this._dragPlaceholder == undefined) {
+      return false;
+    }
+    if (source instanceof ThumbnailMenuItem) {
+      let newPos = (this._dragOriginalPos<this._dragPlaceholderPos) ? this._dragPlaceholderPos-1 : this._dragPlaceholderPos;
+      let oldPos = this._dragOriginalPos;
+      if (this._dragOriginalPos !== newPos) {
+        this.box.set_child_at_index(source.actor, this._dragPlaceholderPos);
+        if (this._appButton._grouped > GroupingType.NotGrouped) {
+           // We need to reorder the _windows array in this grouped button
+           let newWindows = [];
+           let oldWindows = this._appButton._windows;
+           for (let i=0 ; i < oldWindows.length ; i++ ){
+              if (i==newPos) {
+                 newWindows.push(oldWindows[oldPos]);
+              } else if (i>=oldPos && i<newPos) {
+                 newWindows.push(oldWindows[i+1]);
+              } else if (i>newPos && i<=oldPos) {
+                 newWindows.push(oldWindows[i-1]);
+              } else {
+                 newWindows.push(oldWindows[i]);
+              }
+           }
+           this._appButton._windows = newWindows;
+        } else {
+           // We need to reorder pooled buttons on the window-list, since we have a menu with more then one item, it must be a pool!
+           let workspace = this._appButton._workspace;
+           let btns = workspace._lookupAllAppButtonsForApp(this._appButton._app);
+           let children = workspace.actor.get_children();
+           let offset = children.indexOf(btns[0].actor)
+           workspace.actor.set_child_at_index(btns[oldPos].actor, newPos+offset);
+           if (oldPos === btns.length-1) {
+              btns[btns.length-2]._updateLabel();
+              btns[oldPos]._updateLabel();
+           } else if (newPos == btns.length-1) {
+              btns[btns.length-1]._updateLabel();
+              btns[oldPos]._updateLabel();
+           }
+        }
+      }
+    }
+    this._clearDragPlaceholder();
+    return true;
+  }
+
+  _clearDragPlaceholder() {
+    if (this._dragPlaceholder) {
+      this._dragPlaceholder.actor.destroy();
+      this._dragPlaceholder = undefined;
+      this._dragPlaceholderPos = undefined;
+    }
   }
 
   openMenu() {
@@ -1688,11 +1814,17 @@ class WindowListButton {
           }
        }
     }
-    let title;
-    if (this._windows.length == 0 || this._currentWindow.get_title()==null || (this._windows.length > 1 && this.getButton1Action()===LeftClickGrouped.Thumbnail)) {
+    let title = null;
+    let leftClickAction = this.getButton1Action();
+    if (this._windows.length > 0 && (this._windows.length === 1 || leftClickAction!==LeftClickGrouped.Thumbnail)) {
+       if (leftClickAction === LeftClickGrouped.ToggleFirst) {
+          title = this._windows[0].get_title();
+       } else {
+          title = this._currentWindow.get_title();
+       }
+    }
+    if (title===null) {
        title = this._app.get_name();
-    } else {
-       title = this._currentWindow.get_title();
     }
     if (text.length == 0 || !hasSetMarkup) {
        this._tooltip.set_text(title + text);
@@ -1865,7 +1997,7 @@ class WindowListButton {
     let capSetting = this._settings.getValue("display-caption-for");
     let numSetting = this._settings.getValue("display-number");
     let pinnedSetting = this._settings.getValue("display-caption-for-pined");
-    let minimizedSetting = this._settings.getValue("hide-caption-for-minimized");
+    let hideSetting = this._settings.getValue("hide-caption-for-minimized"); // For compatibility, the option name "hide-caption-for-minimized" was maintained, but now it has more then one possible value not only for minimized windows
     let style = this._settings.getValue("number-style");
     let numberType = this._settings.getValue("number-type");
     let preferredWidth = this._settings.getValue("label-width");
@@ -1906,13 +2038,14 @@ class WindowListButton {
           needsCaption = true;
        }
     }
-    if (minimizedSetting === true && lastButton && lastButton._currentWindow && lastButton._currentWindow.minimized) {
+    if (hideSetting === HideLabels.Minimized && lastButton && lastButton._currentWindow && lastButton._currentWindow.minimized) {
        lastButton._updateLabel(); // The button with the label in this pool might need to add/remove its label
     }
-    if (needsCaption === true && minimizedSetting === true && this._currentWindow && this._currentWindow.minimized) {
-       if (this._windows.length > 1) {
-          needsCaption = !this.isMinimizedAll();
-       } else if (oneCaption === true) {
+    if (needsCaption === true && hideSetting === HideLabels.Minimized && this._currentWindow && this._currentWindow.minimized) {
+       //if (this._windows.length > 1) {
+       //   needsCaption = !this.isMinimizedAll(); 
+       //} else 
+       if (this._windows.length === 1 && oneCaption === true) {
           let btns = this._workspace._lookupAllAppButtonsForApp(this._app);
           let minimized = 0;
           for (let idx=0 ; idx < btns.length ; idx++ ) {
@@ -1924,6 +2057,8 @@ class WindowListButton {
        } else {
           needsCaption = false;
        }
+    } else if ((hideSetting === HideLabels.OtherWorkspaces && this.isOnOtherWorkspace()) || (hideSetting === HideLabels.OtherMonitors && this.isOnOtherMonitor()) ) {
+       needsCaption = false;
     }
     if (pinnedSetting === PinnedLabel.Focused) {
        let window = global.display.get_focus_window();
@@ -2268,7 +2403,6 @@ class WindowListButton {
             this.openThumbnailMenu();
           }
         } else if (leftGroupedAction == LeftClickGrouped.ToggleFirst) {
-          log( "ToggleFirst" );
           if (hasFocus(this._windows[0], false) && !this._windows[0].minimized) {
             this._windows[0].minimize();
           } else {
@@ -3696,8 +3830,8 @@ class Workspace {
 
   _windowRemoved(metaWindow, removeBindings=true) {
      let appButton = this._lookupAppButtonForWindow(metaWindow);
-     let btnToUpdateLabel = null;
      if (appButton) {
+        let btnToUpdateLabel = null;
         if (this._settings.getValue("display-caption-for") === DisplayCaption.One) {
            let children = this.actor.get_children();
            let idx = children.indexOf(appButton.actor);
@@ -5196,10 +5330,15 @@ class WindowList extends Applet.Applet {
               } else {
                 workspace._windowRemoved(window);
               }
-           } else if (this._settings.getValue("number-type")===NumberType.WorkspaceNum){
+           } else {
              let btn = workspace._lookupAppButtonForWindow(window);
              if (btn) {
-               btn._updateNumber(); // In case the number is showing the workspace index
+               if (this._settings.getValue("number-type")===NumberType.WorkspaceNum){
+                 btn._updateNumber(); // In case the number is showing the workspace index
+               }
+               if (this._settings.getValue("hide-caption-for-minimized") === HideLabels.OtherWorkspace) {
+                 btn._updateLabel();
+               }
              }
            }
          }
@@ -5215,6 +5354,9 @@ class WindowList extends Applet.Applet {
          btn._updateNumber(); // In case the number is showing the monitor index
          if (ws.saturationType == SaturationType.OtherMonitors && ws.iconSaturation!=100) {
             btn.updateIconSelection();
+         }
+         if (this._settings.getValue("hide-caption-for-minimized") === HideLabels.OtherMonitors) {
+            btn._updateLabel()
          }
       }
       return;
