@@ -57,7 +57,7 @@
     "preview-settings" : {
       "type" : "section",
       "title" : "Thumbnails menu settings",
-      "keys" : ["show-previews", "number-of-unshrunk-previews", "menu-all-windows-of-pool", "menu-all-windows-of-auto", "hover-peek-thumbnail", "no-click-activate-thumbnail"]
+      "keys" : ["show-previews", "number-of-unshrunk-previews", "menu-sort-groups", "menu-all-windows-of-pool", "menu-all-windows-of-auto", "hover-peek-thumbnail", "no-click-activate-thumbnail"]
     },
     "preview-mouse-section" : {
       "type" : "section",
@@ -338,6 +338,13 @@
     },
     "dependency": "show-previews",
     "description": "Default thumbnail window size"
+  },
+  "menu-sort-groups": {
+    "type": "switch",
+    "default": false,
+    "dependency" : "group-windows!=3",
+    "description": "Sort grouped button thumbnail menu items",
+    "tooltip": "If enabled, the thumbnail menu will be sorted first by workspace and the by monitor number for grouped buttons. Pooled windows can not be sorted since the order is the same as the order on the window-list panel. With this option enabled, the thumbnail menu drag-and-drop reordering feature will be disabled for grouped button thumbnail menus."
   },
   "menu-all-windows-of-pool": {
     "type": "switch",

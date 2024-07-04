@@ -1105,6 +1105,7 @@ class ThumbnailMenu extends PopupMenu.PopupMenu {
       while (--pos && (y < children[pos].get_allocation_box().y1 || children[pos].is_visible() == false));
     }
     let dragPlaceholderPos = this._dragPlaceholderPos
+    let autoSort = this._settings.getValue("menu-sort-groups") && this._appButton._windows.length > 1;
     // If the pointer is over the placeholder then we don't need to move anything
     if (pos != dragPlaceholderPos) {
       if (this._dragPlaceholder == undefined) {
@@ -1115,12 +1116,18 @@ class ThumbnailMenu extends PopupMenu.PopupMenu {
         source.actor.hide();
         this._dragOriginalPos = pos;
       } else {
-        this.box.set_child_at_index(this._dragPlaceholder.actor, pos);
+        if (autoSort==false) {
+          this.box.set_child_at_index(this._dragPlaceholder.actor, pos);
+        }
       }
       this._dragPlaceholderPos = pos;
     }
     if (source instanceof ThumbnailMenuItem) {
-       return DND.DragMotionResult.MOVE_DROP;
+       if (autoSort) {
+         return DND.DragMotionResult.NO_DROP;
+       } else {
+         return DND.DragMotionResult.MOVE_DROP;
+       }
     } else {
        return DND.DragMotionResult.COPY_DROP;
     }
@@ -1128,7 +1135,6 @@ class ThumbnailMenu extends PopupMenu.PopupMenu {
 
   handleDragOut() {
     let children = this.box.get_children();
-    log( `Dragout, ${children.length} menu size` );
     if (children.length > 2) { // If all we have is the hidden single item and a placeholder, then don't remove the placeholder!
        this._clearDragPlaceholder();
     }
@@ -1138,7 +1144,7 @@ class ThumbnailMenu extends PopupMenu.PopupMenu {
     if (this._dragPlaceholder == undefined) {
       return false;
     }
-    if (source instanceof ThumbnailMenuItem) {
+    if (source instanceof ThumbnailMenuItem && (this._appButton._windows.length <= 1 || this._settings.getValue("menu-sort-groups")==false)) {
       let newPos = (this._dragOriginalPos<this._dragPlaceholderPos) ? this._dragPlaceholderPos-1 : this._dragPlaceholderPos;
       let oldPos = this._dragOriginalPos;
       if (this._dragOriginalPos !== newPos) {
@@ -1472,6 +1478,7 @@ class WindowListButton {
     this._signalManager.connect(this._settings, "changed::number-type", Lang.bind(this, function() { this._updateNumber(); this._updateLabel(); }), this);
     this._signalManager.connect(this._settings, "changed::label-width", this._updateLabel, this);
     this._signalManager.connect(this._settings, "changed::button-spacing", this._updateSpacing, this);
+    this._signalManager.connect(this._settings, "changed::menu-sort-groups", Lang.bind(this, function() { if (this._settings.getValue("menu-sort-groups")) this._sortWindows(); }), this);
     this._signalManager.connect(this.actor, "enter-event", this._onEnterEvent, this);
     this._signalManager.connect(this.actor, "leave-event", this._onLeaveEvent, this);
     this._signalManager.connect(this.actor, "notify::hover", this._updateVisualState, this);
@@ -1492,6 +1499,31 @@ class WindowListButton {
     this.isDraggableApp = true;
     this._updateNumber();
     this._updateSpacing();
+  }
+
+  // Sort this._windows by workspace and monitor
+  _sortWindows() {
+     if (this._windows.length > 1) {
+        this._windows.sort(
+           function(a, b) {
+              let wsA = a.get_workspace();
+              let wsB = b.get_workspace();
+              if (wsA && wsB) {
+                 let wsDiff = wsA.index() - wsB.index();
+                 if (wsDiff === 0) {
+                    return(a.get_monitor() - b.get_monitor());
+                 }
+                 return wsDiff;
+              } else {
+                 if (wsA) {
+                    return -1;
+                 } else if (wsB) {
+                    return 1;
+                 }
+              }
+              return 0;
+           });
+     }
   }
 
   _updateSpacing() {
@@ -1680,6 +1712,9 @@ class WindowListButton {
       this._workspace.menuManager.addMenu(this.menu);
     }
     this.updateIconSelection();
+    if (this._settings.getValue("menu-sort-groups")) {
+       this._sortWindows();
+    }
   }
 
   removeWindow(metaWindow) {
@@ -5339,6 +5374,9 @@ class WindowList extends Applet.Applet {
                if (this._settings.getValue("hide-caption-for-minimized") === HideLabels.OtherWorkspace) {
                  btn._updateLabel();
                }
+               if (this._settings.getValue("menu-sort-groups")) {
+                  btn._sortWindows();
+               }
              }
            }
          }
@@ -5357,6 +5395,9 @@ class WindowList extends Applet.Applet {
          }
          if (this._settings.getValue("hide-caption-for-minimized") === HideLabels.OtherMonitors) {
             btn._updateLabel()
+         }
+         if (this._settings.getValue("menu-sort-groups")) {
+            btn._sortWindows();
          }
       }
       return;
