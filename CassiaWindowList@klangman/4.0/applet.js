@@ -1198,6 +1198,10 @@ class ThumbnailMenu extends PopupMenu.PopupMenu {
     if (this.isOpen || this._appButton._windows.length==0 || global.settings.get_boolean("panel-edit-mode") === true) {
       return;
     }
+    // Make 100% sure there are no existing items in the menu
+    if (this.numMenuItems != 0) {
+       this.removeAll();
+    }
     this._updateOrientation();
     let groupingType = this._settings.getValue("group-windows");
     let allWindowsForPool = false;
@@ -1206,11 +1210,11 @@ class ThumbnailMenu extends PopupMenu.PopupMenu {
     } else if (groupingType === GroupType.Auto){
        allWindowsForPool = this._settings.getValue("menu-all-windows-of-auto");
     }
-    let btns = this._appButton._workspace._lookupAllAppButtonsForApp(this._appButton._app);
     let windows = [];
-    if (this._appButton._windows.length>1 || btns.length == 1 || allWindowsForPool == false){
+    if (this._appButton._windows.length>1 || allWindowsForPool == false){
       windows = this._appButton._windows;
     } else {
+       let btns = this._appButton._workspace._lookupAllAppButtonsForApp(this._appButton._app);
        for( let i=0 ; i< btns.length ; i++ ) {
           windows.push(btns[i]._windows[0]);
        }
@@ -2041,67 +2045,76 @@ class WindowListButton {
     let text = "";
     let width = preferredWidth;
     let needsCaption = false;
-    let oneCaption = false;
-    let lastButton = null;
+    let oneCaption = false;   // Will be true if this is the last button in a pool and only one label option is enabled
+    let lastButton = null;    // Will be non-null if this is a pool and only one label option is enabled
+    let poolButtons = [];
 
     if (capSetting === DisplayCaption.One) {
-       // Check if the next button is for the same application
-       let children = this._workspace.actor.get_children();
-       let idx = children.indexOf(this.actor);
-       if (idx == children.length-1 || children[idx+1]._delegate._app != this._app) {
+       if (this._grouped > GroupingType.NotGrouped) {
           oneCaption = true;
        } else {
-          // Find the button that requires a label for this window pool
-          idx++;
-          while ( idx < children.length-1 && children[idx]._delegate._app === this._app ) {
-             idx++;
+          // Check if the next button is for the same application
+          let children = this._workspace.actor.get_children();
+          let idx = children.indexOf(this.actor);
+          if (idx >= 0) {
+             if (idx === children.length-1 || children[idx+1]._delegate._app != this._app) {
+                oneCaption = true;
+             }
+             // Find the first button in this window pool
+             while ( idx-1 >= 0 && children[idx-1]._delegate._app === this._app ) {
+                idx--;
+             }
+             // Populate the  poolButtons array
+             while ( idx < children.length && children[idx]._delegate._app === this._app ) {
+                lastButton = children[idx]._delegate;
+                poolButtons.push(lastButton);
+                idx++;
+             }
           }
-          if (children[idx]._delegate._app === this._app )
-             lastButton = children[idx]._delegate;
-          else
-             lastButton = children[idx-1]._delegate;
        }
     }
 
-    if (this._pinned){
+    if (this._pinned) {
        if (pinnedSetting === PinnedLabel.Always || (pinnedSetting === PinnedLabel.Focused && this._hasFocus()) || pinnedSetting === PinnedLabel.Running && number>0) {
           needsCaption = true;
        }
     } else {
-       if (capSetting === DisplayCaption.All || (capSetting === DisplayCaption.Focused && this._hasFocus()) || oneCaption === true)
-       {
+       if (capSetting === DisplayCaption.All || (capSetting === DisplayCaption.Focused && this._hasFocus()) || oneCaption === true) {
           needsCaption = true;
        }
     }
-    if (hideSetting === HideLabels.Minimized && lastButton && lastButton._currentWindow && lastButton._currentWindow.minimized) {
+    if (oneCaption === false && hideSetting != HideLabels.None && lastButton && lastButton!=this && lastButton._currentWindow) {
        lastButton._updateLabel(); // The button with the label in this pool might need to add/remove its label
     }
-    if (needsCaption === true && hideSetting === HideLabels.Minimized && this._currentWindow && this._currentWindow.minimized) {
-       //if (this._windows.length > 1) {
-       //   needsCaption = !this.isMinimizedAll(); 
-       //} else 
-       if (this._windows.length === 1 && oneCaption === true) {
-          let btns = this._workspace._lookupAllAppButtonsForApp(this._app);
-          let minimized = 0;
-          for (let idx=0 ; idx < btns.length ; idx++ ) {
-             if (btns[idx]._windows.length === 0 || btns[idx]._windows[0].minimized)
-                minimized++;
+    if (needsCaption === true && this._currentWindow) {
+       if (oneCaption === true && this._windows.length === 1 && poolButtons.length > 1) {
+          let count = 0;
+          for (let idx=0 ; idx < poolButtons.length ; idx++ ) {
+             if (poolButtons[idx]._windows.length === 0 ||
+                (hideSetting === HideLabels.Minimized && (!poolButtons[idx]._currentWindow || poolButtons[idx]._currentWindow.minimized)) ||
+                (hideSetting === HideLabels.OtherWorkspaces && poolButtons[idx].isOnOtherWorkspace()) ||
+                (hideSetting === HideLabels.OtherMonitors && poolButtons[idx].isOnOtherMonitor()))
+             {
+                count++;
+             }
           }
-          if (minimized === btns.length)
+          if (count === poolButtons.length) {
              needsCaption = false;
-       } else {
+          }
+       } else if ((hideSetting === HideLabels.Minimized && this._currentWindow.minimized) ||
+                  (hideSetting === HideLabels.OtherWorkspaces && this.isOnOtherWorkspace()) ||
+                  (hideSetting === HideLabels.OtherMonitors && this.isOnOtherMonitor()))
+       {
           needsCaption = false;
        }
-    } else if ((hideSetting === HideLabels.OtherWorkspaces && this.isOnOtherWorkspace()) || (hideSetting === HideLabels.OtherMonitors && this.isOnOtherMonitor()) ) {
-       needsCaption = false;
     }
     if (pinnedSetting === PinnedLabel.Focused) {
        let window = global.display.get_focus_window();
        let focus = this._workspace._lookupAppButtonForWindow(window);
-       if (lastButton && lastButton._pinned && focus && focus._app === this._app) {
+       if (lastButton && lastButton._pinned && focus && poolButtons.indexOf(focus)!=-1) {
           // 'this' is a button in a pinned button pool. We have to allow the last button in the pool to show its label
           lastButton._updateLabel();
-       } else if (this._pinned && oneCaption && focus && focus._app == this._app) {
+       } else if (this._pinned && oneCaption && focus && poolButtons.indexOf(focus)!=-1) {
           // 'this' is the last button in a pinned button pool when focus is with some other button in the pool
           needsCaption = true;
        }
@@ -5368,10 +5381,10 @@ class WindowList extends Applet.Applet {
            } else {
              let btn = workspace._lookupAppButtonForWindow(window);
              if (btn) {
-               if (this._settings.getValue("number-type")===NumberType.WorkspaceNum){
+               if (this._settings.getValue("number-type")===NumberType.WorkspaceNum) {
                  btn._updateNumber(); // In case the number is showing the workspace index
                }
-               if (this._settings.getValue("hide-caption-for-minimized") === HideLabels.OtherWorkspace) {
+               if (this._settings.getValue("hide-caption-for-minimized") === HideLabels.OtherWorkspaces) {
                  btn._updateLabel();
                }
                if (this._settings.getValue("menu-sort-groups")) {
@@ -5400,12 +5413,12 @@ class WindowList extends Applet.Applet {
             btn._sortWindows();
          }
       }
-      return;
-    }
-    if (monitor == this.panel.monitorIndex) {
-      this._windowAdded(screen, window, monitor);
     } else {
-      this._windowRemoved(screen, window, monitor);
+      if (monitor == this.panel.monitorIndex) {
+        this._windowAdded(screen, window, monitor);
+      } else {
+        this._windowRemoved(screen, window, monitor);
+      }
     }
   }
 

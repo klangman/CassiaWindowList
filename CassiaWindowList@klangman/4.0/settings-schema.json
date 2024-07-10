@@ -124,7 +124,7 @@
       "Windows on other monitors": 3
     },
     "description": "Hide labels for",
-    "tooltip": "For groups/pools the label will still show unless all application windows are minimized"
+    "tooltip": "Select the type of window state for which window list button labels should be hidden. For application pools, the label will still show unless all application windows have the selected property"
   },
   "display-indicators": {
     "type": "combobox",
