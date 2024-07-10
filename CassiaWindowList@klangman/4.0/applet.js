@@ -2111,7 +2111,7 @@ class WindowListButton {
     if (pinnedSetting === PinnedLabel.Focused) {
        let window = global.display.get_focus_window();
        let focus = this._workspace._lookupAppButtonForWindow(window);
-       if (lastButton && lastButton._pinned && focus && poolButtons.indexOf(focus)!=-1) {
+       if (lastButton && lastButton!=this && lastButton._pinned && focus && poolButtons.indexOf(focus)!=-1) {
           // 'this' is a button in a pinned button pool. We have to allow the last button in the pool to show its label
           lastButton._updateLabel();
        } else if (this._pinned && oneCaption && focus && poolButtons.indexOf(focus)!=-1) {
