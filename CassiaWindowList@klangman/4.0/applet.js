@@ -826,7 +826,6 @@ class ThumbnailMenuItem extends PopupMenu.PopupBaseMenuItem {
     this._draggable = DND.makeDraggable(this.actor);
     this._draggable.connect("drag-begin", Lang.bind(this, this._onDragBegin));
     this._draggable.connect("drag-end", Lang.bind(this, this._onDragEnd));
-
   }
 
   getDragActor() {
@@ -900,7 +899,7 @@ class ThumbnailMenuItem extends PopupMenu.PopupBaseMenuItem {
       this._closeIcon = icon;
       this._closeIcon.set_reactive(true);
       this._closeBin.set_child(this._closeIcon);
-      this._signalManager.connect(this._closeIcon, "button-release-event", this._onCloseButtonRelease, this);
+      //this._signalManager.connect(this._closeIcon, "button-release-event", this._onCloseButtonRelease, this);
       this._signalManager.connect(this._closeBin, "enter-event", this._onCloseIconEnterEvent, this);
       this._signalManager.connect(this._closeBin, "leave-event", this._onCloseIconLeaveEvent, this);
     }
@@ -950,7 +949,14 @@ class ThumbnailMenuItem extends PopupMenu.PopupBaseMenuItem {
           return true;
        }
     }
-    if (mouseBtn == 2) {  // Middle button
+    if (mouseBtn == 1) {
+       if (event.get_source() === this._closeIcon) {
+          this._inClosing = true;
+          this._metaWindow.delete(global.get_current_time());
+          this._inClosing = false;
+          return true;
+       }
+    } else if (mouseBtn == 2) {  // Middle button
       let action = this._settings.getValue("preview-middle-click");
       this._appButton._performMouseAction(action, this._metaWindow);
       return true;
@@ -973,12 +979,14 @@ class ThumbnailMenuItem extends PopupMenu.PopupBaseMenuItem {
     return true;
   }
 
+  /*
   _onCloseButtonRelease() {
     this._inClosing = true;
     this._metaWindow.delete(global.get_current_time());
     this._inClosing = false;
     return true;
   }
+  */
 
   _onActivate() {
     if (!this._inClosing) {
