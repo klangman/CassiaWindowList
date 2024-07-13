@@ -52,7 +52,7 @@
     "general-mouse" : {
       "type" : "section",
       "title" : "Window list mouse settings",
-    "keys" : ["grouped-mouse-action-btn1", "launcher-mouse-action-btn1", "mouse-action-btn2", "mouse-action-btn8", "mouse-action-btn9"]
+    "keys" : ["grouped-mouse-action-btn1", "launcher-mouse-action-btn1", "mouse-action-btn2", "mouse-action-btn8", "mouse-action-btn9", "mouse-action-scroll"]
     },
     "preview-settings" : {
       "type" : "section",
@@ -693,6 +693,20 @@
     },
     "description": "Forward button action",
     "tooltip": "Action taken when using the forward mouse button on window list entries"
+  },
+
+  "mouse-action-scroll": {
+    "type": "combobox",
+    "default": 1,
+    "options": {
+      "Minimize/Restore/Maximize window": 1,
+      "Change windows workspace": 2,
+      "Change windows monitor": 3,
+      "Change window tiling": 4,
+      "Do nothing": 0
+    },
+    "description": "Scroll wheel action",
+    "tooltip": "Action taken when using the mouse scroll wheel on a window list button. This scroll wheel action will be disabled if the Thumbnail menu is currently open"
   },
 
   "wheel-adjusts-preview-size": {

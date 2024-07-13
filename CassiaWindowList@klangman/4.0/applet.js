@@ -219,6 +219,15 @@ const MouseAction = {
   MoveHere: 39           // Change the windows monitor and workspace to be the current monitor and workspace
 }
 
+// Possible value for the Mouse scroll wheel action setting
+const MouseScrollAction = {
+   None: 0,
+   ChangeState: 1,      // Minimize/Restore/Maximize the window
+   ChangeWorkspace: 2,  // Next/Previous workspace
+   ChangeMonitor: 3,    // Next/Previous monitor
+   ChangeTiling: 4      // Change tiling in a counter/clockwise direction
+}
+
 // Possible settings for the left mouse action for grouped buttons (or Laucher with running windows)
 const LeftClickGrouped = {
    Toggle: 0,         // Restore most resent window or minimize if already in focus
@@ -2509,14 +2518,121 @@ class WindowListButton {
     }
   }
 
-  // zoom in and out the preview menu based on the movement of the mouse scroll wheel
+  // zoom in and out the preview menu based on the movement of the mouse scroll wheel if the thumbnail menu is open.
+  // Perform the defined scroll wheel action if the Thumbnail menu is closed
   _onScrollEvent(actor, event) {
      let wheelSetting = this._settings.getValue("wheel-adjusts-preview-size");
      if (wheelSetting===ScrollWheelAction.Off || !this.menu || !this.menu.isOpen) {
+        // The Thumbnail menu is closed, so do the defined scroll wheel action
+        wheelSetting = this._settings.getValue("mouse-action-scroll");
+        if (wheelSetting !== MouseScrollAction.None && !this._scrollIgnore && this._currentWindow && (!this.menu || !this.menu.isOpen)) {
+           let window = this._currentWindow;
+           let direction = event.get_scroll_direction();
+           if (wheelSetting === MouseScrollAction.ChangeState) {
+              if (direction === Clutter.ScrollDirection.UP) {
+                 if (window.minimized || !hasFocus(window)) {
+                    Main.activateWindow(window);
+                 } else if (!window.get_maximized()){
+                    window.maximize(Meta.MaximizeFlags.HORIZONTAL | Meta.MaximizeFlags.VERTICAL);
+                 }
+              } else if (direction === Clutter.ScrollDirection.DOWN && !window.minimized) {
+                 if(window.get_maximized() || !hasFocus(window)) {
+                    Main.activateWindow(window);
+                    window.unmaximize(Meta.MaximizeFlags.VERTICAL | Meta.MaximizeFlags.HORIZONTAL);
+                 } else {
+                    window.minimize();
+                 }
+              }
+           } else if (wheelSetting === MouseScrollAction.ChangeWorkspace && !window.is_on_all_workspaces()) {
+              let wsIdx = window.get_workspace().index();
+              let nWorkspaces = global.screen.get_n_workspaces();
+              if (direction === Clutter.ScrollDirection.UP) {
+                 wsIdx++;
+              } else if (direction === Clutter.ScrollDirection.DOWN) {
+                 wsIdx--;
+              }
+              if (wsIdx >= nWorkspaces) {
+                 wsIdx = 0;
+              } else if (wsIdx < 0) {
+                 wsIdx = nWorkspaces-1;
+              }
+              moveToWorkspace(window, wsIdx);
+           } else if (wheelSetting === MouseScrollAction.ChangeMonitor) {
+              let nMonitors = Main.layoutManager.monitors.length;
+              if (nMonitors > 1) {
+                 let monIdx = window.get_monitor()
+                 if (direction === Clutter.ScrollDirection.UP) {
+                    monIdx++;
+                 } else if (direction === Clutter.ScrollDirection.DOWN) {
+                    monIdx--;
+                 }
+                 if (monIdx >= nMonitors) {
+                    wsIdx = 0;
+                 } else if (MonIdx < 0) {
+                    monIdx = nMonitors-1;
+                 }
+                 window.move_to_monitor(monIdx);
+              }
+           } else if (wheelSetting === MouseScrollAction.ChangeTiling && typeof Meta.WindowTileType === 'undefined') { // Only if correct API exists
+              let tilePrev;
+              let tileNext;
+              switch (window.tile_mode) {
+                 case Meta.TileMode.NONE:
+                    tilePrev = Meta.TileMode.BOTTOM;
+                    tileNext = Meta.TileMode.TOP;
+                    break;
+                 case Meta.TileMode.LEFT:
+                    tilePrev = Meta.TileMode.LLC;
+                    tileNext = Meta.TileMode.ULC;
+                    break;
+                 case Meta.TileMode.RIGHT:
+                    tilePrev = Meta.TileMode.URC;
+                    tileNext = Meta.TileMode.LRC;
+                    break;
+                 case Meta.TileMode.ULC:
+                    tilePrev = Meta.TileMode.LEFT;
+                    tileNext = Meta.TileMode.TOP;
+                    break;
+                 case Meta.TileMode.LLC:
+                    tilePrev = Meta.TileMode.BOTTOM;
+                    tileNext = Meta.TileMode.LEFT;
+                    break;
+                 case Meta.TileMode.URC:
+                    tilePrev = Meta.TileMode.TOP;
+                    tileNext = Meta.TileMode.RIGHT;
+                    break;
+                 case Meta.TileMode.LRC:
+                    tilePrev = Meta.TileMode.RIGHT;
+                    tileNext = Meta.TileMode.BOTTOM;
+                    break;
+                 case Meta.TileMode.TOP:
+                    tilePrev = Meta.TileMode.ULC;
+                    tileNext = Meta.TileMode.URC;
+                    break;
+                 case Meta.TileMode.BOTTOM:
+                    tilePrev = Meta.TileMode.LRC;
+                    tileNext = Meta.TileMode.LLC;
+                    break;
+                 case Meta.TileMode.MAXIMIZED:
+                    tilePrev = Meta.TileMode.BOTTOM;
+                    tileNext = Meta.TileMode.TOP;
+                    break;
+              }
+              if (!hasFocus(window)) {
+                 Main.activateWindow(window);
+              }
+              if (direction === Clutter.ScrollDirection.UP) {
+                 reTile(window, tileNext);
+              } else if (direction === Clutter.ScrollDirection.DOWN) {
+                 reTile(window, tilePrev);
+              }
+           }
+        }
         return;
      }
      let numThumbs = this.menu.numThumbs;
      let direction = event.get_scroll_direction();
+     log( `Scroll direction = ${direction}` );
      if (numThumbs > this.menu.numMenuItems && numThumbs > 2 && direction == 0 /*UP*/) {
         numThumbs -= 0.5;
      } else if (numThumbs < 15 && direction == 1 /*Down*/){
