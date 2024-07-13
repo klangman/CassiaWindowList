@@ -2567,8 +2567,8 @@ class WindowListButton {
                     monIdx--;
                  }
                  if (monIdx >= nMonitors) {
-                    wsIdx = 0;
-                 } else if (MonIdx < 0) {
+                    monIdx = 0;
+                 } else if (monIdx < 0) {
                     monIdx = nMonitors-1;
                  }
                  window.move_to_monitor(monIdx);
