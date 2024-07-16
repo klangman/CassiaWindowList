@@ -228,7 +228,7 @@ const MouseScrollAction = {
    ChangeTiling: 4      // Change tiling in a counter/clockwise direction
 }
 
-// Possible settings for the left mouse action for grouped buttons (or Laucher with running windows)
+// Possible settings for the left mouse action for grouped buttons (or Launcher with running windows)
 const LeftClickGrouped = {
    Toggle: 0,         // Restore most resent window or minimize if already in focus
    Cycle: 1,          // Restore most recent window or cycle windows if any window is already in focus
@@ -908,7 +908,6 @@ class ThumbnailMenuItem extends PopupMenu.PopupBaseMenuItem {
       this._closeIcon = icon;
       this._closeIcon.set_reactive(true);
       this._closeBin.set_child(this._closeIcon);
-      //this._signalManager.connect(this._closeIcon, "button-release-event", this._onCloseButtonRelease, this);
       this._signalManager.connect(this._closeBin, "enter-event", this._onCloseIconEnterEvent, this);
       this._signalManager.connect(this._closeBin, "leave-event", this._onCloseIconLeaveEvent, this);
     }
@@ -958,7 +957,7 @@ class ThumbnailMenuItem extends PopupMenu.PopupBaseMenuItem {
           return true;
        }
     }
-    if (mouseBtn == 1) {
+    if (mouseBtn == 1) {  // Left button
        if (event.get_source() === this._closeIcon) {
           this._inClosing = true;
           this._metaWindow.delete(global.get_current_time());
@@ -987,15 +986,6 @@ class ThumbnailMenuItem extends PopupMenu.PopupBaseMenuItem {
     super._onButtonReleaseEvent(actor, event);
     return true;
   }
-
-  /*
-  _onCloseButtonRelease() {
-    this._inClosing = true;
-    this._metaWindow.delete(global.get_current_time());
-    this._inClosing = false;
-    return true;
-  }
-  */
 
   _onActivate() {
     if (!this._inClosing) {
@@ -1228,7 +1218,7 @@ class ThumbnailMenu extends PopupMenu.PopupMenu {
        allWindowsForPool = this._settings.getValue("menu-all-windows-of-auto");
     }
     let windows = [];
-    if (this._appButton._windows.length>1 || allWindowsForPool == false){
+    if (this._appButton._windows.length>1 || allWindowsForPool === false){
       windows = this._appButton._windows;
     } else {
        let btns = this._appButton._workspace._lookupAllAppButtonsForApp(this._appButton._app);
@@ -2632,7 +2622,6 @@ class WindowListButton {
      }
      let numThumbs = this.menu.numThumbs;
      let direction = event.get_scroll_direction();
-     log( `Scroll direction = ${direction}` );
      if (numThumbs > this.menu.numMenuItems && numThumbs > 2 && direction == 0 /*UP*/) {
         numThumbs -= 0.5;
      } else if (numThumbs < 15 && direction == 1 /*Down*/){
