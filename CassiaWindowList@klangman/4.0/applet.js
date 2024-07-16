@@ -216,7 +216,8 @@ const MouseAction = {
   GroupedWindow2: 36,
   GroupedWindow3: 37,
   GroupedWindow4: 38,
-  MoveHere: 39           // Change the windows monitor and workspace to be the current monitor and workspace
+  MoveHere: 39,          // Change the windows monitor and workspace to be the current monitor and workspace
+  AlwaysOnTop: 40        // Toggle the windows "Always on top" state
 }
 
 // Possible value for the Mouse scroll wheel action setting
@@ -2922,6 +2923,15 @@ class WindowListButton {
               moveWindowHere(window, global.screen.get_active_workspace_index(), this._applet.panel.monitorIndex);
            }
            break;
+        case MouseAction.AlwaysOnTop:
+           if (window) {
+              if (window.is_above()) {
+                 window.unmake_above();
+              } else {
+                 window.make_above();
+              }
+           }
+           break;
       }
   }
 
@@ -3305,6 +3315,15 @@ class WindowListButton {
         metaWindow = this._currentWindow;
       }
       this._contextMenu.addMenuItem(new PopupMenu.PopupSeparatorMenuItem());
+      item = new PopupMenu.PopupSwitchMenuItem(_("Always on top"), metaWindow.is_above());
+      item.connect("toggled", Lang.bind(this, function(menuItem, state) {
+         if (state) {
+            metaWindow.make_above();
+         } else {
+            metaWindow.unmake_above();
+         }
+      }));
+      this._contextMenu.addMenuItem(item);
       // window ops for workspaces
       if (metaWindow.is_on_all_workspaces()) {
         this._contextMenu.addAction(_("Only on this workspace"), Lang.bind(this, function() {metaWindow.unstick()}));
