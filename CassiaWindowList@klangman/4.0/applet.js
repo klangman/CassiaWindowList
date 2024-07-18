@@ -2924,7 +2924,7 @@ class WindowListButton {
            }
            break;
         case MouseAction.AlwaysOnTop:
-           if (window) {
+           if (window && (typeof window.is_above === "function")) {
               if (window.is_above()) {
                  window.unmake_above();
               } else {
@@ -3315,15 +3315,17 @@ class WindowListButton {
         metaWindow = this._currentWindow;
       }
       this._contextMenu.addMenuItem(new PopupMenu.PopupSeparatorMenuItem());
-      item = new PopupMenu.PopupSwitchMenuItem(_("Always on top"), metaWindow.is_above());
-      item.connect("toggled", Lang.bind(this, function(menuItem, state) {
-         if (state) {
-            metaWindow.make_above();
-         } else {
-            metaWindow.unmake_above();
-         }
-      }));
-      this._contextMenu.addMenuItem(item);
+      if (typeof metaWindow.is_above === "function") {
+         item = new PopupMenu.PopupSwitchMenuItem(_("Always on top"), metaWindow.is_above());
+         item.connect("toggled", Lang.bind(this, function(menuItem, state) {
+            if (state) {
+               metaWindow.make_above();
+            } else {
+               metaWindow.unmake_above();
+            }
+         }));
+         this._contextMenu.addMenuItem(item);
+      }
       // window ops for workspaces
       if (metaWindow.is_on_all_workspaces()) {
         this._contextMenu.addAction(_("Only on this workspace"), Lang.bind(this, function() {metaWindow.unstick()}));
