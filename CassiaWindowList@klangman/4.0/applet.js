@@ -1903,7 +1903,7 @@ class WindowListButton {
   updateIcon() {
     let panelHeight = this._applet._panelHeight;
 
-    this.iconSize = this._applet.getPanelIconSize(St.IconType.FULLCOLOR) -2;
+    this.iconSize = this._applet.getPanelIconSize(St.IconType.FULLCOLOR);
 
     let icon = null;
 
@@ -2516,7 +2516,7 @@ class WindowListButton {
      if (wheelSetting===ScrollWheelAction.Off || !this.menu || !this.menu.isOpen) {
         // The Thumbnail menu is closed, so do the defined scroll wheel action
         wheelSetting = this._settings.getValue("mouse-action-scroll");
-        if (wheelSetting !== MouseScrollAction.None && !this._scrollIgnore && this._currentWindow && (!this.menu || !this.menu.isOpen)) {
+        if (wheelSetting !== MouseScrollAction.None && this._currentWindow && (!this.menu || !this.menu.isOpen)) {
            let window = this._currentWindow;
            let direction = event.get_scroll_direction();
            if (wheelSetting === MouseScrollAction.ChangeState) {
@@ -3799,9 +3799,9 @@ class Workspace {
 
     // Expand the pinned-apps array if required
     let pinSetting = this._settings.getValue("pinned-apps");
-    if (pinSetting.length < wsNum) {
+    while (pinSetting.length <= wsNum) {
+      pinSetting.push([]);
       let newSetting = pinSetting.slice();
-      newSetting.push([]);
       this._settings.setValue("pinned-apps", newSetting);
     }
 
