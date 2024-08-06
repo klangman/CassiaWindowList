@@ -1516,7 +1516,7 @@ class WindowListButton {
 
   _allocationChanged(box) {
      // Update the icon location so Cinnamon's minimize/restore animation can work correctly
-     if (this._settings.getValue("group-windows")!==GroupType.Launcher) {
+     if (this._currentWindow && this._settings.getValue("group-windows")!==GroupType.Launcher) {
         const rect = new Meta.Rectangle();
         [rect.x, rect.y] = this._icon.get_transformed_position();
         [rect.width, rect.height] = this._icon.get_transformed_size();
