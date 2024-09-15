@@ -1,6 +1,7 @@
 {
   "uuid": "CassiaWindowList@klangman",
   "name": "Cassia Window List",
+  "version": "github-dev",
   "description": "A window list based on CobiWindowList with some additional features",
   "max-instances": -1,
   "multiversion": true,
