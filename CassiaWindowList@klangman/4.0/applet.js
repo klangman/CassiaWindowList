@@ -357,6 +357,11 @@ function resizeActor(actor, time, toWidth, text, button) {
              this._minLabelSize = curWidth;
           }
        }
+       // Update all the icon geometry info since any change in the actor size can move all buttons when the applet is located in the centre of a panel.
+       let currentWs = global.screen.get_active_workspace_index();
+       if (button._workspace._wsNum === currentWs) {
+          button._workspace.updateIconGeometry();
+       }
     },
     onCompleteScope: button
   });
@@ -404,11 +409,21 @@ function animatedRemoveAppButton(workspace, time, button) {
        transition: "easeInOutQuad",
        onComplete() {
           this._removeAppButton(button);
+          // Update all the icon geometry info since any change in the actor size can move all buttons when the applet is located in the centre of a panel.
+          let currentWs = global.screen.get_active_workspace_index();
+          if (button._workspace._wsNum === currentWs) {
+             button._workspace.updateIconGeometry();
+          }
        },
        onCompleteScope: workspace
      });
   } else {
      workspace._removeAppButton(button);
+    // Update all the icon geometry info since any change in the actor size can move all buttons when the applet is located in the centre of a panel.
+    let currentWs = global.screen.get_active_workspace_index();
+    if (button._workspace._wsNum === currentWs) {
+       button._workspace.updateIconGeometry();
+    }
   }
 }
 
@@ -1487,7 +1502,7 @@ class WindowListButton {
     this._signalManager.connect(this.actor, "button-press-event", this._onButtonPress, this);
     this._signalManager.connect(this.actor, "button-release-event", this._onButtonRelease, this);
     this._signalManager.connect(this.actor, "scroll-event", this._onScrollEvent, this);
-    this._signalManager.connect(this.actor, "notify::allocation", this._allocationChanged, this);
+    //this._signalManager.connect(this.actor, "notify::allocation", this._allocationChanged, this);
     this._signalManager.connect(this._settings, "changed::caption-type", this._updateLabel, this);
     this._signalManager.connect(this._settings, "changed::display-caption-for-pined", this._updateLabel, this);
     this._signalManager.connect(this._settings, "changed::hide-caption-for-minimized", this._updateLabel, this);
@@ -1524,20 +1539,9 @@ class WindowListButton {
     this._updateSpacing();
   }
 
-  _allocationChanged() {
-     // Update the icon location so Cinnamon's minimize/restore animation can work correctly
-     let curWS = global.screen.get_active_workspace_index();
-     if (this._windows.length>0 && curWS === this._workspace._wsNum && this._settings.getValue("group-windows")!==GroupType.Launcher) {
-        let rect = new Meta.Rectangle();
-        [rect.x, rect.y] = this._iconBin.get_transformed_position();
-        [rect.width, rect.height] = this._iconBin.get_transformed_size();
-        this._windows.forEach((window) => {
-           if (window.is_on_all_workspaces() || window.get_workspace().index() === curWS ) {
-              window.set_icon_geometry(rect);
-           }
-        });
-     }
-  }
+  //_allocationChanged() {
+  //   this.updateIconGeometry();
+  //}
 
   // Sort this._windows by workspace and monitor
   _sortWindows() {
@@ -3835,7 +3839,18 @@ class WindowListButton {
   }
 
   updateIconGeometry() {
-     this._allocationChanged();
+     // Update the icon location so Cinnamon's minimize/restore animation can work correctly
+     let curWS = global.screen.get_active_workspace_index();
+     if (this._windows.length>0 && curWS === this._workspace._wsNum && this._settings.getValue("group-windows")!==GroupType.Launcher) {
+        let rect = new Meta.Rectangle();
+        [rect.x, rect.y] = this._iconBin.get_transformed_position();
+        [rect.width, rect.height] = this._iconBin.get_transformed_size();
+        this._windows.forEach((window) => {
+           if (window.is_on_all_workspaces() || window.get_workspace().index() === curWS ) {
+              window.set_icon_geometry(rect);
+           }
+        });
+     }
   }
 }
 
