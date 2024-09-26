@@ -2716,7 +2716,6 @@ class WindowListButton {
            }
            this._settings.setValue("app-preview-size", appThumbSizes);
         }
-        // TODO: Add code to load the json per-app preview size on new app butons.
      }
   }
 
@@ -5370,10 +5369,12 @@ class WindowList extends Applet.Applet {
     this._signalManager.connect(this._settings, "changed::show-windows-for-all-workspaces", this._onShowOnAllWorkspacesChanged, this);
     this._signalManager.connect(this._settings, "changed::number-of-unshrunk-previews", this._updateGlobalPreviewSize, this);
     this._signalManager.connect(this._settings, "settings-changed", this._onSettingsChanged, this);
+    this._signalManager.connect(global, "scale-changed", this._updateCurrentWorkspace, this);
 
     if (this._settings.getValue("runWizard")===1) {
        let command = GLib.get_home_dir() + "/.local/share/cinnamon/applets/" + this._uuid + "/setupWizard " + this._uuid + " " + this.instance_id;
        Util.spawnCommandLineAsync(command);
+       this._settings.setValue("runWizard", 0);
     }
   }
 
