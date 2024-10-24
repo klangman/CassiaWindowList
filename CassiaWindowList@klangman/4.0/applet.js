@@ -224,7 +224,9 @@ const MouseScrollAction = {
    ChangeState: 1,      // Minimize/Restore/Maximize the window
    ChangeWorkspace: 2,  // Next/Previous workspace
    ChangeMonitor: 3,    // Next/Previous monitor
-   ChangeTiling: 4      // Change tiling in a counter/clockwise direction
+   ChangeTiling: 4,     // Change tiling in a counter/clockwise direction
+   CycleButtons: 5,     // Cycle through the windows for the window-list buttons
+   CycleApp: 6          // Cycle through the windows for a group/pool
 }
 
 // Possible settings for the left mouse action for grouped buttons (or Launcher with running windows)
@@ -2660,6 +2662,84 @@ class WindowListButton {
               } else if (direction === Clutter.ScrollDirection.DOWN) {
                  reTile(window, tilePrev);
               }
+           } else if (wheelSetting === MouseScrollAction.CycleButtons) {
+              if (direction === Clutter.ScrollDirection.UP || direction === Clutter.ScrollDirection.DOWN) {
+                 let childern = this._workspace.actor.get_children();
+                 let window = global.display.get_focus_window();
+                 if (window) {
+                    let focus = this._workspace._lookupAppButtonForWindow(window);
+                    let idx = childern.indexOf(focus.actor);
+                    if (idx>=0) {
+                       do {
+                          if (direction === Clutter.ScrollDirection.UP) {
+                             if (idx === childern.length-1) {
+                                idx = 0;
+                             } else {
+                                idx += 1;
+                             }
+                          } else if (direction === Clutter.ScrollDirection.DOWN) {
+                             if (idx === 0) {
+                                idx = childern.length-1;
+                             } else {
+                                idx -= 1;
+                             }
+                          }
+                       } while ( !childern[idx]._delegate._currentWindow ); // ignore pinned app buttons with no active windows
+                       Main.activateWindow(childern[idx]._delegate._currentWindow);
+                    }
+                 }
+              }
+           } else if (wheelSetting === MouseScrollAction.CycleApp) {
+              if (direction === Clutter.ScrollDirection.UP || direction === Clutter.ScrollDirection.DOWN) {
+                 if (this._windows.length === 1) {
+                    let groupingType = this._settings.getValue("group-windows");
+                    if ((groupingType == GroupType.Pooled || groupingType == GroupType.Auto) && this._grouped != GroupingType.ForcedOn) {
+                       let window = global.display.get_focus_window();
+                       let focus = this._workspace._lookupAppButtonForWindow(window);
+                       if (focus._app != this._app) {
+                          Main.activateWindow(this._currentWindow);
+                       } else {
+                          let btns = this._workspace._lookupAllAppButtonsForApp(this._app);
+                          let idx = btns.indexOf(focus);
+                          if (direction === Clutter.ScrollDirection.UP) {
+                             if (idx === btns.length-1)
+                                Main.activateWindow(btns[0]._currentWindow);
+                             else
+                                Main.activateWindow(btns[idx+1]._currentWindow);
+                          } else {
+                             if (idx === 0)
+                                Main.activateWindow(btns[btns.length-1]._currentWindow);
+                             else
+                                Main.activateWindow(btns[idx-1]._currentWindow);
+                          }
+                       }
+                    } else {
+                       Main.activateWindow(this._currentWindow);
+                    }
+                 } else if (this._windows.length > 1) {
+                    if (direction === Clutter.ScrollDirection.UP) {
+                       if (hasFocus(this._currentWindow)) {
+                          let idx = this._windows.indexOf(this._currentWindow);
+                          if (idx === this._windows.length-1 )
+                             Main.activateWindow(this._windows[0]);
+                          else
+                             Main.activateWindow(this._windows[idx+1]);
+                       } else {
+                          Main.activateWindow(this._currentWindow);
+                       }
+                    }else if (direction === Clutter.ScrollDirection.DOWN) {
+                       if (hasFocus(this._currentWindow)) {
+                          let idx = this._windows.indexOf(this._currentWindow);
+                          if (idx === 0 )
+                             Main.activateWindow(this._windows[this._windows.length-1]);
+                          else
+                             Main.activateWindow(this._windows[idx-1]);
+                       } else {
+                          Main.activateWindow(this._currentWindow);
+                       }
+                    }
+                 }
+              }
            }
         }
         return;
@@ -3646,7 +3726,11 @@ class WindowListButton {
 
       this._contextMenu.addMenuItem(new PopupMenu.PopupSeparatorMenuItem());
       if (this._windows.length > 1 || btns.length > 1) {
-        item = new PopupMenu.PopupIconMenuItem(_("Close others"), "application-exit", St.IconType.SYMBOLIC);
+        if (this._windows.length > 1) {
+          item = new PopupMenu.PopupIconMenuItem(_("Close others"), "application-exit", St.IconType.SYMBOLIC);
+        } else {
+          item = new PopupMenu.PopupIconMenuItem(_("Close other windows for application"), "application-exit", St.IconType.SYMBOLIC);
+        }
         item.connect("activate", Lang.bind(this, function() {
           if (this._windows.length > 1) {
              let curIdx = this._windows.indexOf(metaWindow);
@@ -3665,7 +3749,11 @@ class WindowListButton {
         }));
         this._contextMenu.addMenuItem(item);
 
-        item = new PopupMenu.PopupIconMenuItem(_("Close all"), "window-close", St.IconType.SYMBOLIC);
+        if (this._windows.length > 1) {
+          item = new PopupMenu.PopupIconMenuItem(_("Close all"), "window-close", St.IconType.SYMBOLIC);
+        } else {
+          item = new PopupMenu.PopupIconMenuItem(_("Close all windows for application"), "window-close", St.IconType.SYMBOLIC);
+        }
         item.connect("activate", Lang.bind(this, function() {
           if (this._windows.length > 1) {
              for (let i = this._windows.length - 1; i >= 0; i--) {
