@@ -2565,9 +2565,9 @@ class WindowListButton {
   _onScrollEvent(actor, event) {
      let wheelSetting = this._settings.getValue("wheel-adjusts-preview-size");
      if (wheelSetting===ScrollWheelAction.Off || !this.menu || !this.menu.isOpen) {
-        // The Thumbnail menu is closed, so do the defined scroll wheel action
+        // The Thumbnail menu is closed or the Thumbnail scroll action is disabled, so do the defined scroll wheel action
         wheelSetting = this._settings.getValue("mouse-action-scroll");
-        if (wheelSetting !== MouseScrollAction.None && this._currentWindow && (!this.menu || !this.menu.isOpen)) {
+        if (wheelSetting !== MouseScrollAction.None && this._currentWindow /*&& (!this.menu || !this.menu.isOpen)*/) {
            let window = this._currentWindow;
            let direction = event.get_scroll_direction();
            if (wheelSetting === MouseScrollAction.ChangeState) {
@@ -4568,6 +4568,7 @@ class Workspace {
              Lang.bind(this, function(ancestor) {
                 newFocus = this._lookupAppButtonForWindow(ancestor);
                 if (newFocus) {
+                   window = ancestor;
                    return(false);
                 }
                 return(true);
@@ -4602,7 +4603,21 @@ class Workspace {
              newFocus.appLastFocus = true;
              this._currentFocus._updateNumber();
           }
+          let prevCurrentWindow = (this._currentFocus)?this._currentFocus._currentWindow:null;
           newFocus._updateFocus();
+          // If there is an open Thumbnail menu, update the outline highlighting
+          if (this.currentMenu && this.currentMenu.isOpen) {
+             let menuItem =  this.currentMenu._findMenuItemForWindow(window);
+             if (menuItem) {
+                 menuItem._box.add_style_pseudo_class('outlined');
+             }
+             if (prevCurrentWindow) {
+                let menuItem =  this.currentMenu._findMenuItemForWindow(prevCurrentWindow);
+                if (menuItem) {
+                   menuItem._box.remove_style_pseudo_class('outlined');
+                }
+             }
+          }
           this._currentFocus = newFocus;
        }
     }
