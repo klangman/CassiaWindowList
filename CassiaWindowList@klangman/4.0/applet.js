@@ -3665,7 +3665,6 @@ class WindowListButton {
                }));
             this._contextMenu.addMenuItem(item);
          } else {
-            //let btns = this._workspace._lookupAllAppButtonsForApp(this._app);
             if (btns && btns.length > 1) {
               item = new PopupMenu.PopupMenuItem(_("Group application windows"));
               item.connect("activate", Lang.bind(this, function() {
@@ -3688,7 +3687,6 @@ class WindowListButton {
                  this._grouped=GroupingType.Auto;
                  this._workspace._tryExpandingAppGroups();
               } else {
-                 //let btns = this._workspace._lookupAllAppButtonsForApp(this._app);
                  for (let i=0 ; i<btns.length ; i++)
                     btns[i]._grouped = GroupingType.NotGrouped;
               }
@@ -3697,7 +3695,6 @@ class WindowListButton {
               if (this._grouped > GroupingType.NotGrouped) {
                  this._grouped = GroupingType.ForcedOn;
               } else {
-                 //let btns = this._workspace._lookupAllAppButtonsForApp(this._app);
                  for (let i=0 ; i<btns.length ; i++)
                     btns[i]._grouped = GroupingType.ForcedOff;
               }
@@ -4619,6 +4616,10 @@ class Workspace {
              }
           }
           this._currentFocus = newFocus;
+       } else if (this._currentFocus) {
+          this._currentFocus.actor.remove_style_pseudo_class("focus");
+          if (this._applet._displayPinned === DisplayPinned.Disabled)
+             this._currentFocus.actor.remove_style_pseudo_class("active");
        }
     }
   }
