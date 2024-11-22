@@ -2228,7 +2228,7 @@ class WindowListButton {
     }
     // Do we need a minimized char
     if (this._currentWindow && this._currentWindow.minimized && (this._applet.indicators&IndicatorType.Minimized) && this._workspace.autoIndicatorsOff==false) {
-      text = "\u{2193}" + text;  // The Unicode character "down arrow"
+      text = ((this._applet.orientation === St.Side.BOTTOM)?"\u{2193}":"\u{2191}") + text;  // The Unicode character up or down arrow
     } 
     // Do we need a pinned char
     if (this._pinned && (this._applet.indicators&IndicatorType.Pinned) && this._workspace.autoIndicatorsOff==false) {
