@@ -1016,21 +1016,40 @@ class ThumbnailMenuItem extends PopupMenu.PopupBaseMenuItem {
     this._closeBin.hide();
 
     if (this._cloneBin) {
-      let animTime = 0.5; //this._settings.getValue("label-animation-time") * 0.001;
-      Tweener.addTween(this.actor, {
-        width: 0,
-        time: animTime,
-        transition: "easeInOutQuad",
-        onUpdate: Lang.bind(this, function() {
-          this.actor.set_clip(this.actor.x, this.actor.y, this.actor.width, this.actor.height);
-        }),
-        onComplete: Lang.bind(this, function () {
-          this.actor.hide();
-          this.actor.set_width(-1);
-          this._menu._inHiding = false;
-          this.destroy();
-        })
-      });
+      let animTime = 0.2; //this._settings.getValue("label-animation-time") * 0.001;
+      log( `AnimationTime: ${animTime}` );
+      if (this._appButton._applet.orientation == St.Side.LEFT ||
+          this._appButton._applet.orientation == St.Side.RIGHT ) {
+         Tweener.addTween(this.actor, {
+           height: 0,
+           time: animTime,
+           transition: "easeInOutQuad",
+           onUpdate: Lang.bind(this, function() {
+             this.actor.set_clip(this.actor.x, this.actor.y, this.actor.width, this.actor.height);
+           }),
+           onComplete: Lang.bind(this, function () {
+             this.actor.hide();
+             this.actor.set_width(-1);
+             this._menu._inHiding = false;
+             this.destroy();
+           })
+         });
+       } else {
+         Tweener.addTween(this.actor, {
+           width: 0,
+           time: animTime,
+           transition: "easeInOutQuad",
+           onUpdate: Lang.bind(this, function() {
+             this.actor.set_clip(this.actor.x, this.actor.y, this.actor.width, this.actor.height);
+           }),
+           onComplete: Lang.bind(this, function () {
+             this.actor.hide();
+             this.actor.set_width(-1);
+             this._menu._inHiding = false;
+             this.destroy();
+           })
+         });
+       }
     } else {
       this.actor.hide();
       this._menu._inHiding = false;
