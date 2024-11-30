@@ -3961,6 +3961,17 @@ class WindowListButton {
      }
   }
 
+  // If dragging (something that is not a App) over this button, activate the buttons
+  // window so that the user can drop the item on the window
+  handleDragOver(source, actor, x, y, time) {
+    if (!(source.isDraggableApp || (source instanceof DND.LauncherDraggable))) {
+       if (this._windows.length > 0) {
+          Main.activateWindow(this._windows[0]);
+       }
+    }
+    return DND.DragMotionResult.CONTINUE;;
+  }
+
   updateIconGeometry() {
      // Update the icon location so Cinnamon's minimize/restore animation can work correctly
      let curWS = global.screen.get_active_workspace_index();
