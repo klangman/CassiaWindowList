@@ -461,29 +461,6 @@ function getOverheadSize(actor) {
   return [width, height];
 }
 
-
-function getMonitors() {
-  let result = [];
-
-  try {
-    let gdkScreen = Gdk.Screen.get_default();
-    let screen = CinnamonDesktop.RRScreen.new(gdkScreen);
-    let currentConfig = CinnamonDesktop.RRConfig.new_current(screen);
-    let outputInfos = currentConfig.get_outputs();
-
-    for (let index = 0; index < outputInfos.length; index++) {
-      let output = outputInfos[index];
-      if (output.is_active()) {
-        result.push(output.get_display_name());
-      }
-    }
-  } catch (err) {
-    return [];
-  }
-
-  return result;
-}
-
 // Return a MouseAction if a mount action is defined for the ctrlHeld state, context and mouse button
 //       mouseBtn = 1-3 (left, middle, right) or 8-9 (back, forward)
 function getKeyAndButtonMouseAction(mouseActionList, modifier, context, mouseBtn) {
@@ -2950,22 +2927,22 @@ class WindowListButton {
            }
            break;
         case MouseAction.MoveMonitor1:
-           if (window && this._applet.xrandrMonitors[0] != null) {
+           if (window && Main.layoutManager.monitors.length >= 1) {
               window.move_to_monitor(0);
            }
            break;
         case MouseAction.MoveMonitor2:
-           if (window && this._applet.xrandrMonitors[1] != null) {
+           if (window && Main.layoutManager.monitors.length >= 2) {
               window.move_to_monitor(1);
            }
            break;
         case MouseAction.MoveMonitor3:
-           if (window && this._applet.xrandrMonitors[2] != null) {
+           if (window && Main.layoutManager.monitors.length >= 3) {
               window.move_to_monitor(2);
            }
            break;
         case MouseAction.MoveMonitor4:
-           if (window && this._applet.xrandrMonitors[3] != null) {
+           if (window && Main.layoutManager.monitors.length >= 4) {
               window.move_to_monitor(3);
            }
            break;
@@ -2979,7 +2956,7 @@ class WindowListButton {
                     if (i >= Main.layoutManager.monitors.length) {
                        i=-1;
                     } else {
-                       if (this._applet.xrandrMonitors[i] != null) {
+                       if (Main.layoutManager.monitors.length > i) {
                           window.move_to_monitor(i);
                           return;
                        }
@@ -3019,14 +2996,11 @@ class WindowListButton {
            {
            let nMonitors = Main.layoutManager.monitors.length;
            let curMonitor = window.get_monitor();
-           if (window && nMonitors > 1 && this._applet.xrandrMonitors[curMonitor] != null) {
-              for ( curMonitor--; true ; curMonitor--) {
-                 if (curMonitor<0 )
-                    curMonitor=nMonitors-1;
-                 if (this._applet.xrandrMonitors[curMonitor] != null) {
-                    window.move_to_monitor(curMonitor);
-                    return;
-                 }
+           if (nMonitors > 1) {
+              if (curMonitor > 0) {
+                 window.move_to_monitor(curMonitor-1);
+              } else {
+                 window.move_to_monitor(nMonitors-1);
               }
            }
            }
@@ -3035,14 +3009,11 @@ class WindowListButton {
            {
            let nMonitors = Main.layoutManager.monitors.length;
            let curMonitor = window.get_monitor();
-           if (window && nMonitors > 1 && this._applet.xrandrMonitors[curMonitor] != null) {
-              for ( curMonitor++; true ; curMonitor++) {
-                 if (curMonitor>nMonitors-1 )
-                    curMonitor=0;
-                 if (this._applet.xrandrMonitors[curMonitor] != null) {
-                    window.move_to_monitor(curMonitor);
-                    return;
-                 }
+           if (nMonitors > 1) {
+              if (curMonitor < nMonitors-1) {
+                 window.move_to_monitor(curMonitor++);
+              } else {
+                 window.move_to_monitor(0);
               }
            }
            }
@@ -3600,10 +3571,7 @@ class WindowListButton {
             continue;
           }
           let j = i;
-          let name = _("Monitor") + " " + j;
-          if (this._applet.xrandrMonitors[j] != null) {
-            name += " (" + this._applet.xrandrMonitors[j] + ")";
-          }
+          let name = _("Monitor") + " " +  (j+1) + " (" + Main.layoutManager.monitors[j].name + ")";
 
           let monitorItem = new PopupMenu.PopupMenuItem(name);
           monitorItem.connect("activate", Lang.bind(this, function() {
@@ -5777,7 +5745,6 @@ class WindowList extends Applet.Applet {
   }
 
   _updateMonitor() {
-    this.xrandrMonitors = getMonitors();
     this._monitor = Main.layoutManager.findMonitorForActor(this.actor);
   }
 
