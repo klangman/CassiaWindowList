@@ -1496,7 +1496,6 @@ class WindowListButton {
     this.actor.add_actor(this._labelBox);
 
     this._icon = null;
-    this._modifiedIcon = null;  // This is a version of the icon that has had it saturation modified
     this._iconBin = new St.Bin({name: "appMenuIcon"});
     this._iconBin._delegate = this;
     this._iconBox.add_actor(this._iconBin);
@@ -1952,8 +1951,10 @@ class WindowListButton {
     this._tooltip.preventShow = false;
   }
 
+  // Kinda missnamed, all this does is apply/unapply the DesaturationEffect on this._icon
   updateIconSelection() {
-     if (this._workspace.iconSaturation != 100 && this._modifiedIcon) {
+     let effect = this._icon.get_effect("desat_icon_effect");
+     if (this._workspace.iconSaturation != 100) {
         let satType = this._workspace.saturationType;
         if (satType == SaturationType.All ||
            (satType == SaturationType.Minimized && this._currentWindow && this._currentWindow.minimized) ||
@@ -1962,63 +1963,47 @@ class WindowListButton {
            (satType == SaturationType.OtherMonitors && this.isOnOtherMonitor()) ||
            (satType == SaturationType.Focused && !this._hasFocus()) )
         {
-           this._iconBin.set_child(this._modifiedIcon);
+           let saturation = (100-this._workspace.iconSaturation)/100;
+           if (effect) {
+              effect.set_factor(saturation);
+           } else {
+              if (!this.desatEffect) {
+                 this.desatEffect = new Clutter.DesaturateEffect({factor: saturation});
+              } else {
+                 this.desatEffect.set_factor(saturation);
+              }
+              this._icon.add_effect_with_name("desat_icon_effect", this.desatEffect);
+           }
            return;
         }
      }
-     this._iconBin.set_child(this._icon);
+     if (effect) {
+        this._icon.remove_effect_by_name("desat_icon_effect");
+     }
   }
 
   updateIcon() {
     let panelHeight = this._applet._panelHeight;
 
     this.iconSize = this._applet.getPanelIconSize(St.IconType.FULLCOLOR);
-
     let icon = null;
 
-    if (this._icon)
+    if (this._icon) {
+       this._icon.remove_effect_by_name("desat_icon_effect");
        this._icon.destroy();
-    if (this._modifiedIcon) {
-       this._modifiedIcon.destroy();
-       this._modifiedIcon = null;
     }
 
     if (this._app) {
       let appInfo = this._app.get_app_info();
       if (appInfo) {
         let infoIcon = appInfo.get_icon();
-        let saturation = this._workspace.iconSaturation;
-        if (saturation != 100) {
-           let pixBuf;
-           let themeIcon = ICONTHEME.lookup_icon(infoIcon.to_string(), this.iconSize, 0);
-           if (themeIcon) {
-              pixBuf = GdkPixbuf.Pixbuf.new_from_file_at_size(themeIcon.get_filename(), this.iconSize, this.iconSize);
-           } else {
-              pixBuf = GdkPixbuf.Pixbuf.new_from_file_at_size(infoIcon.to_string(), this.iconSize, this.iconSize);
-           }
-           if (pixBuf) {
-              let image = new Clutter.Image();
-              pixBuf.saturate_and_pixelate(pixBuf, saturation/100, false);
-              try {
-                 image.set_data(pixBuf.get_pixels(), pixBuf.get_has_alpha() ? Cogl.PixelFormat.RGBA_8888 : Cogl.PixelFormat.RGBA_888,
-                    this.iconSize, this.iconSize, pixBuf.get_rowstride() );
-                 this._modifiedIcon = new Clutter.Actor({width: this.iconSize, height: this.iconSize, content: image});
-              } catch(e) {
-                 // Can't set the image data, so just use the default!
-              }
-           } else {
-              //log( `Can't find icon for ${infoIcon.to_string()}` );
-           }
-        }
-        icon = new St.Icon({ gicon: infoIcon, icon_size: this.iconSize });
+        this._icon = new St.Icon({ gicon: infoIcon, icon_size: this.iconSize });
       } else {
-        icon = this._app.create_icon_texture(this.iconSize);
+        this._icon = this._app.create_icon_texture(this.iconSize);
       }
     } else {
-      icon = new St.Icon({ icon_name: "application-default-icon", icon_type: St.IconType.FULLCOLOR, icon_size: this.iconSize });
+      this._icon = new St.Icon({ icon_name: "application-default-icon", icon_type: St.IconType.FULLCOLOR, icon_size: this.iconSize });
     }
-
-    this._icon = icon;
     this.updateIconSelection();
 
     if (this._applet.orientation == St.Side.LEFT || this._applet.orientation == St.Side.RIGHT) {
@@ -2029,6 +2014,7 @@ class WindowListButton {
     if ((panelHeight - this.iconSize) & 1) {
       panelHeight--;
     }
+    this._iconBin.set_child(this._icon);
     this._iconBin.natural_width = panelHeight;
     this._iconBin.natural_height = panelHeight;
     this._labelNumberBox.natural_width = panelHeight;
@@ -4005,7 +3991,7 @@ class WindowListButton {
         [rect.x, rect.y] = this._iconBin.get_transformed_position();
         [rect.width, rect.height] = this._iconBin.get_transformed_size();
         this._windows.forEach((window) => {
-           if (window.is_on_all_workspaces() || window.get_workspace().index() === curWS ) {
+           if (window.is_on_all_workspaces() || (window.get_workspace() && window.get_workspace().index() === curWS) ) {
               window.set_icon_geometry(rect);
            }
         });
