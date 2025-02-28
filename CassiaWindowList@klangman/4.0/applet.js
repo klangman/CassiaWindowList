@@ -5925,15 +5925,20 @@ class WindowList extends Applet.Applet {
   // based on which applications other instances have pinned.
   checkForLauncherApplications() {
      let applets = AppletManager.getRunningInstancesForUuid("CassiaWindowList@klangman");
-     //log( `Found ${applets.length} cassia window list applets!` );
+     this._hiddenApps = [];
      for (let i=0 ; i < applets.length ; i++) {
         if (applets[i] != this) {
-           // TODO: Marge the list of pinned apps in case there are more then two instances
-           this._hiddenApps = applets[i].getPinnedList();
-           //log( `Found ${this._hiddenApps[wsIdx].length} apps to hide on workspace ${wsIdx}` );
-           //this._hiddenApps.push(...appList); // Use the "Spread Syntax" to concat to existing array
+           let pinnedList = applets[i].getPinnedList();
+           if (pinnedList) {
+              if (this._hiddenApps.length !== 0)
+                 this._hiddenApps.forEach( (element, index) => element.push(...pinnedList[index]) );
+              else
+                 pinnedList.forEach( (element) => this._hiddenApps.push( [...element] ) );
+           }
         }
      }
+     if (this._hiddenApps.length === 0 )
+        this._hiddenApps = null;
   }
 
 
@@ -5976,16 +5981,10 @@ class WindowList extends Applet.Applet {
 
   // An API that returns a list of pinned applications on this window list
   getPinnedList(){
-    let result;
-    result = this._settings.getValue("pinned-apps");
-    //log( `pinned apps for ${result.length} work spaces` );
-    //for (let idx=0 ; idx < result.length ; idx++ ){
-    //   log( `pinned apps for ws ${idx}: ${result[idx].length}` );
-    //   for (let idx2=0 ; idx2 < result[idx].length ; idx2++ ){
-    //      log( `result[${idx}][${idx2}] = ${result[idx][idx2]}` );
-    //   }
-    //}
-    return(result);
+    if (this.isLauncher())
+       return(this._settings.getValue("pinned-apps"));
+    else
+       return(null);
   }
 
   // An API that returns true if this applet is configured as a Launcher (used by other app instances)

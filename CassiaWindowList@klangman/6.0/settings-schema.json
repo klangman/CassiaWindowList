@@ -286,8 +286,8 @@
     "type": "switch",
     "default": false,
     "dependency" : "group-windows<4",
-    "description": "Hide window buttons of pinned buttons on other CassiaWindowList instances",
-    "tooltip": "When enabled, windows for applications with pinned buttons on other instances of the CassiaWindowList applet will not show up in this window list"
+    "description": "Hide buttons for applications on 'Launcher' instances of CassiaWindowList",
+    "tooltip": "When enabled, windows for applications with pinned buttons on other 'Launcher' mode instances of the CassiaWindowList applet will not show up in this window list"
   },
   "button-spacing": {
     "type": "spinbutton",
