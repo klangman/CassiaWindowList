@@ -2254,6 +2254,7 @@ class WindowListButton {
        }
     }
 
+    width *= global.ui_scale;
     if (width != this._labelWidth) {
        let animTime = this._settings.getValue("label-animation") ? this._settings.getValue("label-animation-time") : 0;
        resizeActor(this._labelBox, animTime, width, text, this);
