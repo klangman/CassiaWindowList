@@ -1,6 +1,6 @@
 /*
  * applet.js
- * Copyright (C) 2022-2024 Kevin Langman <klangman@gmail.com>
+ * Copyright (C) 2022-2025 Kevin Langman <klangman@gmail.com>
  * Copyright (C) 2013 Lars Mueller <cobinja@yahoo.de>
  *
  * CassiaWindowList is a fork of CobiWindowList which is found here:
@@ -159,7 +159,8 @@ const NumberType = {
   Nothing:      0,  // Don't show any Number labels
   GroupWindows: 1,  // Application Group Window Count
   WorkspaceNum: 2,  // Workspace Number
-  MonitorNum:   3   // Monitor Number
+  MonitorNum:   3,  // Monitor Number
+  TitleChar:    4   // First character of the window title
 }
 
 // Possible values for the WindowListButton._grouped variable which determines how each individual windowlist button is currently grouped
@@ -2011,7 +2012,9 @@ class WindowListButton {
     let icon = null;
 
     if (this._icon) {
-       this._icon.remove_effect_by_name("desat_icon_effect");
+       if (this._icon.get_effect("desat_icon_effect")) {
+          this._icon.remove_effect_by_name("desat_icon_effect");
+       }
        this._icon.destroy();
     }
 
@@ -2080,6 +2083,14 @@ class WindowListButton {
           text += this._currentWindow.get_workspace().index()+1;
        } else if (numberType === NumberType.MonitorNum && this._currentWindow && (setting === DisplayNumber.All || this.isOnOtherMonitor())) {
           text += this._currentWindow.get_monitor()+1;
+       } else if (numberType === NumberType.TitleChar && this._currentWindow) {
+          let btns = (setting === DisplayNumber.All) ? null : this._workspace._lookupAllAppButtonsForApp(this._app);
+          if ((setting === DisplayNumber.Smart && btns.length > 1) || setting === DisplayNumber.All) {
+             let title = this._currentWindow.get_title();
+             if (title && title.length > 0) {
+                text += title.charAt(0);
+             }
+          }
        }
     }
 
@@ -2236,6 +2247,17 @@ class WindowListButton {
            text = String.fromCharCode(9331+labelNum) + " " + text; // Bracketed number
          }
        }
+       if (numberType === NumberType.TitleChar && this._currentWindow) {
+          let btns = (numSetting === DisplayNumber.All) ? null : this._workspace._lookupAllAppButtonsForApp(this._app);
+          if ((numSetting === DisplayNumber.Smart && btns.length > 1) || numSetting === DisplayNumber.All) {
+             let title = this._currentWindow.get_title();
+             if (title && title.length > 0) {
+                text = title.charAt(0) + " " + text;
+             }
+          }
+       }
+    } else if (numberType === NumberType.TitleChar && style === 0) {
+       this._updateNumber();
     }
     // Do we need a minimized char
     if (this._currentWindow && this._currentWindow.minimized && (this._applet.indicators&IndicatorType.Minimized) && this._workspace.autoIndicatorsOff==false) {

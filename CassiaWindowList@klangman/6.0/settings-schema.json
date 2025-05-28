@@ -205,7 +205,8 @@
       "Nothing": 0,
       "Application group window count": 1,
       "Workspace number": 2,
-      "Monitor number": 3
+      "Monitor number": 3,
+      "First character of window title": 4
     },
     "description": "Number label contents"
   },
@@ -883,7 +884,7 @@
     "type": "spinbutton",
     "default": 100,
     "min": 0,
-    "max": 200,
+    "max": 100,
     "units": "percent",
     "step": 1,
     "description": "Icon color saturation",
