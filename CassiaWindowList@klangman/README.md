@@ -8,7 +8,7 @@ the "Download" tab from the cinnamon desktop settings and at the following URL:
 
 https://cinnamon-spices.linuxmint.com/applets/view/372
 
-If you like this applet, please go to the above link and "Like it" so that more people might learn of it's existence.
+If you like this applet, please go to the above link and "Like it" so that more people might learn of its existence.
 Also, the more likes it gets the more encouragement I'll have to continue working on it.
 Thanks!
 
@@ -24,7 +24,7 @@ The design goals are to:
 1. Allow you to declutter your window list when running many windows without having to do without button labels
 2. Keyboard hot-keys to switch to specific windows so you don't have to reach for the mouse so often
 3. Allow you to make full use of your mouse buttons to interact with the window list
-4. A panel launcher that can activate existing windows rather then unconditionally launching new ones
+4. A panel launcher that can activate existing windows rather than unconditionally launching new ones
 
 ## Requirements
 This applet requires at least Cinnamon 4.0

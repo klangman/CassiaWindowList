@@ -1527,7 +1527,7 @@ class WindowListButton {
     this._signalManager.connect(this.actor, "scroll-event", this._onScrollEvent, this);
     //this._signalManager.connect(this.actor, "notify::allocation", this._allocationChanged, this);
     this._signalManager.connect(this._settings, "changed::caption-type", this._updateLabel, this);
-    this._signalManager.connect(this._settings, "changed::display-caption-for-pined", this._updateLabel, this);
+    this._signalManager.connect(this._settings, "changed::display-caption-for-pinned", this._updateLabel, this);
     this._signalManager.connect(this._settings, "changed::hide-caption-for-minimized", this._updateLabel, this);
     this._signalManager.connect(this._settings, "changed::display-caption-for", this._updateLabel, this);
     this._signalManager.connect(this._settings, "changed::show-ellipsis-for-groups", this._updateLabel, this);
@@ -2109,7 +2109,7 @@ class WindowListButton {
 
     let capSetting = this._settings.getValue("display-caption-for");
     let numSetting = this._settings.getValue("display-number");
-    let pinnedSetting = this._settings.getValue("display-caption-for-pined");
+    let pinnedSetting = this._settings.getValue("display-caption-for-pinned");
     let hideSetting = this._settings.getValue("hide-caption-for-minimized"); // For compatibility, the option name "hide-caption-for-minimized" was maintained, but now it has more then one possible value not only for minimized windows
     let style = this._settings.getValue("number-style");
     let numberType = this._settings.getValue("number-type");
@@ -4645,7 +4645,7 @@ class Workspace {
              if (this.iconSaturation!=100 && this.saturationType == SaturationType.Focused) {
                 this._currentFocus.updateIconSelection();
              }
-             let pinnedSetting = this._settings.getValue("display-caption-for-pined");
+             let pinnedSetting = this._settings.getValue("display-caption-for-pinned");
              let capSetting = this._settings.getValue("display-caption-for");
              if (pinnedSetting == PinnedLabel.Focused && capSetting === DisplayCaption.One) {
                 // Do we need to clear the label from the pooled window group
