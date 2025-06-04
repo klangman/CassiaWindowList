@@ -2066,7 +2066,13 @@ class WindowListButton {
           if ((setting === DisplayNumber.Smart && btns.length > 1) || setting === DisplayNumber.All) {
              let title = this._currentWindow.get_title();
              if (title && title.length > 0) {
-                text += title.charAt(0);
+                if (this._app && title.startsWith(this._app.get_name())) {
+                   title = title.substring(this._app.get_name().length).trim();
+                   if (title.startsWith("-")) {
+                      title = title.substring(1).trim();
+                   }
+                }
+                text += title.substring(0,2).trim();
              }
           }
        }
