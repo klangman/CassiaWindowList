@@ -123,7 +123,7 @@ Panel buttons for all running windows.</property>
                 <child>
                   <object class="GtkRadioButton" id="launcher_radio">
                     <property name="label" translatable="yes">Panel Launcher (Quick launcher)
-Panel button only appears when you add items
+Panel buttons only appear when you pin items
 to the panel, no labels are shown, only icons.</property>
                     <property name="visible">True</property>
                     <property name="can-focus">True</property>
