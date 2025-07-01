@@ -140,7 +140,7 @@
       "Pinned applications": 2,
       "Minimized and pinned": 3,
       "Application group window count": 11,
-      "Application group ellipsis (⋮)": 12,
+      "Application group indicator (⋮)": 12,
       "Workspace number (smart)": 13,
       "Monitor number (smart)": 14
     },
@@ -210,28 +210,24 @@
     "type": "combobox",
     "default": 1,
     "options": {
-      "Nothing": 0,
+      "Nothing": 100,
       "Application group window count": 1,
-      "Application group ellipsis (…)": 8,
+      "Application group inticator (…)": 104,
       "Workspace number": 2,
       "Monitor number": 3,
       "Two characters from the window title": 4,
-      "Minimized indicator": 5,
-      "Pinned indicator": 6,
-      "Minimized and pinned indicators": 7
+      "Minimized indicator": 101,
+      "Pinned indicator": 102,
+      "Minimized and pinned indicators": 103
     },
     "description": "Icon overlay label contents"
   },
   "display-number": {
-    "type": "combobox",
-    "default": 2,
-    "options": {
-      "Always": 1,
-      "Smart": 2
-    },
-    "dependency" : "number-type>0",
-    "description": "Display number",
-    "tooltip": "Controls when the icon overlay label is used. Smart means the label will only appear when it is appropriate depending on the icon overlay label contents setting above. i.e. When there are two or more windows in a group, or when the windows workspace or monitor does not match the current one."
+    "type": "switch",
+    "default": true,
+    "dependency" : "number-type<100",
+    "description": "Only display label when needed",
+    "tooltip": "With this option enabled, the icon overlay label will only appear when it is appropriate depending on the label content (i.e. When there are two or more windows in a group, or when the windows workspace or monitor does not match the current one). When this option is disabled the label is always shown"
   },
 
   "progress-display-type": {
@@ -956,5 +952,10 @@
   "runWizard": {
      "type": "generic",
      "default": 1
+  },
+
+  "upgradeIndicator": {
+     "type": "generic",
+     "default": 0
   }
 }

@@ -65,6 +65,18 @@ const FLASH_INTERVAL = 500;
 const PANEL_EDIT_MODE_KEY = "panel-edit-mode";
 const PANEL_ZONE_TEXT_SIZES = "panel-zone-text-sizes";
 
+const U_PERCENT    = "\u{066A}";
+const U_MIN_UP     = "\u{2191}";
+const U_MIN_DOWN   = "\u{2193}";
+const U_PINNED     = "\u{1F4CC}";
+const U_ELLIPSIS_V = "\u{22EE}";
+const U_ELLIPSIS_H = "\u{2026}";
+
+const U_DIGIT_ONE = 10122; // Circled One 9312 -- Parenthesized One 9332 -- Negative Circled Digit One 10122
+const U_DIGIT_SPLIT = 9451; // Negative Circled Number Eleven
+const U_DIGIT_SPLIT_NUM = 11;
+const U_DIGIT_LIMIT = 20;
+const U_MANY = "\u{2026}";  // Used when the number is greater than U_DIGIT_LIMIT
 
 const STYLE_CLASS_ATTENTION_STATE = "grouped-window-list-item-demands-attention";
 
@@ -150,21 +162,21 @@ const DisplayCaption = {
 
 // The possible user Settings for how the number label should be displayed
 const DisplayNumber = {
-  No: 0,            // The number label for a  window list button is never displayed
-  All: 1,           // ... always displayed
-  Smart: 2          // ... only displayed when 2 of more windows exist
+  All: true,           // ... always displayed
+  Smart: false          // ... only displayed when 2 of more windows exist
 }
 
 const NumberType = {
-  Nothing:      0,  // Don't show any Number labels
   GroupWindows: 1,  // Application Group Window Count
   WorkspaceNum: 2,  // Workspace Number
   MonitorNum:   3,  // Monitor Number
   TitleChar:    4,  // First character of the window title
-  Minimized:    5,  // Minimized window indicator
-  Pinned:       6,  // Pinned window-list button indicator
-  MinAndPin:    7,  // Both minimized and pinned indicators
-  Ellipsis:     8
+  // Numbers below 100 can have a "smart" configuration, 100 and above don't have a smart option
+  Nothing:      100,  // Don't show any Number labels (was 0 in the past)
+  Minimized:    101,  // Minimized window indicator
+  Pinned:       102,  // Pinned window-list button indicator
+  MinAndPin:    103,  // Both minimized and pinned indicators
+  Ellipsis:     104   // Use a Ellipsis Unicode character to indicate the button is grouped with more than one window
 }
 
 // Possible values for the WindowListButton._grouped variable which determines how each individual windowlist button is currently grouped
@@ -373,7 +385,7 @@ function resizeActor(actor, time, toWidth, text, button) {
        if (this._shrukenLabel) {
           // Since some fonts don't seem to report the right size when calling get_pixel_size() before animation is complete
           // so we need to see what the actual size is now and set _minLabelSize accordingly.
-          let minText = (this._pinned && (this._applet.indicators===IndicatorType.Pinned || this._applet.indicators===IndicatorType.Both)) ? "\u{1F4CC}\u{2193}" : "\u{2193}";
+          let minText = (this._pinned && (this._applet.indicators===IndicatorType.Pinned || this._applet.indicators===IndicatorType.Both)) ? U_PINNED+U_MIN_DOWN : U_MIN_DOWN;
           if (text == minText) {
              let layout = this._label.get_clutter_text().get_layout();
              let [curWidth, curHeight] = layout.get_pixel_size();
@@ -1965,6 +1977,11 @@ class WindowListButton {
           }
        }
     }
+    // Add text to show the number of windows in this group
+    if (this._windows.length > 1) {
+       text = text + "\n" + this._windows.length + " " + _("windows in this group")
+    }
+    // Get the most appropriate windows tile for this button
     let title = null;
     let leftClickAction = this.getButton1Action();
     if (this._windows.length > 0 && (this._windows.length === 1 || leftClickAction!==LeftClickGrouped.Thumbnail)) {
@@ -1977,6 +1994,7 @@ class WindowListButton {
     if (title===null) {
        title = this._app.get_name();
     }
+    // Compose the final text and set the tooltip text
     if (text.length == 0 || !hasSetMarkup) {
        this._tooltip.set_text(title + text);
     } else {
@@ -2079,7 +2097,7 @@ class WindowListButton {
         this.actor.is_visible() && (progressType === ProgressDisplay.IconOverlay || (progressType === ProgressDisplay.LabelPrepend &&
         (this._applet.orientation === St.Side.LEFT || this._applet.orientation === St.Side.RIGHT))))
     {
-       this._labelNumber.set_text(this._currentWindow.progress + "\u{066A}");  // Arabic Percent Sign (thinner than a normal percent sign)
+       this._labelNumber.set_text(this._currentWindow.progress + U_PERCENT);  // Arabic Percent Sign (thinner than a normal percent sign)
        this._labelNumberBox.show();
        let [width, height] = this._labelNumber.get_size();
        let size = Math.max(width, height);
@@ -2098,7 +2116,7 @@ class WindowListButton {
        this._grouped = GroupingType.NotGrouped;
     }
 
-    if (numberType !== NumberType.Nothing) {
+    if (numberType && numberType !== NumberType.Nothing) {
        if (numberType === NumberType.GroupWindows && ( (setting == DisplayNumber.All && number >= 1) ||
           ((setting == DisplayNumber.Smart && number >= 2) &&
           (groupType == GroupType.Grouped || groupType == GroupType.Launcher || this._grouped > GroupingType.NotGrouped))))
@@ -2123,17 +2141,17 @@ class WindowListButton {
              }
           }
        } else if (numberType === NumberType.Minimized && this._currentWindow && this._currentWindow.minimized) {
-          text = ((this._applet.orientation !== St.Side.TOP)?"\u{2193}":"\u{2191}");  // The Unicode character up or down arrow
+          text = ((this._applet.orientation !== St.Side.TOP)?U_MIN_DOWN:U_MIN_UP);  // The Unicode character up or down arrow
        } else if (numberType === NumberType.Pinned && this._pinned) {
-          text = "\u{1F4CC}"; // Unicode for the "push pin" character
+          text = U_PINNED; // Unicode for the "push pin" character
        } else if (numberType === NumberType.MinAndPin) {
           text = "";
           if (this._currentWindow && this._currentWindow.minimized == true)
-             text += ((this._applet.orientation !== St.Side.TOP)?"\u{2193}":"\u{2191}");  // The Unicode character up or down arrow
+             text += ((this._applet.orientation !== St.Side.TOP)?U_MIN_DOWN:U_MIN_UP);  // The Unicode character up or down arrow
           if (this._pinned)
-             text += "\u{1F4CC}"; // Unicode for the "round push pin" character
+             text += U_PINNED; // Unicode for the "round push pin" character
        } else if (numberType === NumberType.Ellipsis && number >= 2) {
-          text += "\u{2026}"; // Unicode for the "..." character
+          text += U_ELLIPSIS_H; // Unicode for the "..." character
        }
     }
 
@@ -2270,7 +2288,7 @@ class WindowListButton {
     if (this._currentWindow && this._currentWindow.progress !== undefined && this._currentWindow.progress !== 0 &&
         this.actor.is_visible() && this._settings.getValue("progress-display-type") == ProgressDisplay.LabelPrepend)
     {
-       text = this._currentWindow.progress + "\u{066A} " + text;  // Arabic Percent Sign (thinner than a normal percent sign)
+       text = this._currentWindow.progress + U_PERCENT + text;  // Arabic Percent Sign (thinner than a normal percent sign)
     } else if (this._applet.indicators!==IndicatorType.None) {
        // We have some sort of label prepend option enabled
        let labelNum = 0;
@@ -2282,24 +2300,28 @@ class WindowListButton {
          labelNum = this._currentWindow.get_monitor()+1;
        }
        if (labelNum > 0) {
-         if (labelNum > 20) {
-           text = "\u{24A8} " + text; // The Unicode character "(m)"
+         if (labelNum > U_DIGIT_LIMIT) {
+           text = U_MANY + text; // Unicode character to represent "many"
          } else {
-           text = String.fromCharCode(9331+labelNum) + " " + text; // Bracketed number
+           if (labelNum < U_DIGIT_SPLIT_NUM) {
+             text = String.fromCharCode(U_DIGIT_ONE+(labelNum-1)) + " " + text; // Unicode number symbol
+           } else {
+             text = String.fromCharCode(U_DIGIT_SPLIT+(labelNum-U_DIGIT_SPLIT_NUM)) + " " + text; // Unicode number symbol
+           }
          }
        }
        // Do we need a minimized char
        if (this._currentWindow && this._currentWindow.minimized && (this._applet.indicators===IndicatorType.Minimized || this._applet.indicators===IndicatorType.Both) && this._workspace.autoIndicatorsOff==false) {
-         text = ((this._applet.orientation !== St.Side.TOP)?"\u{2193}":"\u{2191}") + text;  // The Unicode character up or down arrow
+         text = ((this._applet.orientation !== St.Side.TOP)?U_MIN_DOWN:U_MIN_UP) + text;  // The Unicode character up or down arrow
        }
        // Do we need a pinned char
        if (this._pinned && (this._applet.indicators===IndicatorType.Pinned || this._applet.indicators===IndicatorType.Both) && this._workspace.autoIndicatorsOff==false) {
-           text = "\u{1F4CC}" + text; // Unicode for the "push pin" character
+           text = U_PINNED + text; // Unicode for the "push pin" character
        }
        // Do we need a group ellipsis char
        if (this._applet.indicators===IndicatorType.Ellipsis === true && number >= 2)
        {
-          text = "\u{22EE}" + text;  // The Unicode character "Vertical Ellipsis"
+          text = U_ELLIPSIS_V + text;  // The Unicode character "Vertical Ellipsis"
        }
     }
 
@@ -2313,7 +2335,7 @@ class WindowListButton {
        if (this._workspace.autoIndicatorsOff==true || this._applet.indicators==IndicatorType.None || (this._pinned && this._windows.length==0)) {
           this._minLabelSize = 0;
        } else {
-          let minText = (this._pinned && (this._applet.indicators===IndicatorType.Pinned || this._applet.indicators===IndicatorType.Both)) ? "\u{1F4CC}\u{2193}" : "\u{2193}";
+          let minText = (this._pinned && (this._applet.indicators===IndicatorType.Pinned || this._applet.indicators===IndicatorType.Both)) ? U_PINNED+U_MIN_DOWN : U_MIN_DOWN;
           this._label.set_text(minText);
           let layout = this._label.get_clutter_text().get_layout();
           let [minWidth, minHeight] = layout.get_pixel_size();
