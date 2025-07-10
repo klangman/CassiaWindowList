@@ -1,7 +1,7 @@
 {
   "layout" : {
     "type" : "layout",
-    "pages" : ["general-page", "caption-page", "preview-page", "hotkey-page", "advanced-page"],
+    "pages" : ["general-page", "mouse-page", "caption-page", "preview-page", "hotkey-page", "advanced-page"],
 
     "caption-page" : {
       "type" : "page",
@@ -12,7 +12,13 @@
     "general-page" : {
       "type" : "page",
       "title" : "General",
-      "sections" : ["general-settings", "general-mouse"] 
+      "sections" : ["general-settings"]
+    },
+
+    "mouse-page" : {
+      "type" : "page",
+      "title" : "Mouse",
+      "sections" : ["general-mouse"]
     },
 
     "preview-page" : {
@@ -52,7 +58,7 @@
     "general-settings" : {
       "type" : "section",
       "title" : "General window list settings",
-      "keys" : ["group-windows", "display-pinned", "synchronize-pinned", "animate-icon", "show-windows-for-current-monitor", "show-windows-for-all-workspaces", "show-tooltips", "button-spacing", "hover-peek-windowlist", "no-click-activate"]
+      "keys" : ["group-windows", "display-pinned", "synchronize-pinned", "animate-icon", "show-windows-for-current-monitor", "show-windows-for-all-workspaces", "remember-button-order", "show-tooltips", "button-spacing", "hover-peek-windowlist", "no-click-activate"]
     },
     "general-mouse" : {
       "type" : "section",
@@ -212,7 +218,7 @@
     "options": {
       "Nothing": 100,
       "Application group window count": 1,
-      "Application group inticator (…)": 104,
+      "Application group indicator (…)": 104,
       "Workspace number": 2,
       "Monitor number": 3,
       "Two characters from the window title": 4,
@@ -284,6 +290,13 @@
     "type": "switch",
     "default": false,
     "description": "Include windows from all workspaces"
+  },
+  "remember-button-order": {
+    "type": "switch",
+    "default": false,
+    "dependency" : "group-windows<3",
+    "description": "Allow saving and restoring button order",
+    "tooltip": "If enabled, the window list position for a new application window button will be restored to its previous position if a button for that application had its position altered in the past using drag-and-drop or saved using the \"Remember window list position\" context menu option. The position of a new window for a remembered application will be relative to other remembered applications. New windows without a remembered position will be placed at the end of the window list."
   },
   "show-tooltips": {
     "type": "switch",
@@ -935,6 +948,11 @@
   "commoned-pinned-apps": {
     "type": "generic",
     "default": ["nemo.desktop", "firefox.desktop"]
+  },
+
+  "remembered-button-order": {
+     "type": "generic",
+     "default": []
   },
 
   "custom-label-app": {
