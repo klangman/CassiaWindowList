@@ -4323,7 +4323,8 @@ class Workspace {
        }
     }
     // If there is a remembered app location for this app, move the button to the appropriate location on the window list
-    if (this._settings.getValue("remember-button-order") && groupingType < GroupType.Off) {
+    // Unless the new button is part of a pool, in which case the new window list button is already in the right location
+    if ((!btns || btns.length === 0) && this._settings.getValue("remember-button-order") && groupingType < GroupType.Off) {
        let order = this._settings.getValue("remembered-button-order");
        let appIdx = order.findIndex( (element) => element == app.get_name() );
        if (appIdx != -1) {
