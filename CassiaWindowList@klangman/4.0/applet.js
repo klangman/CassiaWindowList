@@ -3616,19 +3616,16 @@ class WindowListButton {
     if( this._app && this._settings.getValue("remember-button-order") && this._settings.getValue("group-windows") < GroupType.Off) {
        let order = this._settings.getValue("remembered-button-order");
        let btnOrderIdx = order.findIndex( (element) => element == this._app.get_name() );
-       if (btnOrderIdx === -1) {
-          orderItem = new PopupMenu.PopupMenuItem(_("Remember window list position"));
-          orderItem.connect("activate", Lang.bind(this, function() {
-               this._workspace._rememberButtonPosition(this);
-            }));
-       } else {
-          orderItem = new PopupMenu.PopupMenuItem(_("Forget window list position"));
-          orderItem.connect("activate", Lang.bind(this, function() {
-               order.splice(btnOrderIdx, 1);   // Delete the app entry
-               let newOrder = order.slice();
-               this._settings.setValue("remembered-button-order", newOrder);
-            }));
-       }
+       orderItem = new PopupMenu.PopupSwitchMenuItem(_("Prioritize window list position"), btnOrderIdx!==-1);
+       orderItem.connect("toggled", Lang.bind(this, function(menuItem, state) {
+          if (state) {
+             this._workspace._rememberButtonPosition(this);
+          } else {
+             order.splice(btnOrderIdx, 1);   // Delete the app entry in the priority order list
+             let newOrder = order.slice();
+             this._settings.setValue("remembered-button-order", newOrder);
+          }
+       }));
     }
 
     if (this._currentWindow || metaWindow != undefined) {
@@ -4314,7 +4311,8 @@ class Workspace {
        }
     }
     // If there is a remembered app location for this app, move the button to the appropriate location on the window list
-    if (this._settings.getValue("remember-button-order") && groupingType < GroupType.Off) {
+    // Unless the new button is part of a pool, in which case the new window list button is already in the right location
+    if ((!btns || btns.length === 0) && this._settings.getValue("remember-button-order") && groupingType < GroupType.Off) {
        let order = this._settings.getValue("remembered-button-order");
        let appIdx = order.findIndex( (element) => element == app.get_name() );
        if (appIdx != -1) {
@@ -5058,9 +5056,10 @@ class Workspace {
               }
            }
         }
+        // Save the new order
         let newOrder = order.slice();
         this._settings.setValue("remembered-button-order", newOrder);
-        //log( `New Order:` );
+        //log( `New Priority Order:` );
         //for( let i=0 ; i < newOrder.length ; i++ ) {
         //   log( `   ${newOrder[i]}` );
         //}

@@ -295,8 +295,8 @@
     "type": "switch",
     "default": false,
     "dependency" : "group-windows<3",
-    "description": "Allow saving and restoring button order",
-    "tooltip": "If enabled, the window list position for a new application window button will be restored to its previous position if a button for that application had its position altered in the past using drag-and-drop or saved using the \"Remember window list position\" context menu option. The position of a new window for a remembered application will be relative to other remembered applications. New windows without a remembered position will be placed at the end of the window list."
+    "description": "Allow prioritizing window list button order",
+    "tooltip": "Enabling this option makes it easy for you to control where your favorite applications will appear on the window list. This is achieved by maintaining a persistent position priority order for applications. New Window list buttons for applications with priority will appear in priority order and ahead of applications without priority. Using drag-and-drop will automatically add to and reorder the priority list. The \"Prioritize window list position\" context menu option allows you to add and remove an application from the priority list."
   },
   "show-tooltips": {
     "type": "switch",
