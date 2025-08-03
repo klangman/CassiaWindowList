@@ -1950,10 +1950,10 @@ class WindowListButton {
                 if (idx == 0 && btns[0]._windows.length > 1) {
                    idx = btns[0]._windows.indexOf(this._currentWindow);
                 }
-                if (idx >= 0 && idx < 9) {
+                if (idx >= 0 && idx <= 9) {
                    seqCombo = seqCombo.replace( /</g, "");
                    seqCombo = seqCombo.replace( />/g, "+");
-                   text = text + "\n" + seqCombo + (idx+1);
+                   text = text + "\n" + seqCombo + ((idx+1)%10);
                 }
                 if (secondCombo) {
                    secondCombo = secondCombo.replace( /</g, "");
@@ -1968,11 +1968,11 @@ class WindowListButton {
           } else if (isAllButtons(hotKeys[i])) {
              let childern = this._workspace.actor.get_children();
              let idx = childern.indexOf(this.actor);
-             if (idx >= 0 && idx < 9) {
+             if (idx >= 0 && idx <= 9) {
                 let keyString = hotKeys[i].keyCombo.toString();
                 keyString = keyString.replace( /</g, "");
                 keyString = keyString.replace( />/g, "+");
-                text = text + "\n" + keyString.slice(0,keyString.indexOf("+")+1) + (idx+1)
+                text = text + "\n" + keyString.slice(0,keyString.indexOf("+")+1) + ((idx+1)%10);
              }
           }
        }
@@ -2655,6 +2655,7 @@ class WindowListButton {
     } else if (mouseBtn == 3) {
       // right mouse button, show context menu
       if (global.settings.get_boolean("panel-edit-mode")===false) {
+         this.closeThumbnailMenu();
          this._populateContextMenu();
          this._contextMenu.open();
          this._updateFocus();
@@ -5469,6 +5470,7 @@ class WindowList extends Applet.Applet {
                  for( let num=1 ; num < 10 ; num++ ) {
                     Main.keybindingManager.removeHotKey("CassiaWL-" + i + "-" + num + this.instanceId);
                  }
+                 Main.keybindingManager.removeHotKey("CassiaWL-" + i + "-0" + this.instanceId);
                  if (secondCombo) {
                     Main.keybindingManager.removeHotKey("CassiaWL-" + i + this.instanceId);
                  }
@@ -5492,6 +5494,8 @@ class WindowList extends Applet.Applet {
               for( let num=1 ; num < 10 ; num++ ) {
                  Main.keybindingManager.addHotKey("CassiaWL-" + i + "-" + num + this.instanceId, seqCombo+num, Lang.bind(this, function() {this._performHotkey(idx, num)} ));
               }
+              // Now register the 10th hotkey using the "0" key
+              Main.keybindingManager.addHotKey("CassiaWL-" + i + "-0" + this.instanceId, seqCombo+"0", Lang.bind(this, function() {this._performHotkey(idx, 10)} ));
               if (secondCombo) {
                  Main.keybindingManager.addHotKey("CassiaWL-" + i + this.instanceId, secondCombo, Lang.bind(this, function() {this._performHotkey(idx)} ));
               }
@@ -5517,6 +5521,7 @@ class WindowList extends Applet.Applet {
                  for( let num=1 ; num < 10 ; num++ ) {
                     Main.keybindingManager.removeHotKey("CassiaWL-" + i + "-" + num + this.instanceId);
                  }
+                 Main.keybindingManager.removeHotKey("CassiaWL-" + i + "-0" + this.instanceId);
                  if (secondCombo) {
                     Main.keybindingManager.removeHotKey("CassiaWL-" + i + this.instanceId);
                  }
@@ -5578,15 +5583,15 @@ class WindowList extends Applet.Applet {
            if (first.startsWith(modifiers) || second.startsWith(modifiers)) {
               if (isAllButtons(keyBindings[i])) {
                  let children = workspace.actor.get_children();
-                 for( let idx=0 ; idx < children.length && idx < 9 ; idx++ ){
-                    children[idx]._delegate._updateNumberForHotkeyHelp((idx+1).toString());
+                 for( let idx=0 ; idx < children.length && idx < 10 ; idx++ ){
+                    children[idx]._delegate._updateNumberForHotkeyHelp(((idx+1)%10).toString());
                  }
               } else if (keySequence && keyBindings[i].keyCombo.indexOf(modifiers+"1")!=-1) {
                  if (workspace._keyBindingsWindows[i]) {
                     let app = workspace.getAppForWindow(workspace._keyBindingsWindows[i]);
                     let btns = workspace._lookupAllAppButtonsForApp(app);
-                    for( let idx=0 ; idx<btns.length && idx<9 ; idx++ ) {
-                       btns[idx]._updateNumberForHotkeyHelp((idx+1).toString());
+                    for( let idx=0 ; idx<btns.length && idx < 10 ; idx++ ) {
+                       btns[idx]._updateNumberForHotkeyHelp(((idx+1)%10).toString());
                     }
                  }
               } else {
@@ -5594,7 +5599,7 @@ class WindowList extends Applet.Applet {
                     let app = workspace.getAppForWindow(workspace._keyBindingsWindows[i]);
                     if (app && keyBindings[i].cycle) {
                        let btns = workspace._lookupAllAppButtonsForApp(app);
-                       for( let idx=0 ; idx<btns.length && idx<9 ; idx++ ) {
+                       for( let idx=0 ; idx<btns.length && idx < 10 ; idx++ ) {
                           if (first.startsWith(modifiers)) {
                              btns[idx]._updateNumberForHotkeyHelp(first.slice(-1));
                           } else {
