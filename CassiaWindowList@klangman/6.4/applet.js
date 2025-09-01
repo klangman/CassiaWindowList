@@ -3352,7 +3352,7 @@ class WindowListButton {
        this._workspace._hoverPeekDelay = null;
     }
     // If we have left the panel, we might need to remove the hover peek clone and we might need to activate the window
-    if (this._settings.getValue("no-click-activate") && !isCtrlOrShiftHeld() && pointerIsOffPanel) {
+    if (this._currentWindow && this._settings.getValue("no-click-activate") && !isCtrlOrShiftHeld() && pointerIsOffPanel) {
        if (!this._contextMenu.isOpen && !this.menu.isOpen) {
           Main.activateWindow(this._currentWindow);
        }
