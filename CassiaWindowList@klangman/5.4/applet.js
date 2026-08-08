@@ -1847,7 +1847,50 @@ class WindowListButton {
     this._updateLabel();
     this._updateVisibility();
 
-    this._signalManager.connect(metaWindow, "notify::title", this._updateLabel, this);
+    // Per-window panel icon support: title change is a reliable proxy for
+    // _NET_WM_ICON change.  Lancelot / Nemo / any file manager that
+    // updates the window icon on navigation tends to change WM_NAME and
+    // _NET_WM_ICON together.  Meta.Window.icon does NOT fire on
+    // _NET_WM_ICON updates (it's a dead WM_HINTS stub for modern apps),
+    // so without this hook the panel button never repaints when the user
+    // navigates into / out of a custom-iconed folder.  We also invalidate
+    // the per-window xprop cache so the next updateIcon() re-fetches the
+    // current icon rather than reusing the stale one.
+    this._signalManager.connect(metaWindow, "notify::title", function() {
+      this._updateLabel();
+      try {
+        if (this._applet && this._applet._perWindowIconCache &&
+            metaWindow && typeof metaWindow.get_xwindow === "function") {
+          const _xid = metaWindow.get_xwindow();
+          const _entry = _xid ? this._applet._perWindowIconCache.get(_xid) : null;
+          if (_entry) {
+            // Mark stale (don't delete) so refetch triggers but the old
+            // pixbuf is still shown until xprop returns.  Deleting caused
+            // a "stale → default-app-icon → new" flash on every nav.
+            // Also wipe signature so the updateIcon skip-check doesn't
+            // short-circuit the refetch path on a stale match.
+            _entry.fetchedAt = 0;
+            _entry.signature = null;
+            this._applet._perWindowIconCache.set(_xid, _entry);
+          }
+        }
+      } catch (e) { /* cache may not exist yet */ }
+      // Debounce: coalesce title-change bursts into a single updateIcon.
+      // File managers fire multiple notify::title per navigation as the
+      // title settles; without this the icon thrashes per fire.
+      if (this._perWindowIconDebounceId) {
+        try { GLib.source_remove(this._perWindowIconDebounceId); } catch (e) {}
+        this._perWindowIconDebounceId = 0;
+      }
+      this._perWindowIconDebounceId = GLib.timeout_add(
+        GLib.PRIORITY_DEFAULT, 80,
+        () => {
+          this._perWindowIconDebounceId = 0;
+          try { this.updateIcon(); } catch (e) { /* button may have been destroyed */ }
+          return GLib.SOURCE_REMOVE;
+        }
+      );
+    }, this);
     this._signalManager.connect(metaWindow, "notify::minimized", this._onMinimized, this);
     this._signalManager.connect(metaWindow, "notify::urgent", this._updateUrgentState, this);
     this._signalManager.connect(metaWindow, "notify::demands-attention", this._updateUrgentState, this);
@@ -2086,6 +2129,218 @@ class WindowListButton {
     this.iconSize = this._applet.getPanelIconSize(St.IconType.FULLCOLOR);
     let icon = null;
 
+    // Per-window panel icon support: We do NOT destroy this._icon here
+    // unconditionally.  The cache-management section below kicks off any
+    // necessary xprop refetch, and AFTER it computes _directPixbuf we
+    // decide whether to rebuild.  The skip check moved below ensures
+    // we still trigger refetches on stale cache entries even when no
+    // visual rebuild is needed.
+
+    // === BEGIN PER-WINDOW-ICON-BYPASS ===
+    // Goal: panel button reflects each window's per-window _NET_WM_ICON
+    // (e.g. Lancelot / Nemo's location-aware folder icon, including
+    // metadata::custom-icon), not the .desktop's app-wide Icon=.
+    // Cinnamon's create_icon_texture_for_window ignores the for_window
+    // arg whenever the window matches a .desktop, so we bypass it.
+    // Meta.Window.get_icon() doesn't exist and Meta.Window.icon is a
+    // dead WM_HINTS stub (NULL for modern apps), so a naive
+    // notify::icon listener won't help (the signal fires but the
+    // property value is useless).
+    //
+    // Approach: read raw _NET_WM_ICON cardinals via
+    //   `xprop -id <xid> -len 1048576 -notype 32c _NET_WM_ICON`
+    // parse the {w0,h0,ARGB...,w1,h1,ARGB...} list, pick the size
+    // closest-to-but-not-exceeding iconSize, swizzle ARGB->RGBA bytes,
+    // build a GdkPixbuf via new_from_bytes, cache by xid.  Subprocess
+    // runs async (Gio.Subprocess); first call for a window misses
+    // cache and falls through to the app-icon path, then once xprop
+    // returns we stash the pixbuf and re-call updateIcon().
+    //
+    // Why xprop and not Gdk.property_get directly: the latter is
+    // non-introspectable in gjs/cjs (CARDINAL out-arg type) — segfaults
+    // under cjs, throws under gjs.  GIRepository inspection of
+    // GdkX11-3.0 confirms only X11Window.foreign_new_for_display and
+    // lookup_for_display are reachable; nothing on the instance reads
+    // property data.
+    let _hackWin = this._currentWindow || (this._windows && this._windows[0]) || null;
+    let _bytesToString = function(bytes) {
+      // Convert a Uint8Array (or ByteArray) to ASCII string in chunks to
+      // avoid RangeError "too many arguments" when stack-arg count is large.
+      let s = "";
+      const CHUNK = 8192;
+      for (let i = 0; i < bytes.length; i += CHUNK) {
+        s += String.fromCharCode.apply(null, bytes.subarray
+          ? bytes.subarray(i, Math.min(i + CHUNK, bytes.length))
+          : Array.prototype.slice.call(bytes, i, Math.min(i + CHUNK, bytes.length)));
+      }
+      return s;
+    };
+    let _cardsToPixbuf = (cardinals, targetSize) => {
+      // cardinals: array of uint32 in [w0, h0, ARGB...w*h..., w1, h1, ...] form.
+      // Pick best (largest <= targetSize, else smallest available), convert
+      // ARGB cardinals -> RGBA bytes, build GdkPixbuf.  Returns null on parse failure.
+      let bestIdx = -1, bestW = 0, bestH = 0;
+      let i = 0;
+      while (i + 2 <= cardinals.length) {
+        const w = cardinals[i], h = cardinals[i + 1];
+        if (w <= 0 || h <= 0 || w > 2048 || h > 2048) break;
+        const px = w * h;
+        if (i + 2 + px > cardinals.length) break;
+        if (w <= targetSize && w > bestW) { bestIdx = i; bestW = w; bestH = h; }
+        i += 2 + px;
+      }
+      if (bestIdx < 0) {
+        // No icon <= target; pick smallest available
+        i = 0;
+        let smallestW = Infinity;
+        while (i + 2 <= cardinals.length) {
+          const w = cardinals[i], h = cardinals[i + 1];
+          if (w <= 0 || h <= 0 || w > 2048) break;
+          const px = w * h;
+          if (i + 2 + px > cardinals.length) break;
+          if (w < smallestW) { smallestW = w; bestIdx = i; bestW = w; bestH = h; }
+          i += 2 + px;
+        }
+      }
+      if (bestIdx < 0 || bestW <= 0 || bestH <= 0) return null;
+      const px = bestW * bestH;
+      const bytes = new Uint8Array(px * 4);
+      const dataStart = bestIdx + 2;
+      for (let p = 0; p < px; p++) {
+        const c = cardinals[dataStart + p] >>> 0;
+        bytes[p * 4 + 0] = (c >> 16) & 0xFF; // R
+        bytes[p * 4 + 1] = (c >> 8) & 0xFF;  // G
+        bytes[p * 4 + 2] = c & 0xFF;         // B
+        bytes[p * 4 + 3] = (c >> 24) & 0xFF; // A
+      }
+      try {
+        const gbytes = GLib.Bytes.new(bytes);
+        const pixbuf = GdkPixbuf.Pixbuf.new_from_bytes(
+          gbytes, GdkPixbuf.Colorspace.RGB, true, 8,
+          bestW, bestH, bestW * 4
+        );
+        return { pixbuf: pixbuf, w: bestW, h: bestH };
+      } catch (e) {
+        return null;
+      }
+    };
+
+    // Lazy module-level cache on the applet instance:
+    //   xid -> { pixbuf, w, h, fetchedAt, fetching, signature, lastTitle }
+    if (this._applet && !this._applet._perWindowIconCache) {
+      this._applet._perWindowIconCache = new Map();
+    }
+    let _cache = (this._applet && this._applet._perWindowIconCache) || null;
+    let _xid = null;
+    if (_hackWin && typeof _hackWin.get_xwindow === "function") {
+      try { _xid = _hackWin.get_xwindow(); } catch (e) { _xid = null; }
+    }
+
+    let _directPixbuf = null;
+    let _directWH = null;
+    if (_cache && _xid) {
+      const _entry = _cache.get(_xid);
+      const _now = Date.now();
+      // Show whatever pixbuf we have, even if stale — avoids the
+      // "stale → default-app-icon → new" flash while xprop is in flight.
+      // The refetch below will swap in the correct one when it arrives.
+      if (_entry && _entry.pixbuf) {
+        _directPixbuf = _entry.pixbuf;
+        _directWH = [_entry.w, _entry.h];
+      }
+      // Kick off async refetch only when there's a real reason:
+      //   1. No entry yet (first time we see this xid).
+      //   2. The window's title has actually changed since our last fetch.
+      //   3. Last attempt is more than 30s old (safety net).
+      let _curTitle = null;
+      try {
+        if (_hackWin && typeof _hackWin.get_title === "function") {
+          _curTitle = _hackWin.get_title() || "";
+        }
+      } catch (e) { _curTitle = null; }
+      const _titleChanged = (_entry && _entry.lastTitle !== undefined && _entry.lastTitle !== _curTitle);
+      const _veryStale   = _entry && (_now - (_entry.fetchedAt || 0)) > 30000;
+      const _shouldFetch = (!_entry || _titleChanged || _veryStale) && (!_entry || !_entry.fetching);
+      if (_shouldFetch) {
+        const _newEntry = _entry || { fetching: true, fetchedAt: 0 };
+        _newEntry.fetching = true;
+        _newEntry.lastTitle = _curTitle;
+        _cache.set(_xid, _newEntry);
+        const _self = this;
+        try {
+          const _proc = new Gio.Subprocess({
+            argv: ["xprop", "-id", String(_xid), "-len", "1048576", "-notype", "32c", "_NET_WM_ICON"],
+            flags: Gio.SubprocessFlags.STDOUT_PIPE | Gio.SubprocessFlags.STDERR_SILENCE
+          });
+          _proc.init(null);
+          _proc.communicate_utf8_async(null, null, (proc, res) => {
+            try {
+              const [okComm, sout] = proc.communicate_utf8_finish(res);
+              if (!okComm) { _newEntry.fetching = false; return; }
+              const eq = sout.indexOf("=");
+              if (eq < 0) {
+                // No _NET_WM_ICON on this window; record "no icon".
+                _newEntry.fetching = false;
+                _newEntry.pixbuf = null;
+                _newEntry.fetchedAt = Date.now();
+                _cache.set(_xid, _newEntry);
+                return;
+              }
+              const csv = sout.substring(eq + 1).trim();
+              if (!csv) { _newEntry.fetching = false; _newEntry.fetchedAt = Date.now(); return; }
+              // Cheap signature: hash a 200-char sample of the cardinals
+              // string.  Identical _NET_WM_ICON content => identical hash;
+              // unchanged icon => skip destroy-and-recreate that causes
+              // the panel-button flash.  Apps like xfce4-terminal update
+              // titles every command without touching their icon, so
+              // this saves a lot of pointless re-renders.
+              let _sig = csv.length;
+              const _step = Math.max(1, Math.floor(csv.length / 200));
+              for (let _i = 0; _i < csv.length; _i += _step) {
+                _sig = ((_sig << 5) - _sig) + csv.charCodeAt(_i);
+                _sig |= 0;
+              }
+              const _prevSig = _newEntry.signature;
+              const _sigUnchanged = (_prevSig === _sig && _newEntry.pixbuf);
+              _newEntry.fetching = false;
+              _newEntry.fetchedAt = Date.now();
+              _newEntry.signature = _sig;
+              if (_sigUnchanged) {
+                _cache.set(_xid, _newEntry);
+                return;
+              }
+              const cards = csv.split(",").map(s => parseInt(s.trim()) >>> 0);
+              const result = _cardsToPixbuf(cards, _self.iconSize || 32);
+              if (result) {
+                _newEntry.pixbuf = result.pixbuf;
+                _newEntry.w = result.w;
+                _newEntry.h = result.h;
+                _cache.set(_xid, _newEntry);
+                try { _self.updateIcon(); } catch (e) { /* button may have been destroyed */ }
+              } else {
+                _newEntry.pixbuf = null;
+                _cache.set(_xid, _newEntry);
+              }
+            } catch (e) {
+              _newEntry.fetching = false;
+              _cache.set(_xid, _newEntry);
+            }
+          });
+        } catch (e) {
+          _newEntry.fetching = false;
+        }
+      }
+    }
+
+    // Reference-identity skip: avoids destroy-and-recreate flash when
+    // the same pixbuf would be rendered as last paint.
+    if (this._icon &&
+        _directPixbuf &&
+        this._perWindowDisplayedPixbuf === _directPixbuf &&
+        this._perWindowLastIconSize === this.iconSize) {
+      return;
+    }
+
     if (this._icon) {
        if (this._icon.get_effect("desat_icon_effect")) {
           this._icon.remove_effect_by_name("desat_icon_effect");
@@ -2094,16 +2349,28 @@ class WindowListButton {
     }
 
     if (this._app) {
-      let appInfo = this._app.get_app_info();
-      if (appInfo) {
-        let infoIcon = appInfo.get_icon();
-        this._icon = new St.Icon({ gicon: infoIcon, icon_size: this.iconSize });
+      if (_directPixbuf) {
+        this._icon = new St.Icon({ gicon: _directPixbuf, icon_size: this.iconSize });
+        this._perWindowDisplayedPixbuf = _directPixbuf;
+        this._perWindowLastIconSize = this.iconSize;
+      } else if (_hackWin && typeof this._app.create_icon_texture_for_window === "function") {
+        this._icon = this._app.create_icon_texture_for_window(this.iconSize, _hackWin);
+        this._perWindowDisplayedPixbuf = null;
       } else {
-        this._icon = this._app.create_icon_texture(this.iconSize);
+        let appInfo = this._app.get_app_info();
+        if (appInfo) {
+          let infoIcon = appInfo.get_icon();
+          this._icon = new St.Icon({ gicon: infoIcon, icon_size: this.iconSize });
+        } else {
+          this._icon = this._app.create_icon_texture(this.iconSize);
+        }
+        this._perWindowDisplayedPixbuf = null;
       }
     } else {
       this._icon = new St.Icon({ icon_name: "application-default-icon", icon_type: St.IconType.FULLCOLOR, icon_size: this.iconSize });
+      this._perWindowDisplayedPixbuf = null;
     }
+    // === END PER-WINDOW-ICON-BYPASS ===
     this.updateIconSelection();
 
     if (this._applet.orientation == St.Side.LEFT || this._applet.orientation == St.Side.RIGHT) {
