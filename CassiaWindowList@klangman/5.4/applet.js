@@ -3705,7 +3705,7 @@ class WindowListButton {
          item.connect("activate", Lang.bind(this, function() {
                hotKeys.push( {enabled:false, cycle:true, keyCombo:"", description:this._app.get_id()} );
                this._settings.setValue("hotkey-bindings", hotKeys);
-               this._applet.configureApplet(3);
+               this._applet.configureApplet(4);
                }));
          this._contextMenu.addMenuItem(item);
       }
@@ -3926,7 +3926,7 @@ class WindowListButton {
          hotKeyItem.connect("activate", Lang.bind(this, function() {
                hotKeys.push( {enabled:false, cycle:true, keyCombo:"", description:this._app.get_id()} );
                this._settings.setValue("hotkey-bindings", hotKeys);
-               this._applet.configureApplet(3);
+               this._applet.configureApplet(4);
                }));
          item.menu.addMenuItem(hotKeyItem);
       }
