@@ -785,7 +785,7 @@
     "columns" : [
         {"id": "enabled",     "title": "Enabled",      "type": "boolean", "default": true},
         {"id": "cycle",       "title": "Cycle application windows", "type": "boolean", "default": false},
-        {"id": "keyCombo",    "title": "Key sequence", "type": "keybinding"},
+        {"id": "keyCombo",    "title": "Key sequence", "type": "string"},
         {"id": "description", "title": "Description",  "type": "string"}
     ],
     "tooltip": "Define a list of hotkeys used to bring to the foreground specific windows.",
