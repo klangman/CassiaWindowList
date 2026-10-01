@@ -3708,6 +3708,13 @@ class WindowListButton {
                this._applet.configureApplet(4);
                }));
          this._contextMenu.addMenuItem(item);
+      } else if (appHasExistingHotkey===true && !this._app.is_window_backed()) {
+         this._contextMenu.addMenuItem(new PopupMenu.PopupSeparatorMenuItem());
+         item = new PopupMenu.PopupIconMenuItem(_("Edit Hotkey for")+" \""+this._app.get_id()+"\"", "preferences-system", St.IconType.SYMBOLIC);
+         item.connect("activate", Lang.bind(this, function() {
+               this._applet.configureApplet(4);
+               }));
+         this._contextMenu.addMenuItem(item);
       }
     }
 
@@ -3871,7 +3878,7 @@ class WindowListButton {
       let hotKeys = this._applet._keyBindings;
       item = null;
       for (let i=0 ; i < hotKeys.length ; i++) {
-         if (hotKeys[i].enabled===true && hotKeys[i].description.endsWith(".desktop")!==true && isAllButtons(hotKeys[i])!==true) {
+         if (hotKeys[i].enabled===true && hotKeys[i].description.includes(".desktop")!==true && isAllButtons(hotKeys[i])!==true) {
             let idx = i;
             let keyString;
             if (hotKeys[i].keyCombo!==null) {
@@ -3926,6 +3933,16 @@ class WindowListButton {
          hotKeyItem.connect("activate", Lang.bind(this, function() {
                hotKeys.push( {enabled:false, cycle:true, keyCombo:"", description:this._app.get_id()} );
                this._settings.setValue("hotkey-bindings", hotKeys);
+               this._applet.configureApplet(4);
+               }));
+         item.menu.addMenuItem(hotKeyItem);
+      } else if (appHasExistingHotkey===true && !this._app.is_window_backed()) {
+         if (item === null) {
+            item = new PopupMenu.PopupSubMenuMenuItem(_("Assign window to a hotkey"));
+            this._contextMenu.addMenuItem(item);
+         }
+         let hotKeyItem = new PopupMenu.PopupIconMenuItem(_("Edit Hotkey for")+" \""+this._app.get_id()+"\"", "preferences-system", St.IconType.SYMBOLIC);
+         hotKeyItem.connect("activate", Lang.bind(this, function() {
                this._applet.configureApplet(4);
                }));
          item.menu.addMenuItem(hotKeyItem);
