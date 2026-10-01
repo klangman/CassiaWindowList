@@ -569,11 +569,41 @@ function isTitleBarOnScreen(window) {
    return true;
 }
 
+function normalizeKeyCombo(keyCombo) {
+   if (!keyCombo || typeof keyCombo !== "string") return "";
+   let str = keyCombo.trim();
+   str = str.replace(/\benter\b/gi, "Return")
+            .replace(/\breturn\b/gi, "Return")
+            .replace(/\besc\b/gi, "Escape")
+            .replace(/\btab\b/gi, "Tab");
+
+   if (!str.includes("<") && !str.includes(">")) {
+      let parts = str.split(/[\s+]+/).filter(Boolean);
+      if (parts.length > 0) {
+         let key = parts.pop();
+         let mods = parts.map(m => {
+            let lower = m.toLowerCase();
+            if (lower === "ctrl" || lower === "control") return "<Control>";
+            if (lower === "alt") return "<Alt>";
+            if (lower === "super" || lower === "win" || lower === "mod4") return "<Super>";
+            if (lower === "shift") return "<Shift>";
+            return "<" + m + ">";
+         }).join("");
+         str = mods + key;
+      }
+   }
+   if (!str.includes("::")) {
+      str = str + "::";
+   }
+   return str;
+}
+
 // Returns a 2 element array
 //          1) Modifier keys for the sequence i.e. <Super>1 --> <Super>
 //          2) The other full key combination i.e. <Super>W --> <Super>W
 //          Returns [null,null] if there is no key "1" in any of the key combinations
 function getSmartNumericHotkey(keyCombo) {
+   keyCombo = normalizeKeyCombo(keyCombo);
    let one = keyCombo.indexOf(">1");
    if (one >= 0) {
       let colons = keyCombo.indexOf("::");
@@ -751,6 +781,7 @@ function reTile(window, newTileMode) {
 // 'Separator' is added between the hotkeys if two are specified
 function getHotkeyPrettyString(keyString, separator) {
    let text = "";
+   keyString = normalizeKeyCombo(keyString);
    keyString = keyString.replace( /</g, "");
    keyString = keyString.replace( />/g, "+");
    if (keyString.endsWith("::")) {
@@ -5622,6 +5653,13 @@ class WindowList extends Applet.Applet {
      let oldBindings = this._keyBindings;
      let oldKeySequence = this._keySequenece;
      let keyBindings = this._settings.getValue("hotkey-bindings");
+     if (keyBindings && Array.isArray(keyBindings)) {
+        for (let k = 0; k < keyBindings.length; k++) {
+           if (keyBindings[k].keyCombo) {
+              keyBindings[k].keyCombo = normalizeKeyCombo(keyBindings[k].keyCombo);
+           }
+        }
+     }
      let keySequence = this._settings.getValue("hotkey-sequence");  // Is smart numeric hotkeys enabled?
      let keyHelp = this._settings.getValue("hotkey-grave-help");
      let i;
@@ -5718,6 +5756,7 @@ class WindowList extends Applet.Applet {
 
   // Extract the modifiers from the keyCombo and register <modifiers>+` (the grave key) hotkey to show hotkey help using the appButton number label
   _registerHotkeyHelperKeys(keyCombo) {
+     keyCombo = normalizeKeyCombo(keyCombo);
      let colons = keyCombo.indexOf("::");
      let first = keyCombo.slice(0,colons-1);
      let second = keyCombo.slice(colons+2,-1)
@@ -5748,7 +5787,7 @@ class WindowList extends Applet.Applet {
      // Update buttons with the relevant hotkey characters
      for ( i=keyBindings.length-1 ; i >= 0 ; i--) {
         if (keyBindings[i].enabled && keyBindings[i].keyCombo) {
-           let keyCombo = keyBindings[i].keyCombo;
+           let keyCombo = normalizeKeyCombo(keyBindings[i].keyCombo);
            let colons = keyCombo.indexOf("::");
            let first = keyCombo.slice(0,colons);
            let second = keyCombo.slice(colons+2)
