@@ -415,7 +415,7 @@
     "units": "milliseconds",
     "step": 20,
     "description": "Time before closing after pointer leaves the menu",
-    "tooltip": "The waiting time for the thumbnail menu to close when leaving a button\n(Not used when moving directly to a different button in the list)"
+    "tooltip": "The waiting time for the thumbnail menu to close when leaving a button\n(Also the waiting time before switching to the menu of a different button in the list)"
   },
   "preview-middle-click": {
     "type": "combobox",

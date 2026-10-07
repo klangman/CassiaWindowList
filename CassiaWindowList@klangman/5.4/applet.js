@@ -3382,10 +3382,10 @@ class WindowListButton {
     if (curMenu && curMenu.isOpen) {
        let menuItem = curMenu._findMenuItemForWindow(this._currentWindow);
        if (menuItem==null) {
-          let holdPopup = this._workspace.holdPopup;
-          this._workspace.closeThumbnailMenu();
-          this._workspace.openThumbnailMenu(this);
-          this._workspace.holdPopup = holdPopup;
+          // Switch to this buttons menu (or close the menu for a button without windows) after the close delay so
+          // that briefly passing over this button on the way to the menu does not close the menu.
+          // Switch right away when a mouse button is being held to display the menu
+          this._workspace.switchThumbnailMenu(this, this._workspace.holdPopup === undefined);
        } else {
           menuItem.actor.add_style_pseudo_class("active");
           this._workspace.removeCloseThumbnailMenuDelay();
@@ -5402,6 +5402,28 @@ class Workspace {
            this.currentMenu.closeMenu();
         }
      }
+  }
+
+  // Close the open Thumbnail menu and open the menu for 'button' instead. When delayed, wait for the
+  // preview-timeout-hide time first. Entering the menu or the original button cancels a delayed switch.
+  switchThumbnailMenu(button, delayed=false) {
+     this._removeDelay(this._closeDelayId);
+     this._closeDelayId = null;
+     if (delayed) {
+        this._closeDelayId = Mainloop.timeout_add(this._settings.getValue("preview-timeout-hide"), () => {
+           this._closeDelayId = null;
+           if (this._appButtons.indexOf(button) >= 0) {
+              this.switchThumbnailMenu(button);
+           } else {
+              this.closeThumbnailMenu();
+           }
+        });
+        return;
+     }
+     let holdPopup = this.holdPopup;
+     this.closeThumbnailMenu();
+     this.openThumbnailMenu(button);
+     this.holdPopup = holdPopup;
   }
 
   removeCloseThumbnailMenuDelay() {
