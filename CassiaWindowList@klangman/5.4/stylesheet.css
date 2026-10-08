@@ -8,3 +8,17 @@
   padding: 0px;
   font-size: 8pt;
 }
+
+.grouped-window-list-notifications-badge {
+  margin: 0px;
+  padding: 0px;
+  border-radius: 99px;
+  background-color: #e74b37;
+  color: #ffffff;
+}
+
+.grouped-window-list-notifications-badge-label {
+  margin: 0px;
+  padding: 0px;
+  font-size: 8pt;
+}

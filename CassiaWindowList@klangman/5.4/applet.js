@@ -36,6 +36,7 @@ const Main = imports.ui.main;
 const Panel = imports.ui.panel;
 const Tooltips = imports.ui.tooltips;
 const PopupMenu = imports.ui.popupMenu;
+const MessageTray = imports.ui.messageTray;
 const BoxPointer = imports.ui.boxpointer;
 const Clutter = imports.gi.Clutter;
 const Mainloop = imports.mainloop;
@@ -1597,6 +1598,16 @@ class WindowListButton {
     this._labelNumberBox.add_actor(this._labelNumberBin);
     this._labelNumberBin.add_actor(this._labelNumber);
 
+    // Notification count badge in the top right corner of the icon
+    this._notifBadgeBox = new St.Bin({x_align: St.Align.END, y_align: St.Align.START});
+    this._notifBadgeBin = new St.Bin({
+      important: true, style_class: "grouped-window-list-notifications-badge", x_align: St.Align.MIDDLE, y_align: St.Align.MIDDLE});
+    this._notifBadgeLabel = new St.Label({important: true, style_class: "grouped-window-list-notifications-badge-label"});
+    this._iconBox.add_actor(this._notifBadgeBox);
+    this._notifBadgeBox.add_actor(this._notifBadgeBin);
+    this._notifBadgeBin.add_actor(this._notifBadgeLabel);
+    this._notifBadgeBox.hide();
+
     this._windows = [];
     this._nextWindow = null;                  // When cycling windows, keep track of the next window to cycle to
     this._grouped = GroupingType.NotGrouped;  // If button is a group of windows and why it was grouped
@@ -1620,6 +1631,7 @@ class WindowListButton {
     this._signalManager.connect(this._settings, "changed::display-caption-for", this._updateLabel, this);
     this._signalManager.connect(this._settings, "changed::progress-display-type", this._updateProgress, this);
     this._signalManager.connect(this._settings, "changed::display-number", this._updateNumber, this);
+    this._signalManager.connect(this._settings, "changed::enable-notification-badges", this.updateNotificationsBadge, this);
     this._signalManager.connect(this._settings, "changed::menu-show-on-hover", this._updateTooltip, this);
     this._signalManager.connect(this._settings, "changed::grouped-mouse-action-btn1", this._updateTooltip, this);
     this._signalManager.connect(this._settings, "changed::show-tooltips", this._updateTooltip, this);
@@ -1644,6 +1656,7 @@ class WindowListButton {
 
     this.isDraggableApp = true;
     this._updateNumber();
+    this.updateNotificationsBadge();
     this._updateSpacing();
   }
 
@@ -2128,6 +2141,25 @@ class WindowListButton {
     this._iconBin.natural_width = panelHeight;
     this._iconBin.natural_height = panelHeight;
     this._labelNumberBox.natural_width = panelHeight;
+    this._notifBadgeBox.natural_width = panelHeight;
+  }
+
+  // Show the number of notifications this application has in the notification tray
+  updateNotificationsBadge() {
+    let count = 0;
+    if (this._app && this._settings.getValue("enable-notification-badges") && Main.notificationDaemon.getNotificationCountForApp) {
+       count = Main.notificationDaemon.getNotificationCountForApp(this._app);
+    }
+    if (count > 0) {
+       this._notifBadgeLabel.set_text(count.toString());
+       this._notifBadgeBox.show();
+       let [width, height] = this._notifBadgeLabel.get_size();
+       let size = Math.max(width, height);
+       this._notifBadgeBin.width = size;
+       this._notifBadgeBin.height = size;
+    } else {
+       this._notifBadgeBox.hide();
+    }
   }
 
   _removeNumber() {
@@ -2471,6 +2503,7 @@ class WindowListButton {
     this.actor.remove_style_class_name("left");
     this.actor.remove_style_class_name("right");
     this._labelNumberBox.set_style("padding: 1pt;");
+    this._notifBadgeBox.set_style("padding: 1pt;");
     switch (this._applet.orientation) {
       case St.Side.LEFT:
         this.actor.add_style_class_name("left");
@@ -5871,6 +5904,12 @@ class WindowList extends Applet.Applet {
 
   on_applet_added_to_panel() {
     this._updateMonitor();
+    // Ask Cinnamon to keep notifications in the tray after they are shown and to tell us about them
+    if (!this._handlingNotifications) {
+       MessageTray.extensionsHandlingNotifications++;
+       this._handlingNotifications = true;
+    }
+    this._signalManager.connect(Main.messageTray, "notify-applet-update", this._onNotificationReceived, this);
     let nWorkspaces = global.screen.get_n_workspaces();
     if (this._settings.getValue("group-windows")===GroupType.Launcher)
        this.indicators = IndicatorType.None;
@@ -6069,8 +6108,30 @@ class WindowList extends Applet.Applet {
      try {this._workspaces[currentWs]._updateFocus();} catch(e) {}
   }
 
+  // A notification was added to the notification tray, update the notification badge for the app's buttons
+  _onNotificationReceived(mtray, notification) {
+    let app = notification.source ? notification.source.app : null;
+    if (!app) {
+       return;
+    }
+    this._updateNotificationsBadges(app);
+    notification.connect("destroy", () => this._updateNotificationsBadges(app));
+  }
+
+  _updateNotificationsBadges(app) {
+    for (let i = 0; i < this._workspaces.length; i++) {
+       if (this._workspaces[i]) {
+          this._workspaces[i]._lookupAllAppButtonsForApp(app).forEach( (btn) => btn.updateNotificationsBadge() );
+       }
+    }
+  }
+
   on_applet_removed_from_panel() {
     this._signalManager.disconnectAllSignals();
+    if (this._handlingNotifications) {
+       MessageTray.extensionsHandlingNotifications--;
+       this._handlingNotifications = false;
+    }
     // Remove all the hot keys
     let keySequence = this._settings.getValue("hotkey-sequence");
     let seqCombo;

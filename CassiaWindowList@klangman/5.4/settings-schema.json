@@ -48,7 +48,7 @@
     "caption-number-settings" : {
       "type" : "section",
       "title" : "Icon overlay label settings",
-      "keys" : ["number-type", "display-number"]
+      "keys" : ["number-type", "display-number", "enable-notification-badges"]
     },
     "caption-progress-settings" : {
       "type" : "section",
@@ -234,6 +234,12 @@
     "dependency" : "number-type<100",
     "description": "Only display label when needed",
     "tooltip": "With this option enabled, the icon overlay label will only appear when it is appropriate depending on the label content (i.e. When there are two or more windows in a group, or when the windows workspace or monitor does not match the current one). When this option is disabled the label is always shown"
+  },
+  "enable-notification-badges": {
+    "type": "switch",
+    "default": true,
+    "description": "Show notification badges",
+    "tooltip": "Indicate on the panel when an application has notifications"
   },
 
   "progress-display-type": {
